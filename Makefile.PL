@@ -66,7 +66,7 @@ if (defined($Config{'sitelib_stem'}) && $Config{'sitelib_stem'} ne "") {
         #print "stem is: $Config{'sitelib_stem'}\n";
         $opts{'INSTALLSITELIB'} = "";
         $opts{'INSTALLSITELIB'} = $args{'DESTDIR'}
-                if ($] >= 5.008 ||
+                if (($] >= 5.008 && $] < 5.008005) ||
                     $ExtUtils::MakeMaker::VERSION =~ /5\.9[1-6]|6\.0[0-5]/);
         $opts{'INSTALLSITELIB'} .= $Config{'sitelib_stem'};
 }

@@ -5,7 +5,7 @@
 %define pkgname sendpage
 %define filelist %{pkgname}-%{version}-filelist
 %define maketest 1
-# Be sure to change both
+# Be sure to change both version numbers -- perl has dumb package numbering
 %define pkgversion 1
 %define rpmversion 1.0.0
 %define namever %{pkgname}-%{pkgversion}
@@ -55,9 +55,13 @@ CFLAGS="$RPM_OPT_FLAGS"
 
 %install
 [ "%{buildroot}" != "/" ] && rm -rf %{buildroot}
+
 %{makeinstall} `%{__perl} -MExtUtils::MakeMaker -e ' print \$ExtUtils::MakeMaker::VERSION <= 6.05 ? qq|PREFIX=%{buildroot}%{_prefix}| : qq|DESTDIR=%{buildroot}| '`
 
-[ -x /usr/lib/rpm/brp-compress ] && /usr/lib/rpm/brp-compress
+cmd=/usr/share/spec-helper/compress_files
+[ -x $cmd ] || cmd=/usr/lib/rpm/brp-compress
+[ -x $cmd ] && $cmd
+
 # SuSE Linux
 if [ -e /etc/SuSE-release ]; then
 	%{__mkdir_p} %{buildroot}/var/adm/perl-modules
@@ -135,7 +139,7 @@ fi
 	echo "ERROR: empty %files listing"
 	exit -1
 }
-grep -rsl '^#!.*perl'  Changes README FEATURES LICENSE THANKS TODO modemtest docs debian |
+grep -rsl '^#!.*perl'  Changes README FEATURES LICENSE THANKS TODO modemtest docs |
 	grep -v '.bak$' |xargs --no-run-if-empty \
 	%__perl -MExtUtils::MakeMaker -e 'MY->fixin(@ARGV)'
 
@@ -149,23 +153,23 @@ id %{user} >/dev/null 2>&1 || \
 
 %post
 if [ $1 = 1 ]; then
-    /sbin/chkconfig --add %{name}
+    /sbin/chkconfig --add %{name} >/dev/null
 fi
 
 %preun
 if [ $1 = 0 ]; then
-    /sbin/chkconfig --del %{name}
+    /sbin/chkconfig --del %{name} >/dev/null
 fi
 
 %postun
 if [ $1 -ge 1 ]; then
-    /sbin/chkconfig %{name} && /sbin/service %{name} restart >/dev/null 2>&1
+    /sbin/chkconfig %{name} >/dev/null && /sbin/service %{name} restart >/dev/null 2>&1
 fi
 
 %files -f %filelist
 
 %changelog
-* Fri May 07 2004 kees@outflux.net
-- Tweaking for actual use :)
+* Fri Feb 18 2005 kees@outflux.net
+- Tweaking for actual use under SuSE 9.2
 * Fri Jan 16 2004 kees@outflux.net
-- Initial build.
+- Initial build, with lots of input from various folks that sent in spec files.

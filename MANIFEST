@@ -26,10 +26,12 @@ lib/Sendpage/Queue.pm
 lib/Sendpage/Recipient.pm
 lib/Sendpage/Modem.pm
 lib/Sendpage/SNPPServer.pm
+lib/Sendpage/Db.pm
 sendpage
 snpp
 email2page
 sendmail2snpp
+sendpage-db
 modemtest
 sendpage.init
 META.yml                                 Module meta-data (added by MakeMaker)
