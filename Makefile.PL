@@ -33,7 +33,9 @@ if (!chk_version(Device::SerialPort => 0.07) &&
 	. "'Device::SerialPort' version 0.07 or better or\n"
 	. "'Win32::SerialPort' version 0.07 or better is required.\n"
         . "Look for Device-SerialPort-x.xx.tar.gz on CPAN in:\n"
-        . "\thttp://cpan.perl.org/authors/id/B/BB/BBIRTH/\n\n";
+        . "\thttp://cpan.perl.org/authors/id/B/BB/BBIRTH/\n";
+        . "or for version 0.09, check in:\n";
+	. "\thttp://sendpage.cpoint.net/device-serialport/\n\n";
     $fail=1;
 }
 

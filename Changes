@@ -1,5 +1,8 @@
 $Id$
 
+0.9.8:
+	- further updates to Device::SerialPort and associated documentation
+
 0.9.7: (23Jan2001)
 	- implemented level 2 SNPP server
 	- added SNPP config options

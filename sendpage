@@ -3,6 +3,11 @@
 eval 'exec /usr/local/bin/perl  -S $0 ${1+"$@"}'
     if 0; # not running under some shell
 
+BEGIN {
+	unshift(@INC,"/kees/projects/TAP/rel/Device-SerialPort-0.09/blib/lib",
+		     "/kees/projects/TAP/cvs/sendpage/lib");
+}
+
 #
 # sendpage is the tool that will handle all the paging functions
 #

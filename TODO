@@ -17,9 +17,12 @@ Needed For Stable Release
 - does snpp tool need to generate "bounce" emails on bad pages?
 - create snpp.conf file for snpp tool to pull its defaults from
 - implement more of the API calls with hash opts
+- write a script as an example for using with sendmail
 *Docs
 - how to install, set up, test, and run sendpage
 - how to make a "sendpage" user & find the groups you need
+- how to send pages with email2page
+- how to send pages with sendmail
 - hot "page-daemon" alias for errors, bounces, warnings, etc, works
 
 
