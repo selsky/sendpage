@@ -741,14 +741,14 @@ sub initSNPP {
 }
 
 sub StopSNPP {
-	$log->do('debug',"SNPP listener shutting down")
+	$log->do('debug',"SNPP listeners shutting down")
 		if ($DEBUG);
 	$s->remove($server);
 	undef $server;
 }
 
 sub StartSNPP {
-	$log->do('info',"starting SNPP listener");
+	$log->do('info',"starting SNPP listeners");
 	initSNPP();
 	$s->add($server) if (defined($server));
 }
@@ -862,7 +862,7 @@ sub ListenForSNPP {
 			}
 		}
 	}
-	$log->do('info',"stopping Queue Manager and SNPP listener (sendpage v$VERSION)");
+	$log->do('info',"stopping Queue Manager and SNPP listeners (sendpage v$VERSION)");
 	StopSNPP();
 	YankPidFile("");
 	exit(0);
