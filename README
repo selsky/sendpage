@@ -289,7 +289,7 @@ Solaris:  Some headers under Solaris don't behave very well, so I had
 
 AIX:	  Tested with 4.3.2, and works fine, some modem lines don't work.
 
-*BSD:     Tested with 2.8.  Carrier detection works after Sendpage 0.9.13.
+*BSD:     Tested.  Carrier detection works after Sendpage 0.9.13.
 
 HPUX:	  Untested so far...
 
