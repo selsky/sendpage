@@ -1,0 +1,14 @@
+- add date to Changes file
+- update version in sendpage
+- ./random/release VERSION
+- check for weirdness
+- test package
+- cvs commit everything
+- cvs tag (devel/stable)_VER_SIO_N
+- ./random/release VERSION again
+- put on sourceforge
+- put on web site
+- extract files for web site
+- update web site
+- send annoucement email
+- announce on freshmeat

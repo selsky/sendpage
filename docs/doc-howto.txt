@@ -1,0 +1,66 @@
+Date: Tue, 23 Jan 2001 11:02:56 -0600 (CST)
+From: Jenn Wilson
+Subject: Re: question...
+
+
+Okey, finally got to this!
+
+To answer your question, usually software doc contains a set of key
+pieces, typically (but not always) in this order:
+
+- Copyright notices, usage agreements, whether the user can change or
+  redistribute, blah blah; should appear to the user relatively early,
+  and comments should appear in the code.
+- New features
+- Brief history of changes/updates/fixes; known bugs and workarounds
+- Requirements/prerequisites, OS and otherwise
+- Installation instrs, what OS patches to apply, etc.
+- How to use it (basic steps)
+- How to configure it---options for parameters, tricks, etc.
+- (optional) Troubleshooting, what to do if it breaks, who to contact,
+  what support is available; this isn't usually necessary for something
+  non-Microsoftian in scope, but is sometimes nice.
+
+What form this stuff all takes is dependent on the scope and size of the
+package, and on who the intended audience is.  The idea is to keep it
+intuitive so people will know where to find what they need, without having
+to sift through everything.  Some folks put it all in a README; some put
+the copyright, history of changes, requirements, and install instrs. in
+the README and keep the rest in another document; some just put the
+install instrs. in the README and put everything else in a manual (or set
+of them). 
+
+That said, and having looked at your stuff, I think you've got everything
+you need content-wise and are set up quite well.  You could go to great
+length to explain every detail for very basic-level users, but I'm
+guessing that this is intended for people who know some perl already, are
+acquainted with what the terms mean (like syslog and modem response
+strings), and don't need much hand-holding.
+
+I would suggest using some topic-based subheads in places, specifically in
+the "Long Version" section of the README... it flows from history/concept
+through instructions as is, which is ducky, but subheads would make it
+easier for readers to scan for the particulars of a step if they want 'em.
+
+I noted that sendpage.cf.txt is very well documented too... I like coders
+like you.  (The only thing is:  you might want to replace actual indvl.
+info about your pagers with "dummy" stuff before you distribute, since
+there are a lot of lame-asses out there, but I'm sure you knew that
+already.)
+
+How will this be "marketed"---is it a word-of-mouth 'net thing?  I'm not
+familiar with Fullmer's sendpage or how it got around. 
+>From what I observe, the culture within respectable coders doesn't require
+much flashiness, because the work speaks for itself... but if you want to
+work it beyond the hardcore folk and compete directly with other software
+sold as a package, you might want to think about imaging.  In other words,
+non-geek people respond well to arty websites, bright shiny objects, blah
+blah. :)
+
+So that's the overall scoop:  thumbs up!
+If you'd like me to give the doc a thorough edit for typos and such before
+your release, I'd be happy to---it probably wouldn't take more than a few
+days.
+
+
+-j
