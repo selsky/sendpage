@@ -37,7 +37,7 @@ if (!chk_version(Net::SNPP => 1.10)) {
 if (!chk_version(Device::SerialPort => 0.12) &&
     !chk_version(Win32::SerialPort => 0.07)) {
     warn  "\n"
-	. "'Device::SerialPort' version 0.09 or better or\n"
+	. "'Device::SerialPort' version 0.12 or better or\n"
 	. "'Win32::SerialPort' version 0.07 or better is required.\n"
         . "Look for Device-SerialPort-x.xx.tar.gz on CPAN in:\n"
 	. "\thttp://cpan.perl.org/modules/by-module/Device/\n\n";

@@ -106,5 +106,20 @@ Once that's done, restart sendmail with your new .cf file, and you should
 be ready to rock and roll.
 
 
+Troubleshooting
+---------------
+On RedHat systems, or machines using "smrsh", try this:
+
+	Here is how to get smrsh to work:
+	cd /etc/smrsh
+	ln -s /usr/bin/sendmail2snpp sendmail2snpp
+	restart sendmail
+	edit /etc/aliases to include:
+	ALIAS: "|/etc/smrsh/sendmail2snpp PIN@PC"
+	run newaliases
+
+From Brett Carroll.
+
+
 -Kees Cook
 cook@cpoint.net

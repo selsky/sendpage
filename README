@@ -20,9 +20,7 @@ Quick Start (for Linux)
    Requirements.
 
 	- Net::SNPP (part of the libnet Perl module bundle)
-	- Device::SerialPort  (or Win32::SerialPort, untested)
-	  (0.07 works fine for linux.  If you're running under
-           Solaris, AIX, BSD, or HPUX, you'll need version 0.09 or better)
+	- Device::SerialPort version 0.12+  (or Win32::SerialPort, untested)
 	- Mail::MailTools
 
    Installation.
