@@ -48,11 +48,21 @@ I need to write more docs for it.
 
 =cut
 
+my %LogLevels = (
+	debug => 0,
+	info => 1,
+	notice => 2,
+	warning => 3,
+	err => 4,
+	crit => 5,
+	alert => 6,
+	emerg => 7,
+	);
 
 # FIXME: can I have this thing detect if STDERR has already been closed and
 #	kick and scream some other way?
 
-# takes parameters "Syslog" (1 or 0), "Opts", "Facility"
+# takes parameters "Syslog" (1 or 0), "Opts", "Facility", "MinLevel"
 sub new {
         my $proto = shift;
         my $class = ref($proto) || $proto;
@@ -73,6 +83,8 @@ sub reconfig {
 	$self->{SYSLOG} = $arg{Syslog};
 	$self->{OPTS}   = $arg{Opts};
 	$self->{FACILITY}=$arg{Facility};
+	$self->{MINLEVEL}=$arg{MinLevel};
+	$self->{MINLEVEL}="debug" if (!defined($LogLevels{$self->{MINLEVEL}}));
 
 	if (!defined($self->{SYSLOG})) {
 		$self->{SYSLOG}=0;
@@ -112,6 +124,9 @@ sub on {
 # perform a logging function
 sub do {
 	my($self,$pri,$format,@args)=@_;
+
+	$pri=$self->{MINLEVEL}
+		if ($LogLevels{$pri}<$LogLevels{$self->{MINLEVEL}});
 
 	# convert tabs since syslog doesn't like them
 	$format=~s/\t/     /g;

@@ -107,8 +107,8 @@
 #syslog-opt= pid, cons
 
 # Which syslog facility should be used?  man syslog for more info
-#	Default is "local6"
-#syslog-facility=local4
+#	Default is "daemon"
+#syslog-facility=local6
 
 # What port sendpage binds to for the SNPP server.
 #	Default is "444"

@@ -215,11 +215,19 @@ beginnings of my official "Sendpage Manual" in LyX format.
 Logging
 -------
 
-By default, sendpage uses syslog facility "local6" to do it's reporting.
-For debugging messages, it uses level "debug".  For general logging, it
-uses the "info" level.  For myself, I wanted to keep my sendpage syslogs
-out of my general syslog file ("/var/log/messages"), so my /etc/syslog.conf
-looks like this:
+By default, sendpage uses syslog facility "daemon" to do it's reporting,
+with all messages set to "info" or higher.  This should be seen by any
+sanely configured syslog daemon.
+
+For myself, I wanted to keep my sendpage syslogs out of my general syslog
+file ("/var/log/messages"), and I wanted debugging to be reported at
+the syslog level "debug".  I changed the facility to "local6", and the
+minimum level to "debug" with the following lines in my sendpage.cf:
+
+syslog-facility = local6
+syslog-minlevel = debug
+
+and changed my /etc/syslog.conf looks like this:
 
 *.info;mail.none;news.none;authpriv.none;local6.none  /var/log/messages 
 

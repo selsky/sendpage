@@ -242,7 +242,9 @@ Initialize();
 # Restart logging
 $log->reconfig(Syslog => $config->get("syslog"),
 		Opts  => $config->get("syslog-opt"),
-		Facility => $config->get("syslog-facility"));
+		Facility => $config->get("syslog-facility"),
+		MinLevel => $config->get("syslog-minlevel"),
+	);
 
 # Mode of operation selection
 #
@@ -834,7 +836,9 @@ sub BecomeDaemon {
 	# reconfig, and reopen syslog connection
 	$log->reconfig(Syslog => $config->get("syslog"),
 		Opts  => $config->get("syslog-opt"),
-		Facility => $config->get("syslog-facility"));
+		Facility => $config->get("syslog-facility"),
+		MinLevel => $config->get("syslog-minlevel"),
+		);
 	$log->on();
 
 	$0="sendpage: accepting connections";
@@ -1354,7 +1358,9 @@ sub Reload {
 		# Restart logging
 		$log->reconfig(Syslog => $config->get("syslog"),
 			Opts  => $config->get("syslog-opt"),
-			Facility => $config->get("syslog-facility"));
+			Facility => $config->get("syslog-facility"),
+			MinLevel => $config->get("syslog-minlevel"),
+			);
 		$log->on();
 
 		# Start up all our children
@@ -1572,7 +1578,12 @@ $config->define("syslog-opt", { DEFAULT => "pid" });
 # syslog facility to log with (one of "auth", "authpriv", "cron", "daemon",
 #	"kern", "local0" through "local7", "lpr", "mail", "news", "syslog",
 #	"user", or "uucp"
-$config->define("syslog-facility", { DEFAULT => "local6" });
+$config->define("syslog-facility", { DEFAULT => "daemon" });
+# syslog reports internally range from debug through crit.  Most people
+# figure out how to configure sendpage to report debug, but don't change
+# their syslog configs.  So, we'll have a "minlevel".  Anything below
+# "minlevel" will be elevated to "minlevel" before being sent to syslog.
+$config->define("syslog-minlevel", { DEFAULT => "info" });
 # SNPP settings
 $config->define("snpp-port", { DEFAULT => "444" });
 $config->define("snpp-addr", { DEFAULT => "localhost" });
