@@ -192,7 +192,7 @@ sub clear_counters {
 sub start_proto {
 	my $self=shift;
 
-	my(@modems, $modem, $name, $report, $ref);
+	my(@modems, $modem, $name, $result, $report, $ref);
 
 	# find an available modem
 	$ref=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@modems",1);
@@ -252,38 +252,45 @@ sub start_proto {
                         DialOut =>  $config->get("modem:${name}\@dialout")
                 );
 
-		last if (defined($modem));
+		# Did we get it?
+		next unless (defined($modem));
+
+		# Init modem
+		$result=$modem->init(
+			$self->{Baud},
+			$self->{Parity},
+			$self->{Data},
+			$self->{Stop},
+			$self->{Flow},
+			undef,		# init string: use modem default
+			$self->{StrictParity});
+		if (!defined($result)) {
+			$main::log->do('alert',"PC '%s' Failed to initialize modem '%s'",$self->{NAME},$name);
+			undef $modem;
+			next;
+		}
+
+		# Dial
+		$result=$modem->dial($self->{AreaCode}, $self->{PhoneNum},
+			$self->{DialWait});
+		if (!defined($result)) {
+			$main::log->do('crit',"Failed to dial PC '%s' from modem '%s'",$self->{NAME},$name);
+			undef $modem;
+			next;
+		}
+
+		# reserved, init'd, and dialed the modem
+		last;
 	}
+
 	# make sure we got one
 	if (!defined($modem)) {
-		$main::log->do('crit',"No modems available");
-		return (undef,"All modems presently in use");
+		$main::log->do('crit',"No PC connections available");
+		return (undef,"No PC connections available");
 	}
 
 	# Clear counters
 	$self->clear_counters();
-
-	# Init modem
-	my $result=$modem->init(
-		$self->{Baud},
-		$self->{Parity},
-		$self->{Data},
-		$self->{Stop},
-		$self->{Flow},
-		undef,			# init string: use modem default
-		$self->{StrictParity});
-	if (!defined($result)) {
-		$main::log->do('alert',"Failed to initialize modem");
-		return (undef,"Could not initialize modem");
-	}
-
-	# Dial
-	$result=$modem->dial($self->{AreaCode}, $self->{PhoneNum},
-		$self->{DialWait});
-	if (!defined($result)) {
-		$main::log->do('crit',"Failed to dial modem");
-		return (undef,"Could not dial out");
-	}
 
 	my $SST=$self->{CONFIG}->get("pc:$self->{NAME}\@proto"); # Get proto typ	
 
@@ -375,7 +382,7 @@ sub start_proto {
 		   }
 		   elsif ($result =~ /${LEAD}${ESC}${EOT}${CR}/) {
 			   # Forced disconnected
-			   $main::log->do('crit',"PC requested immediate disconnect");
+			   $main::log->do('crit',"PC requested immediate disconnect: '%s'",$report);
 			   return (undef,"Immediate disconnect requested: $report");
 		   }
    	
@@ -485,10 +492,10 @@ sub deliver {
 			$main::log->do('warning',"Weird.  Page got delivered before it was ready to be sent.");
 		}
 		else {
-			$now-=$page->option('when');
+			my $delay = $now-$page->option('when');
 
 			$extra=sprintf("Delivery delay: %d second%s.\n",
-				$now,$now == 1 ? "" : "s").$extra;
+				$delay,$delay == 1 ? "" : "s").$extra;
 		}
 
 		if ($extra ne "") {
@@ -539,7 +546,7 @@ sub deliver {
 
 			# external commands...
 			if (defined($self->{CompletionCmd})) {
-				open(CMD,"|$self->{CompletionCmd} 1 $paged $queuedir/$pc/$file");
+				open(CMD,"|$self->{CompletionCmd} 1 $paged $queuedir/$pc/$file ".$page->option('when')." $now");
 				print CMD $page->text();
 				close(CMD);
 			}
@@ -606,7 +613,7 @@ sub deliver {
 
 			# external commands...
 			if (defined($self->{CompletionCmd})) {
-				open(CMD,"|$self->{CompletionCmd} 0 $paged $queuedir/$pc/$file");
+				open(CMD,"|$self->{CompletionCmd} 0 $paged $queuedir/$pc/$file ".$page->option('when')." $now");
 				print CMD $page->text();
 				close(CMD);
 			}

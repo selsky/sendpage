@@ -161,10 +161,16 @@
 
 # Command to run after each successful or failed page
 #	Default is unset
-#	Command gets contents of page on stdin, and 2 command line
-#	parameters:
+#	Command gets contents of page on stdin, and extra details:
 #		arg 1: status (0=page failed, 1=page succeeded)
 #		arg 2: page alias (who was paged)
+#		arg 3: page queue file location
+#		arg 4: desired delivery time
+#		arg 5: fail/success time (really, this is "now")
+#
+#	The paging central will wait for this command to finish before
+#	continuing (and possibly removing the queue file), so be careful
+#	how the command is implemented.
 #
 #completion-cmd = "/usr/local/bin/page-sent"
 
