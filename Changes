@@ -1,10 +1,12 @@
 $Id$
 
 0.9.6: (12/11/2000)
-	- created "dtrtime" to allow the DTR toggling timeout to be config'd
-	- moved the KeesLog stuff around in Modem.pm
-	- ported Modem.pm's "new" function to use a hash
+	- ported KeesLog.pm's "new" function to use a hash (and fixed calls)
+	- ported Modem.pm's "new" function to use a hash (and fixed calls)
 	- started work on the SNPP Server functions
+	- added documentation on how to port Device::SerialPort
+	- added additional debugging to modem settings
+	- created "dtrtime" to allow the DTR toggling timeout to be config'd
 	- added logic to fully allow a "directly attached" modem to work
 	- fixed a few small typos and other nonesense
 
