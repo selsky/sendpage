@@ -368,7 +368,7 @@ sub create {
  my $class = ref($proto) || $proto;
  my %arg = @_;
 
- return $class->SUPER::new(	Listen => $arg{Listen} || 5,
+ return $class->SUPER::new(	Listen => $arg{Listen} || 20,
 				LocalAddr => $arg{Addr},
 				LocalPort => $arg{Port} || "snpp(444)",
 				Timeout => $arg{Timeout},

@@ -9,6 +9,7 @@ $Id$
 	- added "debug-snpp" for SNPP debugging. (sendpage)
 	- added "debug-select" for select-loop debugging. (sendpage)
 	- added Randy Emler's postfix instructions to docs/.
+	- increased accept queue to 20 in SNPPServer.pm
 
 0.9.9: (06Mar2001)
 	- improved call-out debugging in Modem.pm

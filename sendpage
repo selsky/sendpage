@@ -148,7 +148,7 @@ Sendpage::Page(3), Sendpage::Recipient(3), Sendpage::Queue(3)
 require 5.005;
 
 # Global variables;
-$VERSION="1.0.0pre1"; # our version!
+$VERSION="1.0.0pre2"; # our version!
 my $config;	# holds the configuration object
 undef $log;	# holds logging object
 
@@ -897,6 +897,8 @@ sub ListenForSNPP {
 
 	StartSNPP();
 
+	$sigset=&BlockSignals();
+
 	while ($SHUTDOWN!=1) {
 		if (!defined($server)) {
 			$log->do('crit',"Cannot start any SNPP listeners -- ".
@@ -916,7 +918,10 @@ sub ListenForSNPP {
 
 		$match=0;
 		$!=0;
+		$log->do('debug',"(select starting)") if ($DEBUG_SELECT);
+		&UnblockSignals();
 		($read,undef,$exc)=IO::Select->select($s,undef,$s);
+		$sigset=&BlockSignals();
 		if ($! != 0) {
 			if ($! == &EINTR()) {
 				$match=1;
@@ -951,7 +956,7 @@ sub ListenForSNPP {
 
 				$pipe = new IO::Pipe;
 
-				$sigset=&BlockSignals();
+#				$sigset=&BlockSignals();
 			
 				if(($pid = fork())>0) {
 					# Parent
@@ -1006,7 +1011,7 @@ sub ListenForSNPP {
 					close($sock);
 				}
 
-				&UnblockSignals();
+#				&UnblockSignals();
 			}
 			elsif (defined($pid=$CNXNS{$fh})) {
 				$match=1;
@@ -1050,7 +1055,7 @@ sub ListenForSNPP {
 				$s->remove($fh);
 				$log->do('debug',"(select removing server ".fileno($fh).")")
 					if ($DEBUG_SELECT);
-				close($pipe);
+				close($fh);
 			}
 		}
 
