@@ -21,6 +21,7 @@ Needed For Stable Release
 - implement "fieldsplits" (fields cannot be split across blocks for PC)
 - implement "maxpages" (max pages per connection for a PC)
 *Docs
+- write some clear and well-divided documentation
 - how to install, set up, test, and run sendpage
 - how to make a "sendpage" user & find the groups you need
 - how to send pages with email2page

@@ -185,6 +185,28 @@ If not, and you locate them, you should email them to me, and I'll update this
 list.  There is also a searchable database of these available at the website
 below.
 
+Logging
+-------
+
+By default, sendpage uses syslog facility "local6" to do it's reporting.
+For debugging messages, it uses level "debug".  For general logging, it
+uses the "info" level.  For myself, I wanted to keep my sendpage syslogs
+out of my general syslog file ("/var/log/messages"), so my /etc/syslog.conf
+looks like this:
+
+*.info;mail.none;news.none;authpriv.none;local6.none  /var/log/messages 
+
+local6.*                                              /var/log/sendpage
+local6.=debug                                         /var/log/sendpage.debug
+local6.info                                           /var/log/sendpage.info 
+
+This way "messages" doesn't get anything from "local6" (sendpage), and I  
+can watch the sendpage output in three ways: either everything going to  
+local6 ("/var/log/sendpage"), JUST the stuff *at* the "debug" level
+("/var/log/sendpage.debug"), or everything "info" and higher
+("/var/log/sendpage.info").
+
+
 Compatibility
 -------------
 

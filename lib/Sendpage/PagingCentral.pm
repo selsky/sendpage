@@ -297,7 +297,8 @@ sub start_proto {
 		  "(${LEAD}(${ACK}|${NAK}|${ESC}${EOT})${CR}|${ESC}\\[p${CR})",
 		  $T[3],$N[0]); # the N here is not spec'd
 		if (!defined($result)) {
-			$main::log->do('crit',"PC timed out during logon attempt");
+			$main::log->do('crit',"PC timed out during logon handshake");
+			return (undef,"Paging Central timed out during logon handshake");
 		}
 		$modem->HexDump($result) if ($self->{DEBUG});
 

@@ -27,6 +27,10 @@ Jason Ernst
 	For totally redesigning the sendpage website to make it cool great,
 	and for making adorable little raccoon images to go with it.  :)
 
+Steve Brazill
+	<yubby@lanset.com>
+	Found a bug with PC logon timeouts not failing correctly.
+
 Aaron Moore
 	<AMOORE@dekalbmemorial.com>
 	Found a bug with "nobody" slipping into split pages.

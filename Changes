@@ -9,6 +9,7 @@ $Id$
 	- fixed bug with empty "from" getting filled to "nobody" on splits
 	- improved sendpage.init to be a little more flexible
 	- added "Errors-To" field for outbound email
+	- fixed bug in "PC logon handshake timeout" in PagingCentral.pm
 
 0.9.8: (30Jan2001)
 	- further updates to Device::SerialPort and associated documentation
