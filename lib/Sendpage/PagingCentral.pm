@@ -128,12 +128,30 @@ sub new {
 	$self->{MODEMS} = shift;
 
 	$self->{DEBUG}  = $self->{CONFIG}->get("pc:$self->{NAME}\@debug");
+	# TAP protocol/block handling options
+	$self->{AnswerWait}=$self->{CONFIG}->get("pc:$self->{NAME}\@answerwait");
+	$self->{AnswerRetries}=$self->{CONFIG}->get("pc:$self->{NAME}\@answerretries");
+	$self->{BlockMax}=$self->{CONFIG}->get("pc:$self->{NAME}\@blockmax");
+	$self->{MAXCHARS}=$self->{CONFIG}->get("pc:$self->{NAME}\@maxchars");
+	$self->{FIELDS} = $self->{CONFIG}->get("pc:$self->{NAME}\@fields");
+	$self->{MAXSPLITS}=$self->{CONFIG}->get("pc:$self->{NAME}\@maxsplits");
+	# TAP character translation options
 	$self->{ESC}    = $self->{CONFIG}->get("pc:$self->{NAME}\@esc");
 	$self->{CTRL}   = $self->{CONFIG}->get("pc:$self->{NAME}\@ctrl");
 	$self->{LFOK}   = $self->{CONFIG}->get("pc:$self->{NAME}\@lfok");
-	$self->{FIELDS} = $self->{CONFIG}->get("pc:$self->{NAME}\@fields");
-	$self->{MAXCHARS}=$self->{CONFIG}->get("pc:$self->{NAME}\@maxchars");
-	$self->{MAXSPLITS}=$self->{CONFIG}->get("pc:$self->{NAME}\@maxsplits");
+
+	# Serial characteristics
+	$self->{Baud}	= $self->{CONFIG}->ifset("pc:$self->{NAME}\@baud"),
+	$self->{Parity}	= $self->{CONFIG}->ifset("pc:$self->{NAME}\@parity"),
+	$self->{Data}	= $self->{CONFIG}->ifset("pc:$self->{NAME}\@data"),
+	$self->{Stop}	= $self->{CONFIG}->ifset("pc:$self->{NAME}\@stop"),
+	$self->{Flow}	= $self->{CONFIG}->ifset("pc:$self->{NAME}\@flow");
+
+	# Modem control options
+	$self->{AreaCode}=$self->{CONFIG}->get("pc:$self->{NAME}\@areacode",1);
+	$self->{PhoneNum}=$self->{CONFIG}->get("pc:$self->{NAME}\@phonenum");
+	$self->{DialWait}=$self->{CONFIG}->get("pc:$self->{NAME}\@dialwait",1);
+	$self->{DialRetries}=$self->{CONFIG}->get("pc:$self->{NAME}\@dialretries");
 
 	$self->{LEAD}="";
 	$self->{LEAD}=$CR
@@ -218,21 +236,19 @@ sub start_proto {
 
 	# Init modem
 	my $result=$modem->init(
-		$self->{CONFIG}->ifset("pc:$self->{NAME}\@baud"),
-		$self->{CONFIG}->ifset("pc:$self->{NAME}\@parity"),
-		$self->{CONFIG}->ifset("pc:$self->{NAME}\@data"),
-		$self->{CONFIG}->ifset("pc:$self->{NAME}\@stop"),
-		$self->{CONFIG}->ifset("pc:$self->{NAME}\@flow"));
+		$self->{Baud},
+		$self->{Parity},
+		$self->{Data},
+		$self->{Stop},
+		$self->{Flow});
 	if (!defined($result)) {
 		$main::log->do('alert',"Failed to initialize modem");
 		return (undef,"Could not initialize modem");
 	}
 
 	# Dial
-	$result=$modem->dial($self->{CONFIG}->get("pc:$self->{NAME}\@areacode",1),
-			     $self->{CONFIG}->get("pc:$self->{NAME}\@phonenum"),
-			     $self->{CONFIG}->get("pc:$self->{NAME}\@dialwait",1)
-			);
+	$result=$modem->dial($self->{AreaCode}, $self->{PhoneNum},
+		$self->{DialWait});
 	if (!defined($result)) {
 		$main::log->do('crit',"Failed to dial modem");
 		return (undef,"Could not dial out");
@@ -240,9 +256,8 @@ sub start_proto {
 
 	# wait for ID=
 	#   timeout("\r")
-	$result=$modem->chat("\r","\r","ID=",
-		$self->{CONFIG}->get("pc:$self->{NAME}\@answerwait"),
-		$self->{CONFIG}->get("pc:$self->{NAME}\@answerretries"));
+	$result=$modem->chat("\r","\r","ID=",$self->{AnswerWait},
+		$self->{AnswerRetries});
 	if (!defined($result)) {
 		$main::log->do('crit',"PC did not send 'ID=' tag");
 		return (undef,"Could not perform protocol startup");
@@ -555,8 +570,6 @@ sub HandleMessage {
    my $block="";
    my $part=1;
 
-   my $blockMAX;
-
    $fields=$#fields+1;  # count fields (that many more control chars)
    # allow for what was called "PET3" in old sendpage: forced extra fields
    $fields=$self->{FIELDS} if ($fields < $self->{FIELDS});
@@ -568,9 +581,9 @@ sub HandleMessage {
    $result=$SUCCESS;
 
 
-   # Build a message block.  Cannot exceed 250 characters.
-   # (+ 3 control chars, 3 checksum chars) == 256 chars)
-   $blockMAX=256 - 3 - 3;
+   # Build a message block.  Cannot exceed 256 characters.
+   # (250 + 3 control chars + 3 checksum chars) == 256 chars)
+   # so $self->{BlockMax} == 250 normally
 
    undef $field;
    while ((defined($field) && length($field)>0) || ($#fields>=0)) {
@@ -589,7 +602,7 @@ sub HandleMessage {
 #	warn "chunk:     '$chunk'\n";
 #	warn "newfield:  '$newfield'\n";
 
-	if (length($chunk)+length($block)<=($blockMAX-$fields)) {
+	if (length($chunk)+length($block)<=($self->{BlockMax}-$fields)) {
 		$block.=$chunk;
 
 		# did we just exhaust a field?

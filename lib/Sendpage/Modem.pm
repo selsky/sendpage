@@ -407,9 +407,8 @@ sub dial {
 	$self->{LOG}->do('debug',"Calling '$actual_num'") if ($self->{DEBUG});
 
 	return $self->chat($modem_dial.$dialout.$actual_num."\r","",
-		$self->{DialOK},
-		$dialwait,1,$self->{NoCarrier},
-		1);
+				$self->{DialOK},$dialwait,1,
+				$self->{NoCarrier},1);
 }
 
 sub safe_write {

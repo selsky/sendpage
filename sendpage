@@ -165,22 +165,24 @@ require 5.005;
 
 # Global variables;
 $VERSION="0.9.7"; # our version!
-undef $log;	  # hold logging object
-undef $server;	  # hold our SNPP server obj
-$s=IO::Select->new(); # create our primary loop selector
+my $config;	# holds the configuration object
+undef $log;	# holds logging object
 
 # Module-global variables
 my %CHILDREN;	# who the childrens are
 my $SHUTDOWN;	# when to shutdown
 my $DEBUG;	# for debugging
-my $config;	# holds the configuration object
 my %opts;	# holds the command line args hash
 
-# Global queue run variables   FIXME: maybe this should be a separate module?
+# Global SNPP server variables
+undef $server;	# holds the SNPP server obj
+$s=IO::Select->new(); # holds our primary loop selector
+
+# Global queue run variables
 my $PC;		# holds name of PC for queue runners
 my $sleeptime;  # holds sleeptime for next queue delay
 
-# FIXME: load modules in a nice error-correcting fashion (borrow from misterhouse)
+# FIXME: load modules in a nice error-correcting fashion (borrow from mr house)
 use POSIX;
 use Getopt::Std;
 use Sendpage::Modem;
@@ -252,6 +254,7 @@ if ($opts{b}) {
 }
 if ($opts{q}) {
 	my $ret=SendSignal('USR1',$opts{R} ? $opts{R} : "");
+
 	# FIXME: should run the queue by hand if no one else can
 	die "Failed to notify queue manager: $!\nMaybe you should run me with -bd?\n" if (!defined($ret) || $ret != 0);
 	exit;
@@ -463,7 +466,6 @@ sub QueueRun {
 sub DisplayQueue {
 	my($queue, $waiting, $page, $recip);
 
-	# FIXME: don't need to lock these files....
 	foreach $pc (@pcs) {
 		$queue=Sendpage::PageQueue->new($config,$config->get("queuedir")."/$pc");
 		if (($waiting=$queue->ready())>-1) {
@@ -833,6 +835,7 @@ sub ListenForSNPP {
 		
 					$0="sendpage: SNPP client: ".
 						$sock->peerhost;
+					&SignalInit();
 					&DropPrivs();
 	
 					$sock->HandleSNPP("SNPP Sendpage $VERSION",
@@ -913,7 +916,7 @@ sub PipeRemember {
 sub StartQueue {
 	my($name)=@_;
 
-	# Queue-runner variables (FIXME: should I make a separate module?)
+	# Queue-runner variables
 	my($rundelay,$pc,$waiting);
 	$rundelay=$config->get("pc:${name}\@rundelay");
 	#warn "run delay: $rundelay\n";
@@ -1021,9 +1024,9 @@ sub Reload {
 			SendSignal('QUIT',$pc);
 		}
 
-		# FIXME: can't do "DaemonInit" until everyone is dead
-		#	  because we need to re-init all the modems.
-		#		GAH!
+		# Note:
+		# can't do "DaemonInit" until everyone is dead because we
+		# need to re-init (to validate) all the modems.
 
 		my @keys=keys %OLD;
 		# how many children do we need to kill?
@@ -1337,7 +1340,7 @@ $config->define("pc:maxchars",{DEFAULT => 1024 });
 $config->define("pc:maxsplits",{DEFAULT => 6 });
 # allow for forced multiple fields in BlockTrans
 $config->define("pc:fields",{DEFAULT => 2 });
-# FIXME: which dial wait does the modem actually end up using?
+# PC uses it's own dialwait for delaying
 $config->define("pc:dialwait",{ UNSET => 1 });
 $config->define("pc:rundelay",{DEFAULT => 30 });
 $config->define("pc:dialretries",{ DEFAULT => 3 });
@@ -1354,15 +1357,15 @@ $config->define("pc:ctrl",		{ DEFAULT => 0, ARGCOUNT => 0 });
 $config->define("pc:esc",  		{ DEFAULT => 0, ARGCOUNT => 0 });
 #   is LF allowed (some PCs allow it, but no other ctrl chars)
 $config->define("pc:lfok",		{ DEFAULT => 0, ARGCOUNT => 0 });
-#   fields cannot be split across blocks?
+#   fields cannot be split across blocks? (FIXME: unimplemented)
 $config->define("pc:fieldsplits",	{ DEFAULT => 1, ARGCOUNT => 0 });
 #  paging central limits
-#   max blocks per connection (0 = unlimited) (unimplemented)
+#   max blocks per connection (0 = unlimited) (FIXME: unimplemented)
 $config->define("pc:maxblocks",		{ DEFAULT => 0 });
-#   max pages per connection (0 = unlimited) (unimplemented)
+#   max pages per connection (0 = unlimited) (FIXME: unimplemented)
 $config->define("pc:maxpages",		{ DEFAULT => 0 });
-#   max chars per block (250 is protocol) (this is protocol hard-coded)
-#$config->define("pc:maxchars-block",	{ DEFAULT => 250 });
+#   max chars per block: 250 is protocol standard: 256 - 3 ctrl - 3 chksum
+$config->define("pc:blockmax",	{ DEFAULT => 250 });
 
 	return $config;
 }
