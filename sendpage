@@ -1238,7 +1238,7 @@ $config->define("user", { DEFAULT => "sendpage" });
 $config->define("group-lock", { DEFAULT => "uucp" });
 $config->define("group-tty", { DEFAULT => "tty" });
 $config->define("page-daemon", { DEFAULT => "sendpage" });
-$config->define("cc-on-error", { DEFAULT => 1 });
+$config->define("cc-on-error", { ARGCOUNT => 0, DEFAULT => 1 });
 $config->define("modems",   { ARGCOUNT => 2 });
 $config->define("alias-debug",    { ARGCOUNT => 0, DEFAULT => 0 });
 $config->define("debug",    { ARGCOUNT => 0,
@@ -1308,8 +1308,8 @@ $config->define("modem:dialretries",{ DEFAULT => 3 });
 $config->define("pc:enabled",{ ARGCOUNT => 0, DEFAULT => 1 });
 $config->define("pc:debug",  { ARGCOUNT => 0, 
 					DEFAULT => $opts{d} ? 1 : 0 });
-$config->define("pc:page-daemon", { UNSET => 1 };
-$config->define("pc:cc-on-error", { UNSET => 1 });
+$config->define("pc:page-daemon", { UNSET => 1 });
+$config->define("pc:cc-on-error",  { ARGCOUNT => 0, UNSET => 1 });
 $config->define("pc:modems", { ARGCOUNT => 2 });
 $config->define("pc:baud",   { DEFAULT => 9600 });
 $config->define("pc:data",   { DEFAULT => 7 });

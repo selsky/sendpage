@@ -34,6 +34,8 @@ Would Be Nice
 - have all the conf files get handled by Makefile.PL  --  /etc dir?
 - change PagingCentral module to deal with modems differently so we don't
   have to use a KeesConf object.
+- change Recipient module to deal with macros differently so we don't
+  have to use a KeesConf object.
 - figure out how to do filelocking under Windows
 - figure out what to replace my Syslog calls with under Windows
 - add "include" verb to sendpage.cf for sucking in other files?  This allows

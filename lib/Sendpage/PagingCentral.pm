@@ -701,7 +701,7 @@ sub GenerateBlocks {
    }
    if (defined($block)) {
 	# done with everything, store the final block
-	push(@blocks,[ $block, $sep ]);
+	push(@blocks,[ $block, $ETX ]);
    }
 
    return @blocks;
@@ -716,18 +716,18 @@ sub HandleMessage {
    # new process needed here to support "maxblocks":
    # 1) generate full translated/escape text *first*
    # 2) figure out how many blocks it will take
-   @blocks=GenerateBlocks(@fields);
+   @blocks=$self->GenerateBlocks(@fields);
 
    # 3) sanity-check the "maxblocks" setting to make sure we could EVER
    #    send the page
    if ($self->{MaxBlocks}>0) {
 	if ($#blocks+1 > $self->{MaxBlocks}) {
-		$main::log->do('crit',"HandleMessage: could NEVER send this "
+		$main::log->do('crit',"HandleMessage: could NEVER send this ".
 		"page if 'maxblocks' is %d!",$self->{MaxBlocks});
    	}
    # 4) decide if we drop the connection (enough spare blocks to send message?)
 	elsif ($self->{BlocksProcessed}+$#blocks+1>$self->{MaxBlocks}) {
-	   	$main::log->do('info',"Disconnecting from Paging Central: %d "
+	   	$main::log->do('info',"Disconnecting from Paging Central: %d ".
 			"block limit reached.",$self->{MaxBlocks});
    		$self->disconnect();
    	}
@@ -873,16 +873,17 @@ sub TransmitBlock {
 	
 	# check for answer here
 	if ($result =~ /${LEAD}${ACK}${CR}/) {
+		$main::log->do('debug', "block taken") if ($self->{DEBUG});
 		$done=$SUCCESS;
-		$main::log->do('debug', "block taken!") if ($self->{DEBUG});
 	}
 	elsif ($result =~ /${LEAD}${NAK}${CR}/) {
-		$main::log->do('debug', "retrans block") if ($self->{DEBUG});
+		$main::log->do('debug', "retrans block needed")
+			if ($self->{DEBUG});
 		$retries++;
 	}
 	elsif ($result =~ /${LEAD}${RS}${CR}/) {
+		$main::log->do('debug', "skipping block") if ($self->{DEBUG});
 		$done=$SKIP_MSG;
-		$main::log->do('debug', "skip block") if ($self->{DEBUG});
 	}
 	elsif ($result =~ /${LEAD}${ESC}${EOT}${CR}/) {
 		$main::log->do('crit',"immediate disconnect requested!");
@@ -1002,6 +1003,11 @@ sub SendMail {
 	my($msg,$fh);
 
 	$msg = new Mail::Send;
+
+	if ($self->{DEBUG}) {
+		$main::log->do('debug',"Emailing: To: '$to', Cc: '$cc', ".
+			"From: '$from', Subject: '$subject'");
+	}
 
 	if (!defined($msg)) {
 		$main::log->do('crit',"Cannot deliver email!  Mail::Send won't start");
