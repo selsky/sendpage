@@ -9,17 +9,32 @@
 # pidfile: /var/spool/sendpage/sendpage.pid
 # config: /etc/sendpage.cf
 
-SENDPAGE=/usr/local/bin/sendpage
+# try our two common locations
+SENDPAGE=/usr/bin/sendpage
+if [ ! -x $SENDPAGE ]; then
+	SENDPAGE=/usr/local/bin/sendpage
+	if [ ! -x $SENDPAGE ]; then
+		echo 'Cannot execute sendpage !'
+	fi
+fi
 
 # See how we were called.
 case "$1" in
   start)
         echo -n "Starting sendpage: "
-        $SENDPAGE -bd && echo "done"
+        if $SENDPAGE -bd ; then
+		echo "done"
+	else
+		echo "failed"
+	fi
         ;;
   stop)
         echo -n "Shutting down sendpage: "
-        $SENDPAGE -bs && echo "done"
+        if $SENDPAGE -bs ; then
+		echo "done"
+	else
+		echo "failed"
+	fi
         ;;
   status)
 	$SENDPAGE -bq
@@ -30,7 +45,11 @@ case "$1" in
         ;;
   reload)
         echo -n "Reloading sendpage: "
-        $SENDPAGE -br && echo "done"
+        if $SENDPAGE -br ; then
+		echo "done"
+	else
+		echo "failed"
+	fi
         ;;
   *)
         echo "Usage: $0 {start|stop|restart|reload|status}"
