@@ -3,20 +3,13 @@
 Things that we need, organized roughly
 
 
-Needed For Stable Release
+Needed For Fist Stable Release
 -------------------------
 *Code
 - implement SNPP "HOLD" function
-- do something so that queues that are waiting on a modem will run
-  as soon as the modem is available.  How can I do this when there are
-  multiple modems available?  Weird multi semaphore notifications queues
-  based on modems?  Gah.  Strange.
 - implement net/mask checking for SNPP client connections
 - create snpp.conf file for snpp tool to pull its defaults from
 - implement a list of addresses for SNPP server to listen on (for multihomed)
-- implement character-based translation tables
-- implement "dialretries" (attempt dialing again for PC)
-- implement "fieldsplits" (fields cannot be split across blocks for PC)
 - write up an example CGI script for sending pages
 *Docs
 - write some clear and well-divided documentation
@@ -25,6 +18,15 @@ Needed For Stable Release
 - how to send pages with email2page
 - how to send pages with sendmail
 - how "page-daemon" alias for errors, bounces, warnings, etc, works
+
+Needed For Next Stable Release
+------------------------------
+- do something so that queues that are waiting on a modem will run
+  as soon as the modem is available.  How can I do this when there are
+  multiple modems available?  Weird multi semaphore notifications queues
+  based on modems?  Gah.  Strange.
+- implement "dialretries" (attempt dialing again for PC)
+- implement character-based translation tables
 
 
 Would Be Nice
@@ -40,6 +42,7 @@ Would Be Nice
 - figure out what to replace my Syslog calls with under Windows
 - add "include" verb to sendpage.cf for sucking in other files?  This allows
   for separate files for PCs and recip lists.
+- implement "fieldsplits" (fields cannot be split across blocks for PC)
 *Docs
 - update API doc to reflect changes made for PageQueue, Page, and Recipient
 - more general in-code commenting & documentation
