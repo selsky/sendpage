@@ -1,6 +1,6 @@
 $Id$
 
-1.0.0: (CVS)
+1.0.0: (2005-02-23)
 	- changed how email2page handles the header regex list.  This
 	  will allow each rule to match each header line, rather
 	  that just the first match.  Recommended by Erastus Z Allen.
