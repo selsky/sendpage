@@ -748,7 +748,7 @@ sub GenerateBlocks {
 		#    "US" marker to continue the field in the next block
 		# if we have more blocks to send, we need to use "ETB"
 		# if we're done sending, we send "ETX"
-		if ($field ne $origfield) {
+		if ($field eq $origfield) {
 			# if $field is untouched, we're not in the
 			#  middle of a field on this block
 			$sep=(length($field)>0 || defined($fields[0])) ?

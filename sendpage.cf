@@ -336,9 +336,16 @@ phonenum= 5149243
 #	Default is 0 (unlimited)
 #maxblocks=60
 
-# How many characters can be sent in each page for this PC?
+# How many characters can be sent in each page for this PC? (For UCP, not TAP)
 #	Default is 1024
-maxchars=300
+#maxchars=300
+
+# How many characters per block are allowed during TAP transmission?
+# The protocol normally has this at "250" (due to the 256 limit, and
+# encoding requires 6 chars).  Making this higher than 250 isn't sensible,
+# but some TAPs need it smaller.
+#	Default is "250"
+chars-per-block=230
 
 # How many times are we allowed to split up a page that exceeds the
 # max chars limit?  (For example, if maxchars was "100" and maxsplits was

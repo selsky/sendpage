@@ -1013,6 +1013,10 @@ sub ListenForSNPP {
 			&Respawn('',$pid);
 		}
 
+		if ($s->count()<1) {
+			$log->do('warning',"Whoa!  Nothing left in the select array -- restarting SNPP!");
+			RestartSNPP();
+		}
 
 		($read,undef,$exc)=IO::Select->select($s,undef,$s,1.0);
 
