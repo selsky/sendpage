@@ -2,7 +2,7 @@ $Id$
 
 1.0.0: (CVS)
 	- changed how email2page handles the header regex list.  This
-	  what it'll allow each rule to match each header line, rather
+	  will allow each rule to match each header line, rather
 	  that just the first match.  Recommended by Erastus Z Allen.
 	- changed syslog-facility default to "daemon".  To keep
 	  prior behavior, set "syslog-facility = local6".
