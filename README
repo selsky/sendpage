@@ -60,6 +60,8 @@ Quick Start (for Linux)
 
 	- you can also use the "sendpage.init" file for SysV-style init
 	  script control.	
+	- make sure you have an entry in /etc/services for "snpp", which
+	  should be port 444.
 
    Sending a page.
 
