@@ -672,8 +672,9 @@ sub disconnect {
 			$result=1;
 		}
 
-	   $main::log->do('debug',"PagingCentral '%s' reported",$report)
-		if ($self->{DEBUG});
+	   $main::log->do('debug',"PagingCentral '%s' reported '%s'",
+		          $self->{NAME},$report)
+				if ($self->{DEBUG});
 
 
 		# report on failure or debug
