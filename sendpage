@@ -1442,7 +1442,7 @@ $config->define("modem:parity", { DEFAULT => "even" });
 $config->define("modem:stop",   { DEFAULT => 1 });
 $config->define("modem:flow",   { DEFAULT => "rts" });
 $config->define("modem:dev",    { DEFAULT => "/dev/null" });
-$config->define("modem:ignore-carrier", { UNSET => 1 });
+$config->define("modem:ignore-carrier", { ARGCOUNT=> 0, UNSET => 1 });
 # time to force DTR down during reset (0 = don't do it at all)
 $config->define("modem:dtrtime", { DEFAULT => 0.5 });
 $config->define("modem:init",   { DEFAULT => "ATZ" });
