@@ -123,9 +123,10 @@ Failed Test  Status Wstat Total Fail  Failed  List of failed
 t/test1.t                   173    8   4.62%  118, 121, 133, 141-142, 152-154
 t/test3.t                   159    2   1.26%  107, 110
 
-Half of the errors are with "pulse" commands taking too long.  That's strange,
-but not terrible.  The other bugs are more serious, but shouldn't impact
-sendpage at all.  For now, you can safely ignore those errors.
+Half of the errors are with "pulse" commands taking too long.  The other
+bugs are more serious, but shouldn't impact sendpage at all.  For now, you
+can safely ignore those errors.  See the notes on compatibility below to
+eliminate the timing errors under Solaris.
 
 Make sure you create a sendpage user who has write access to /var/lock
 and who owns /var/spool/sendpage.  BE SURE that /var/spool/sendpage is
@@ -176,6 +177,37 @@ Solaris:  Some headers under Solaris don't behave very well, so I had
 	  as the test failures seem to be with timings and/or flushes.
 	  Most of that is unreliable anyway under Linux, so sendpage has
 	  already worked around these bugs.
+
+	  From the following URL:
+	  http://www.stokely.com/unix.serial.port.resources/tutorials.html
+
+		DTR Delay Problems: By default, Suns have a three second
+		delay in toggling dtr. If your Sun has a zs serial port you
+		can set the variable default_dtrlow to control the number of
+		seconds of the delay. If the variable is set to zero, dtr
+		can be toggled many times a second. For example, in
+		/etc/system add the line "set zs:default_dtrlow = 1" to have
+		a 1 second delay.  
+
+		If your workstation has an se serial port, the /etc/system
+		line should be "set se:se_default_dtrlow = 1". However, in
+		initial versions of the se driver, the delay was the value
+		of (se_default_dtrlow + 1) seconds. If you have this version
+		of the se driver, don't set the value to -1 in /etc/system or
+		the port will hang on open. If you need to toggle dtr quickly,
+		you can still set the value to -1 after the terminal is
+		opened by using adb to set the variable manually.
+
+		All this is Sun bugid 4230310, fixed by patch 105924-09 or
+		higher. The patch makes se_default_dtrlow behave like
+		default_dtrlow (i.e. setting se_default_dtrlow to 0 will allow
+		rapid toggling of dtr instead of once per second). 
+
+	  So, since I have zs serial ports on my Sun, I added the line:
+
+		set set zs:default_dtrlow = 0
+
+	  so I could toggle the DTR rapidly.
 
 	  Also, I've seen trouble using Syslog correctly under Solaris.
 	  Once again, this appears to be perl's fault.  If it breaks
