@@ -449,7 +449,7 @@ dest	=	1234567@nextel
 dest	=	1234567@skytel
 [recip:cook]
 dest	=	cook_ameritech
-email-cc=	cook@cpoint.net
+email-cc=	cooke@cpoint.net
 
 # Paul's nextel
 [recip:pholcomb]
@@ -458,7 +458,7 @@ dest	=	1234567@nextel
 # Kirsten's ameritech pager
 [recip:kirsten]
 dest	=	1234567@ameritech
-email-cc=	dragon@blight.com
+email-cc=	dragoon@blight.com
 
 # Christian's RIM pager
 [recip:cvoid]
@@ -467,4 +467,4 @@ dest	=	1234567@rim-pager
 # A group alias for Paul and me
 [recip:oncall]
 dest	=	cook, pholcomb
-email-cc=	cpoint@cpoint.net
+email-cc=	qpoint@cpoint.net

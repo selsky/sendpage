@@ -750,7 +750,7 @@ Sendpage::Recipient(3), Sendpage::Queue(3)
 
 =head1 COPYRIGHT
 
-Copyright 2000 Kees Cook.
+Copyright 2000-2003 Kees Cook.
 
 This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
