@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+# Startup script for Sendpage
+#
+# chkconfig: 345 85 15
+# description: Sendpage sends alphanumeric pages via a modem, received \
+#              via SNPP.
+# processname: sendpage
+# pidfile: /var/spool/sendpage/sendpage.pid
+# config: /etc/sendpage.cf
+
+SENDPAGE=/usr/local/bin/sendpage
+
+# See how we were called.
+case "$1" in
+  start)
+        echo -n "Starting sendpage: "
+        $SENDPAGE -bd && echo "done"
+        ;;
+  stop)
+        echo -n "Shutting down sendpage: "
+        $SENDPAGE -bs && echo "done"
+        ;;
+  status)
+	$SENDPAGE -bq
+	;;
+  restart)
+        $0 stop
+        $0 start
+        ;;
+  reload)
+        echo -n "Reloading sendpage: "
+        $SENDPAGE -br && echo "done"
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart|reload|status}"
+        exit 1
+esac
+
+exit 0
+
