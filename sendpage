@@ -191,9 +191,10 @@ version $VERSION
 -bv		verify addresses
 -bs		shutdown server
 -br		have server reload configurations
+-bq		query state of daemons
 -q		force a queue run
--f USER		force page to be from user USER
 -qR PC		force a queue run only for the PC paging central
+-f USER		force page to be from user USER
 -C FILE		use FILE as the sendpage.cf file
 -d		turn debug on
 
