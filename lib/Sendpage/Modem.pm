@@ -390,8 +390,18 @@ sub safe_write {
 }
 
 
-# FIXME: more docs here, and need perhaps, and list of strings to 
-#	 immediately abort on?  like "NO CARRIER", "BUSY", etc... ?
+# FIXME: more docs here
+# This function examines a stream and interacts like "expect" to find and
+# respond to strings, using regular expressions.
+# Args:
+#	send:	what to immediately send now
+#	kicker:	what to send after a timeout waiting for the expected text
+#	expect:	what to look for (perl regexp)
+#	timeout:time in seconds to wait for the "expect"ed text
+#	retries:how many times to send the kicker and restart the timeout
+#	dealbreaker:a regexp that indicates total failure (NO CARRIER, etc)
+#	ignore_carrier:should the carrier detect signal on the modem
+#			be ignored during this chat?
 sub chat {
 	my $self = shift;
         my ($send,$kicker,$expect,$timeout,$retries,$dealbreaker,
@@ -436,8 +446,13 @@ sub chat {
 
 
 	# send initial text no matter what
-	if (!defined($self->safe_write($send))) {
+	if ($send ne "" && !defined($self->safe_write($send))) {
 		$self->{LOG}->do('alert',"safe_write failed!");
+	}
+
+	if ($expect eq "") {
+		$self->{LOG}->do('debug',"chat defaulted to success: no 'expect' regexp");
+		return "";
 	}
 
 	# initial check for sucess
