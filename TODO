@@ -6,7 +6,7 @@ Things that we need, organized roughly
 Needed For Stable Release
 -------------------------
 - Implement SNPP server-side functions (RFC 1861)
-- Implement SNPP client (fewer modules to load to send a page)
+- Implement SNPP client (fewer modules to load to send a page, no setgid crap)
 - Do something so that queues that are waiting on a modem will run
   as soon as the modem is available.  How can I do this when there are
   multiple modems available?  Weird multi semaphore notifications queues
@@ -16,7 +16,7 @@ Needed For Stable Release
 - Decide my stance on email-parsing for page sending.  Is this another
   tool's job, or is it our job?  Probably should be our job to some degree
   since Sendpage may not have "procmail" around to do all the work.
-- Need documentation on how to install, set up, test, and run sendpage
+- Need better documentation on how to install, set up, test, and run sendpage
 - Need documentation on "page-daemon" alias for errors, bounces, warnings, etc?
 - make sure sendpage.cf gets handled by Makefile.PL  etc dir?
 - implement filelocking (needs to work with NFS & windoze)
@@ -27,7 +27,6 @@ Needed For Stable Release
 - email paging failures to page-daemon
 - figure out an install option for forcing /usr/local
 - verify that "direct" connections work
-- BUG: Modem ignoring configured params, using defaults in PC setup
 
 
 Would Be Nice
