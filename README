@@ -23,6 +23,7 @@ Quick Start (for Linux)
 
 	- copy 'sendpage.cf' into /etc, and edit to your needs
 	- copy 'email2page.conf' into /etc, and edit to your needs
+	- copy 'snpp.conf' into /etc, and edit to your needs
 	- if you use SysV-style init scripts, you can use "sendpage.init"
 	  to start and stop sendpage.  Copy it to where you keep your rc
 	  files.
@@ -155,6 +156,9 @@ Perl complaining about the paging centrals for some reason.
 
 Also install and edit the "email2page.conf" file for the email-to-page
 converting tool.  Documentation is in the conf file for that one right now.
+
+And install and edit the "snpp.conf" file for the snpp's default
+server.  Documentation is in the conf file for that one right now.
 
 Now there is the "sendpage" daemon itself.  Run (as root) the command:
 	sendpage -bd

@@ -119,7 +119,7 @@ foreach $line (<$fh>) {
 	chomp($line);
 	$num++;
 	# skip comments and blanks
-	next if ($line =~ /^#/ || $line =~ /^\s*$/);
+	next if ($line =~ /^\s*#/ || $line =~ /^\s*$/);
 
 	($cmd,$arg)=split(/:/,$line,2);
 
@@ -142,7 +142,7 @@ foreach $line (<$fh>) {
 		$suffix=$arg;
 	}
 	else {
-		warn "unknown command '$cmd' in '$opts{C}' at line $num\n";
+		warn "unknown command '$cmd' in '$opts{C}', line $num\n";
 	}
 }
 undef $fh;

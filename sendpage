@@ -722,17 +722,21 @@ sub BecomeDaemon {
 }
 
 sub initSNPP {
+	my ($host,$port);
+
+	$host=$config->get("snpp-addr");
+	$port=$config->get("snpp-port");
+
 	# need to use "create" so that the "accept"s don't call the constructor
-	$server=Sendpage::SNPPServer->create(
-		Addr => $config->get("snpp-addr"),
-		Port => $config->get("snpp-port"));
+	$server=Sendpage::SNPPServer->create(Addr => $host, Port => $port);
 
 	if (defined($server)) {
-		$log->do('debug',"SNPP listener running on port ".
+		$log->do('debug',"SNPP listener running on %s:%d",
+			$server->sockhost,
 			$server->sockport) if ($DEBUG);
 	}
 	else {
-		$log->do('crit',"SNPP listener failed: $!");
+		$log->do('crit',"SNPP listener for '$host:$port' failed: $!");
 	}
 }
 
@@ -761,7 +765,8 @@ sub ListenForSNPP {
 
 	while ($SHUTDOWN!=1) {
 		if (!defined($server)) {
-			$log->do('crit',"Cannot start SNPP listener -- aborting!");
+			$log->do('crit',"Cannot start any SNPP listeners -- ".
+				"aborting!");
 			NiceShutdown();
 			YankPidFile("");
 			exit(1);
@@ -775,7 +780,7 @@ sub ListenForSNPP {
 		foreach $fh (@$read) {
 			if ($fh == $server) {
 				my $pid;
-				my $sock = $server->accept;
+				my $sock = $fh->accept;
 	
 				if (!defined($sock)) {
 					$log->do('err',"SNPP accept: $!");

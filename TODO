@@ -8,7 +8,6 @@ Needed For Fist Stable Release
 *Code
 - implement SNPP "HOLD" function
 - implement net/mask checking for SNPP client connections
-- create snpp.conf file for snpp tool to pull its defaults from
 - implement a list of addresses for SNPP server to listen on (for multihomed)
 - write up an example CGI script for sending pages
 *Docs

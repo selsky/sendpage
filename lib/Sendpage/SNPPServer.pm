@@ -53,7 +53,7 @@ sub HandleSNPP {
 	my $log = shift;
 	my $DEBUG = shift;
 
-        my($pin,@PINS,$pc,$recips,$recip,@recips,$fail,$text,$caller);
+        my($pin,@PINS,$pc,$recips,$recip,@recips,$fail,$text,$caller,$peer);
 
 	# how far are we in the process?
 	my $NEED_PIN=1;
@@ -84,7 +84,8 @@ sub HandleSNPP {
 
 	#$sock->debug($DEBUG);
 
-	$log->do('debug',"Handling SNPP connection from ".$sock->peerhost)
+	$peer=$sock->peerhost;
+	$log->do('debug',"Handling SNPP connection from ".$peer)
 		if ($DEBUG);
 
 	# What is my hostname, for the banner?
@@ -102,6 +103,11 @@ sub HandleSNPP {
 		# begin the input loop
 		while (1) {
 			my $input=$sock->getline();
+
+			if (!defined($input)) {
+				$log->do('info',"Lost connection from ".$peer);
+				return;
+			}
 			$sock->debug_print(0,$input)
 				if (${*$sock}{'net_cmd_debug'});
 

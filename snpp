@@ -55,6 +55,10 @@ Do not notify the 'from' user about the status of the page.
 
 Display SNPP session debugging.
 
+=item -C CONF
+
+Read CONF instead of /etc/snpp.conf for server default.
+
 =item -h
 
 Display a summary of all the available command line options.
@@ -66,6 +70,12 @@ Display a summary of all the available command line options.
 This tool is used to send a page via the Simple Network Paging Protocol
 (level 2).  It is designed to be used with 'sendpage', but should work
 with any other SNPP servers as well.
+
+The /etc/snpp.conf file can contain a single line in the form of
+
+	server:ADDRESS[:PORT]
+
+where ADDRESS and PORT are the defaults for snpp.
 
 =head1 AUTHOR
 
@@ -91,6 +101,7 @@ perl(1), sendpage(1), Net::SNPP(3)
 use Getopt::Std;
 use Net::SNPP;
 use Sys::Hostname;
+use IO::File;
 
 my %opts;
 my $VERSION="0.1";
@@ -105,6 +116,7 @@ version $VERSION
 -m MESSAGE	  message to send (reads from stdin by default)
 -n                no email carboning to 'from'
 -d                turn debug on
+-C CONF		  read CONF instead of /etc/snpp.conf
 -h                you're reading it.  :)
 
 ";
@@ -112,11 +124,47 @@ version $VERSION
 
 
 # get our options
-if (!getopts('hdns:f:m:',\%opts) || $opts{h} || !@ARGV) {
+if (!getopts('hdns:f:m:C:',\%opts) || $opts{h} || !@ARGV) {
         Usage();
 }
 
-$opts{s}='localhost' unless ($opts{s});
+### DEFAULTS
+# set config file
+$opts{C}="/etc/snpp.conf" unless ($opts{C});
+# set server
+my $server="localhost";
+
+
+my $fh = new IO::File $opts{C}, "r";
+if (!defined($fh)) {
+        warn "Cannot read '$opts{C}' file (using defaults): $!\n";
+}
+else {
+	my $num=0;
+	my $line;
+
+	foreach $line (<$fh>) {
+	        chomp($line);
+	        $num++;
+
+	        # skip comments and blanks
+	        next if ($line =~ /^\s*#/ || $line =~ /^\s*$/);
+
+	        ($cmd,$arg)=split(/:/,$line,2);
+
+	        if ($cmd eq "server") {
+			$server=$arg;
+       		}
+        	else {
+               		warn "unknown command '$cmd' in '$opts{C}', line ".
+				"$num\n";
+        	}
+	}
+	undef $fh;
+}
+
+# override config file and defaults
+$opts{s}=$server unless ($opts{s});
 
 $snpp = Net::SNPP->new($opts{s}, Debug => $opts{d} );
 if (!defined($snpp)) {
