@@ -229,6 +229,35 @@ HPUX:	  Untested so far...
 AIX:	  Untested so far...
 
 
+Porting Device::SerialPort
+--------------------------
+
+If you're trying to get Device::SerialPort to work on an untested platform,
+please take a look at the top of the "SerialPort.pm" file, and examine the
+paths where "termios.ph" is searched for.  Basically, SerialPort.pm needs
+the following constants to operate correctly:
+
+Must have these:
+	TIOCM_RTS
+	TIOCM_DTR
+	TIOCMBIS
+	TIOCMBIC
+	TIOCMGET
+
+Optional: I have only found *both* of these under Linux:
+	TIOCINQ
+	TIOCOUTQ
+
+Optional: I have only found this one under Linux:
+	TIOCSERGETLSR
+
+Once you get SerialPort.pm running happily (you can set $DEBUG=1 near the
+top), try modifying (from the sendpage package) the script "modemtest"
+to use your serial port with a modem attached.  This script will try to
+examine all the possible settings for your vendor's serial port, and
+will try to talk to the modem using Device::SerialPort.  If you can
+get this script talking to the modem, sendpage should operate just fine.
+
 
 Misc
 ----
