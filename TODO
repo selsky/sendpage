@@ -26,6 +26,9 @@ Needed For Stable Release
 - implement email notification fall-back
 - email paging failures to page-daemon
 - figure out an install option for forcing /usr/local
+- verify that "direct" connections work
+- BUG: Device::SerialPort doesn't work right under Solaris, AIX, or HPUX
+- BUG: Modem ignoring configured params, using defaults in PC setup
 
 
 Would Be Nice
