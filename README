@@ -1,5 +1,5 @@
 # $Id$
-Sendpage (in Perl)
+Sendpage
 
 What this tool does
 -------------------
@@ -85,25 +85,21 @@ Quick Start (for non-RPM Linux distro)
 
 Long Version
 ------------
-
-Sendpage will be a fully-featured paging solution when it's done.
-Right now, I'm interested in testing the new SNPP server.
-
 Sendpage (the C program) was originally written in 1995 almost entirely
 by Mark Fullmer.  Version "7" was when I became aware of it picked up
 the code, since Mark didn't want to maintain it any more.  I developed
 a "configure" script to make compiling easier, started working on merging
 some features that other people had written, and stomping out a few bugs.
 I released a series called "0.8", which still had a bunch of problems,
-but seemed to mostly work for most people.  I haven't looked at the C
-code in about a year, and it was getting rather dusty.  I was about to
+but seemed to mostly work for most people.  Then after not looking at the C
+code for about a year, it was getting rather dusty.  I was about to
 work on porting it up to RedHat 6.1 and realized it would be easier to
 redesign it from scratch.  I decided to use Perl because of all the great
 modules I could use to help me get my job done.  And then I could spread
 the blame around when things didn't work right.  ;)
 
 And at this point I'd like to apologize here for my sloppy Perl modules.
-I'm new to writing *modules* under Perl, so I fear that I'm violating
+I was new to writing *modules* under Perl, so I fear that I've violated
 module and CPAN specs left and right.  I will try to correct any of these
 problems as I learn about them.  My final goal is to produce a set of
 modules that would be useful to any other packages that need to send
@@ -116,41 +112,9 @@ To get it started you'll need the following Perl modules installed:
 			-or-
 		Win32::SerialPort (for Windoze)
 	- Mail::MailTools
+	- Net::SNPP
 
 You can get these from http://cpan.perl.org/
-
-And please check this out for POSIX people (lifted from the Device::SerialPort
-docs):
-
-	There are a small number of ioctl calls to handle the RTS and DTR
-	outputs. Those require (from more or less traditional locations) the
-	outputs from "h2ph" for ioctl.h and related files. If the module does
-	not find the prerequisites, it disables the method calls that require
-	them and sets "can_ioctl" false.
-        	.../_h2ph_pre.ph        .../asm/termios.ph
-        	.../asm/termbits.ph     .../asm/posix_types.ph
-        	.../asm/ioctls.ph       .../asm/ioctl.ph
-        	.../linux/posix_types.ph
-
-This is important for hanging up the modem, etc.  POSIX users running
-on Solaris, AIX, BSD or HPUX probably won't get version 0.07 working.  I
-made a patch for Device::SerialPort, getting it to version 0.09, which can
-be found at http://sendpage.org/device-serialport/   Please use this
-version instead of 0.07, and you shouldn't have any problems with your
-modem.
-
-If you choose to do the "make test", Solaris for me failed in a number
-of places.  My output was:
-
-Failed Test  Status Wstat Total Fail  Failed  List of failed
--------------------------------------------------------------------------------
-t/test1.t                   173    8   4.62%  118, 121, 133, 141-142, 152-154
-t/test3.t                   159    2   1.26%  107, 110
-
-Half of the errors are with "pulse" commands taking too long.  The other
-bugs are more serious, but shouldn't impact sendpage at all.  For now, you
-can safely ignore those errors.  See the notes on compatibility below to
-eliminate the timing errors under Solaris.
 
 Now, build sendpage itself.  Right now, just do:
 	cd sendpage-X.X.X
@@ -168,20 +132,19 @@ Make sure you create a sendpage user, and identify the group who has
 write access to /var/lock, and the group who has write access to your
 modem device.
 
-Once that's working, take a look at "sendpage.cf", and configure it for
-your modem, paging central, etc.  Turn on the debugging if you're interested.
-I'm going to eventually write a tool to convert old-style config files (and
-perhaps even qpage and beepage config files) into the new-style config file.
-Right now, this is not done.  Note that "sendpage.cf" needs to live in
-/etc, or where ever you run "sendpage -C" with.  Please note, that you can
-safely ignore any "Attempt to free unreferenced scalar." messages you get
-while shutting down sendpage if you have debugging turned on.  This is just
-Perl complaining about the paging centrals for some reason.
+Once that's working, take a look at "sendpage.cf", and configure it
+for your modem, paging central, etc.  Turn on the debugging if you're
+interested.  Note that "sendpage.cf" needs to live in /etc, or where ever
+you run "sendpage -C" with.  Please note, that you can safely ignore any
+"Attempt to free unreferenced scalar." messages you get while shutting
+down sendpage if you have debugging turned on.  This is just Perl
+complaining about the paging centrals for some reason.  Hopefully these
+should be gone now.
 
-Also install and edit the "email2page.conf" file for the email-to-page
+Install and edit the "email2page.conf" file for the email-to-page
 converting tool.  Documentation is in the conf file for that one right now.
 
-And install and edit the "snpp.conf" file for the snpp's default
+Install and edit the "snpp.conf" file for the snpp's default
 server.  Documentation is in the conf file for that one right now.
 
 Now there is the "sendpage" daemon itself.  Run (as root) the command:
@@ -189,9 +152,9 @@ Now there is the "sendpage" daemon itself.  Run (as root) the command:
 to start up the daemon mode.  (Make sure that "sendpage" is in the PATH
 for the root user.)  The SNPP server connections and Paging Centrals will
 lose root privs when the fork, so that should be safe.  "sendpage -bs" will
-stop sendpage.  The file "sendpage.init" has been included to run at as a
+stop sendpage.  The file "sendpage.init" has been included to run it as a
 SysV-style init script, which takes "start" and "stop" arguments.  This
-script assumes that sendpage is installed in /usr/local/bin, so be sure to
+script assumes that sendpage is installed in /usr/bin, so be sure to
 change it if you need to.
 
 To put a page into the queue, run "snpp RECIP" where RECIP is either a 
@@ -208,15 +171,16 @@ To force a queue run immediately, run (as root) "sendpage -q".  If you have
 debugging turned on, it should be flooding your syslog with lots of fun
 information while delivering the pages.
 
-Look in the "docs" directory for various misc information files, including
-the TAP specifications, the SNPP RFC, and a list of the known paging centrals
-in the file "PagingCentrals.txt".  See if the PCs for your area are listed. 
-If not, and you locate them, you should email them to me, and I'll update this
-list.  There is also a searchable database of these available at the website
-below.  For an example of how to set up sendpage as an email gateway, read
-"sendmail.txt".  For an example of how to make a web page to send pages,
-look at the "sendpage.php" PHP script.  Also in this directory is the
-beginnings of my official "Sendpage Manual" in LyX format.
+Look in the "docs" and "examples" directories for various misc information
+files, including the TAP specifications, the SNPP RFC, and a list of
+the known paging centrals in the file "PagingCentrals.txt".  See if the
+PCs for your area are listed.  If not, and you locate them, you should
+email them to me, and I'll update this list.  There is also a searchable
+database of these available at the website below.  For an example
+of how to set up sendpage as an email gateway, read "sendmail.txt".
+For an example of how to make a web page to send pages, look at the
+"sendpage.php" PHP script.  Also in this directory is the beginnings of
+my official "Sendpage Manual" in LyX format.
 
 Logging
 -------
@@ -314,31 +278,6 @@ SCO7:     Install notes from Pat Gunn:
           Then installed skunkperl from skunkware
           (stage.caldera.com/uw7/Packages/)
         
-          In /usr/local/lib/perl5/site_perl/5.005/i386-svr4/_h2ph_pre.ph,
-          comment out the line:
-                 unless (defined &) { sub () { "" } }
-
-          In /usr/local/lib/perl5/site_perl/5.005/i386-svr4/sys/types.ph,
-          comment out the following lines:
-                if( &model((defined(&lp64) ? &lp64 : 0))) {
-                   unless(defined(&_INT64_T)) {
-                       eval 'sub _INT64_T () {1;}' unless defined(&_INT64_T);
-                   }
-                   unless(defined(&_UINT64_T)) {
-                       eval 'sub _UINT64_T () {1;}' unless defined(&_UINT64_T);
-                   }
-                   unless(defined(&_SIZE32_T)) {
-                       eval 'sub _SIZE32_T () {1;}' unless defined(&_SIZE32_T);
-                   }
-                } else {
-                   unless(defined(&_INT64_T)) {
-                       eval 'sub _INT64_T () {1;}' unless defined(&_INT64_T);
-                   }
-                   unless(defined(&_UINT64_T)) {
-                       eval 'sub _UINT64_T () {1;}' unless defined(&_UINT64_T);
-                   }
-                }
-
           Used CPAN module to upgrade prerequisites (didn't allow it to
           rebuild Perl itself. I have GCC and other gnu tools installed)
 
@@ -364,9 +303,9 @@ SCO7:     Install notes from Pat Gunn:
 Porting Device::SerialPort
 --------------------------
 If you're trying to get Device::SerialPort to work on an untested platform,
-please take a look at the top of the "SerialPort.pm" file, and examine the
-paths where "termios.ph" is searched for.  Basically, SerialPort.pm needs
-the following constants from a .ph file to operate correctly:
+please take a look at "configure.ac" for the list of files being included.
+Basically, SerialPort.pm needs the following constants from .h files to
+operate correctly:
 
 Must have these:
 	TIOCM_RTS
@@ -386,19 +325,19 @@ Optional: I have only found *both* of these under Linux:
 Optional: I have only found this one under Linux:
 	TIOCSERGETLSR
 
-Once you get SerialPort.pm running happily (you can set $DEBUG=1 near the
-top), try modifying (from the sendpage package) the script "modemtest"
-to use your serial port with a modem attached.  This script will try to
-examine all the possible settings for your vendor's serial port, and
-will try to talk to the modem using Device::SerialPort.  If you can
-get this script talking to the modem, sendpage should operate just fine.
+Once you get SerialPort.pm running happily (you can set $DEBUG=1
+near the top), try modifying (from the sendpage package) the script
+"modemtest" in the "examples" directory to use your serial port with
+a modem attached.  This script will try to examine all the possible
+settings for your vendor's serial port, and will try to talk to the
+modem using Device::SerialPort.  If you can get this script talking to
+the modem, sendpage should operate just fine.
 
 
 Misc
 ----
 
-The TODO file lists a large number of things I still want to have
-working before the first "stable" release.
+The TODO file lists a large number of things I still want to have done.
 
 For further information, check out the sendpage web site at:
 	http://sendpage.org/

@@ -1,0 +1,189 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+select STDOUT; $|=1;
+
+# TODO: make options
+
+my $PC="skytel";
+my $PAGER="osdl";
+my $CFG_REAL="/etc/sendpage.cf";
+my $CFG_TEST="/tmp/sendpage.cf"; # TODO: use real tmp file name
+
+my %cfg; # hash contained PC config under test
+
+# Uses globals $CFG_REAL, $CFG_TEST, and %cfg
+sub update_PC_config
+{
+	print "Updating sendpage test configuration...\n";
+
+	my %config = %cfg; # build a copy of the hash
+	my $line;
+
+	open(INPUT,"<$CFG_REAL") || die "$CFG_REAL: $!\n";
+	open(OUTPUT,">$CFG_TEST") || die "$CFG_TEST: $!\n";
+
+	# write everything until PC line
+	while (($line=<INPUT>) !~ /^\[pc:$PC\]$/) {
+		print OUTPUT $line;
+	}
+	print OUTPUT $line;	# write PC line
+
+	# process the parameters
+	while (($line=<INPUT>) !~ /^\[/) {
+		chomp($line);
+		if ($line=~/^(\S+)\s*=\s*(.*)$/) {
+			my ($name,$value)=($1,$2);
+			
+			# If the setting is different, set it
+			if (defined($config{$name}) &&
+                            $value ne $config{$name}) {
+				$line="$name = $config{$name}";
+				delete $config{$name};
+			}
+		}
+		
+		print OUTPUT $line,"\n";
+	}	
+	# Print remaining settings
+	foreach my $name (sort keys %config) {
+		print OUTPUT "$name = $config{$name}\n";
+	}
+
+	# print the next [] section
+	print OUTPUT $line;
+
+	# Write the rest of the file
+	while ($line=<INPUT>) {
+		print OUTPUT $line;
+	}
+
+	close(INPUT);
+	close(OUTPUT);
+}
+
+sub stop_sendpage
+{
+	system("sendpage -bs >/dev/null 2>&1");
+}
+
+sub restart_sendpage
+{
+	stop_sendpage();
+	system("sendpage -C $CFG_TEST -bd >/dev/null 2>&1");
+}
+
+sub send_test_page
+{
+	my ($msg,$num)=@_;
+	my $pretty="\t--- test page $num ---\n".$msg;
+	$pretty=~s/\n/\n\t/g;
+	$pretty.="\n\t--- end page $num ---";
+
+	open(PAGE,"|snpp -n $PAGER") || die "snpp: $!\n";
+	print PAGE $msg;
+	close(PAGE);
+
+	print "Sending page ...\n$pretty\n";
+}
+
+sub get_yes_no
+{
+	print "[Y/n]: ";
+	my $answer;
+	
+	while ($answer=<STDIN>) {
+		chomp($answer);
+		return 1 if ($answer=~/^([yY].*|$)/);
+		return 0 if ($answer=~/^\s*[nN]/);
+	}
+	die "STDIN closed!\n";
+}
+
+sub Done
+{
+	print "Your configuration adjustment should be:\n";
+	foreach my $name (sort keys %cfg) {
+		print "$name = $cfg{$name}\n";
+	}
+
+	stop_sendpage();
+	exit(0);
+}
+
+my $msg;
+my $okay;
+
+##############################
+update_PC_config();
+restart_sendpage();
+
+$msg="0:test page";
+send_test_page($msg,0);
+print "Did test page 0 get delivered and look correct?\n";
+$okay = get_yes_no();
+
+if ($okay) {
+	print "Good.  You can send simple pages at least.  :)\n";
+}
+else {
+	print "That's not good.  Better get sendpage configured correctly.\n";
+	stop_sendpage();
+	exit(1);
+}
+
+##############################
+
+# Start by turning on esc'd characters via the 1.8 TAP spec
+$cfg{'esc'}="true";
+update_PC_config();
+restart_sendpage();
+
+$msg="1:This\nis a CR and this\tis a tab.";
+send_test_page($msg,1);
+print "Did test page 1 get delivered and look correct?\n";
+$okay = get_yes_no();
+
+if ($okay) {
+	print "You're done!  Congratulations, you have a 1.8 TAP PC!\n";
+	Done();
+}
+
+
+delete $cfg{'esc'};
+
+##############################
+
+$cfg{'ctrl'}="true";
+update_PC_config();
+restart_sendpage();
+
+$msg="2:This\nis a CR and this\tis a tab.";
+send_test_page($msg,2);
+print "Did test page 2 get delivered with *both* the CR and tab shown correct?\n";
+$okay = get_yes_no();
+if ($okay) {
+	print "You're done!  Your PC lets control characters through.\n";
+	Done();
+}
+else {
+	delete $cfg{'ctrl'};
+
+	print "Did the CR show up correctly?\n";
+	$okay = get_yes_no();
+
+	if ($okay) {
+		$cfg{'lfok'}='true';
+		print "You're done!  You have an LF-okay PC!\n";
+		Done();
+	}
+}
+
+print "You're done!  Sorry, your PC doesn't allow control characters.  :(\n";
+Done();
+
+
+# TODO: Do length tests, but that tends to be pager-specific
+
+

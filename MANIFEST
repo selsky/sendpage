@@ -17,6 +17,9 @@ docs/sendmail.txt
 docs/postfix.txt
 docs/sendpage.php
 docs/pc-testing.txt
+docs/sendpage-manual.lyx
+examples/configure-pc
+examples/modemtest
 lib/Sendpage/KeesConf.pm
 lib/Sendpage/KeesLog.pm
 lib/Sendpage/Page.pm
@@ -32,7 +35,6 @@ snpp
 email2page
 sendmail2snpp
 sendpage-db
-modemtest
 sendpage.init
 META.yml                                 Module meta-data (added by MakeMaker)
 debian/changelog

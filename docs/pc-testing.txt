@@ -1,5 +1,6 @@
 This document is a really rough example of how to examine a paging central to
 figure out the paging limits for a particular pager or service.
+(See "examples/configure-pc" for a quick perl script that does this part.)
 
 
 start with PC configuration defaults.

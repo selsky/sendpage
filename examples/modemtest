@@ -1,0 +1,153 @@
+#!/usr/local/bin/perl
+#
+# This tool is used to check how Device::SerialPort is behaving on
+# your machine.  It will list all the possible values for each function
+# as it runs.  Edit this tool to test various settings.
+#
+# $Id$
+#
+# Copyright (C) 2000-2004 Kees Cook
+# kees@outflux.net, http://outflux.net/
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# http://www.gnu.org/copyleft/gpl.html
+
+use Device::SerialPort;
+print "Module loaded\n";
+
+# Edit this for your serial port.  (I was testing under Solaris...)
+$port=new Device::SerialPort("/dev/modem") || die "new: $!\n";
+print "Port open\n";
+
+# Are the ioctls loaded?
+$bool=$port->can_ioctl();
+print "can ioctl: ",($bool ? "Yes" : "No"),"\n";
+if (!$bool) {
+        die "The rest of this test is useless without ioctl methods.\n";
+}
+
+# Handshaking
+@handshakes=$port->handshake;
+print "Handshakes:\n";
+grep(print("\t$_\n"),sort(@handshakes));
+$handshake=$port->handshake("none");
+print "Port handshake: $handshake\n";
+
+# Baud rate
+@bauds=$port->baudrate;
+print "Bauds:\n";
+grep(print("\t$_\n"),sort(@bauds));
+$baudrate=$port->baudrate("9600");
+print "Port baud: $baudrate\n";
+
+# Databits
+@databits=$port->databits;
+print "Databits:\n";
+grep(print("\t$_\n"),sort(@databits));
+$databits=$port->databits(8);
+print "Port databits: $databits\n";
+
+# Parity
+@parity=$port->parity;
+print "Parity:\n";
+grep(print("\t$_\n"),sort(@parity));
+$parity=$port->parity("none");
+print "Port parity: $parity\n";
+
+# Stopbits
+@stopbits=$port->stopbits;
+print "Stopbits:\n";
+grep(print("\t$_\n"),sort(@stopbits));
+$stopbits=$port->stopbits(1);
+print "Port stopbits: $stopbits\n";
+
+# Flip on DTR and RTS
+$dtr=$port->dtr_active(1);
+$rts=$port->rts_active(1);
+print "Port DTR ($dtr) and RTS ($rts) activated\n";
+
+$rts=$port->rts_active(0);
+print "Flipped RTS to off ($rts) (pausing for 5 seconds)\n";
+sleep 5;
+$rts=$port->rts_active(1);
+print "Flipped RTS to on ($rts)\n";
+
+# Flip OFF dtr
+$dtr=$port->dtr_active(0);
+print "Flipped DTR to off ($dtr) (pausing for 5 seconds)\n";
+sleep 5;
+$dtr=$port->dtr_active(1);
+print "Flipped DTR to on ($dtr)\n";
+
+# Just in case: reset our timing and buffers
+$port->lookclear();
+$port->read_const_time(100);
+$port->read_char_time(5);
+
+# Read a chunk
+sleep 1;
+($count,$str)=$port->read(1);
+$cnt=$count;
+while ($count>0) {
+	($count,$got)=$port->read(1);
+	$str.=$got;
+	$cnt+=$count;
+}
+print "read: $cnt\n";
+print "-:$str:-\n";
+
+# Write an INIT to the modem
+($count)=$port->write("ATZ\r");
+print "written: $count\n";
+
+# Read a chunk
+sleep 1;
+($count,$str)=$port->read(1);
+$cnt=$count;
+while ($count>0) {
+	($count,$got)=$port->read(1);
+	$str.=$got;
+	$cnt+=$count;
+}
+print "read: $cnt\n";
+print "-:$str:-\n";
+
+# and another
+sleep 1;
+($count,$str)=$port->read(1);
+$cnt=$count;
+while ($count>0) {
+	($count,$got)=$port->read(1);
+	$str.=$got;
+	$cnt+=$count;
+}
+print "read: $cnt\n";
+print "-:$str:-\n";
+
+# and one more
+sleep 1;
+($count,$str)=$port->read(1);
+$cnt=$count;
+while ($count>0) {
+	($count,$got)=$port->read(1);
+	$str.=$got;
+	$cnt+=$count;
+}
+print "read: $cnt\n";
+print "-:$str:-\n";
+
+# close the port
+undef $port;
+print "Port closed\n";
