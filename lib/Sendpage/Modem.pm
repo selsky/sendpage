@@ -421,7 +421,7 @@ sub chat {
 			}
 
 			# try to read char
-			($cnt,$avail)=$self->read(1024);
+			($cnt,$avail)=$self->read(255);
 			if ($cnt > 0) {
 				$main::log->do('debug', "saw: ".$self->HexStr($avail))
 					if ($self->{DEBUG});

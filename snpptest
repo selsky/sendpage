@@ -24,9 +24,11 @@
 
 use Net::SNPP;
 
-$snpp = Net::SNPP->new('localhost', Debug => 1 );
+$snpp = Net::SNPP->new('localhost', 
+				Port => 2424,
+				Debug => 1 );
 if (!defined($snpp)) {
-	die "SNPP failed\n";
+	die "Could not connect to SNPP server\n";
 }
 
 my ($PIN, $Message) = @ARGV;

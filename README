@@ -235,7 +235,7 @@ Porting Device::SerialPort
 If you're trying to get Device::SerialPort to work on an untested platform,
 please take a look at the top of the "SerialPort.pm" file, and examine the
 paths where "termios.ph" is searched for.  Basically, SerialPort.pm needs
-the following constants to operate correctly:
+the following constants from a .ph file to operate correctly:
 
 Must have these:
 	TIOCM_RTS
