@@ -1,15 +1,19 @@
 $Id$
 
-1.0.0:
+0.9.10: (20Apr2001)
 	- tempfail-notify-after was going off on the very first temp
 	  failure, if it was set at all. (PagingCental.pm)
 	- ignore-carrier was not boolean. (sendpage)
 	- claim shutdown source correctly on children. (sendpage)
-	- remove closed pipes from select set correctly (typos). (sendpage)
+	- removed closed pipes from select set correctly (typos). (sendpage)
+	- closed the RIGHT file descriptors. (typos, sendpage)
 	- added "debug-snpp" for SNPP debugging. (sendpage)
 	- added "debug-select" for select-loop debugging. (sendpage)
 	- added Randy Emler's postfix instructions to docs/.
 	- increased accept queue to 20 in SNPPServer.pm
+	- I've wrapped the signal blocker around everything but the
+	  select now.  I'm worried this might do bad things, but I
+	  haven't been able to prove it yet.  Hmm.
 
 0.9.9: (06Mar2001)
 	- improved call-out debugging in Modem.pm

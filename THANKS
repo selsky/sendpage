@@ -27,7 +27,8 @@ Jerry Paul Taft
 
 
 Randy Emler
-	Showed me a bug in my select loop.  Turned out to be two silly
+	<Randy_L_Emler@wr.com>
+	Showed me a bug in my select loop.  Turned out to be a few silly
 	typos, but finding them resulted in further debugging additions.
 	Also, donated his postfix configuration documentation.
 
