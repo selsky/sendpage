@@ -229,7 +229,7 @@ Page Queuing Options
 $log=Sendpage::KeesLog->new(Syslog => 0);
 
 # get our options
-if (!getopts('htvdqC:b:R:f:m:n:',\%opts) || $opts{h}) {
+if (!getopts('htvdqC:b:R:f:m:n',\%opts) || $opts{h}) {
 	Usage();
 }
 
