@@ -91,7 +91,7 @@ sub new {
 
 sub file {
 	my $self = shift;
-	return $self->{FILES}->[0];
+	return $self->{FILES}[0];
 }
 
 # is the queue ready to have files taken from it?
@@ -99,8 +99,8 @@ sub ready {
 	my $self = shift;
 
 	if ($self->{OPEN}) {
-		$main::log->do('alert', "Cannot check queue '".$self->{DIR}."' with open file!");
-		return undef;
+		$main::log->do('alert', "Cannot check queue '".$self->{DIR}."' with open file (".$self->{FILES}[0].")!");
+		return -2;
 	}
 
 	opendir(DIRHANDLE,$self->{DIR})
@@ -126,7 +126,8 @@ sub getReadyFile {
 	my $fh = new FileHandle;
 
 	if ($self->{OPEN}) {
-		$main::log->do('alert', "Cannot read next file from queue '".$self->{DIR}."' with open file!");
+		$main::log->do('alert', "Cannot read next file from queue '".$self->{DIR}."' with open file (".$self->{FILES}[0].")!");
+
 		return undef;
 	}
 	my($file)=$self->{FILES}[0];
@@ -142,7 +143,7 @@ sub getReadyFile {
 		close($fh);
 	}
 
-	# open queu files read/write
+	# open queue files read/write
 	if (!open($fh,"+<$fname")) {
 		$main::log->do('alert', "Cannot read $err $!");
 
@@ -160,8 +161,14 @@ sub getReadyFile {
 		return $self->getReadyFile();
 	}
 
-	# FIXME: test for file existance after we get the lock,
-	# 	in case someone deleted it while they had it locked
+	if (! -f $fname) {
+		# someone deleted the file while they had it locked,
+		close($fh);
+
+		# we should try for the next file in the queue
+		shift @{$self->{FILES}};
+		return $self->getReadyFile();
+	}
 
 	$self->{OPEN}=$fh;
 
@@ -180,7 +187,9 @@ sub fileToss {
 	# unlink before unlock: no one can get it then FIXME: this is not right
 	my $fname = $self->{DIR}."/".$self->{FILES}[0];
 
-	unlink($fname);
+	if (unlink($fname)<1) {
+		$main::log->do('alert', "Could not delete file '$fname': $!");
+	}
 
 	$self->unlockFile($fname);
 	close($self->{OPEN});
@@ -216,7 +225,7 @@ sub getNewFile {
 	my($self)=shift;
 
 	if ($self->{OPEN}) {
-		$main::log->do('alert', "Cannot create new file while file open!");
+		$main::log->do('alert', "Cannot create new file for queue '".$self->{DIR}."' with open file (".$self->{FILES}[0].")!");
 		return undef;
 	}
 
@@ -246,7 +255,9 @@ sub doneNewFile {
 	# need the queue dirs here, too
 	$fname=$self->{DIR}."/$fname";
 	$newname=$self->{DIR}."/$newname";
-	rename($fname,$newname) || die "Rename '$fname' -> '$newname': $!\n";
+	if (!rename($fname,$newname)) {
+		$main::log->do('crit', "Cannot rename '$fname' -> '$newname': $!\n";
+	}
 
 	# done with this handle
 	$self->fileDone();	

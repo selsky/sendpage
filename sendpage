@@ -785,19 +785,19 @@ sub StartQueue {
 		$sleeptime=$rundelay;
 
 		# search queue, gathering pages
-		if (($waiting=$queue->ready())>-1) {
+		if (($waiting=$queue->ready())>=0) {
 			while (defined($page=$queue->getPage())) {
 				if ($page->deliverable()) {
 					$pc->deliver($page);
 
 					if ($page->has_recips()) {
-						#warn "rewriting page to queue\n";
+						$log->do('debug',"rewriting page to queue") if ($DEBUG);
 						# something requires rerun
 						$queue->writePage($page);
 						$queue->fileDone();
 					}
 					else {
-						#warn "tossing queue file\n";
+						$log->do('debug',"tossing queue file") if ($DEBUG);
 						$queue->fileToss();
 					}
 				}
