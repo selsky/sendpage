@@ -22,9 +22,14 @@ Jerry Paul Taft
 	will be missed.
 
 
+Jonathan C. Detert
+	<detertj@msoe.edu>
+	Found a bug with the "dialout" modem setting.
+
+
 Todd M. Lewis
 	<utoddl@email.unc.edu>
-	Suggested a change to comment parsing (to allow leading whitespace).
+	Suggested a change to comment parsing to allow for leading whitespace.
 
 
 Jon Scarbrough

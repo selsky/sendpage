@@ -46,6 +46,9 @@ Quick Start (for Linux)
 
 		starting Queue Manager and SNPP listener (sendpage vX.X.X)
 
+	- you can also use the "sendpage.init" file for SysV-style init
+	  script control.	
+
    Sending a page.
 
 	- run the "snpp" command to send yourself a test page:

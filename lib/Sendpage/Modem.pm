@@ -415,13 +415,13 @@ sub dial {
 	$actual_num.=$dial_num;
 	$report.="Num: '$dial_num'";
 
-	if ($dialout ne "") {
-		$report="DialOut: '$dialout' ".$report;
+	if ($modem_dialout ne "") {
+		$report="DialOut: '$modem_dialout' ".$report;
 	}
 
 	$self->{LOG}->do('debug',"Calling with $report") if ($self->{DEBUG});
 
-	return $self->chat($modem_dial.$dialout.$actual_num."\r","",
+	return $self->chat($modem_dial.$modem_dialout.$actual_num."\r","",
 				$self->{DialOK},$dialwait,1,
 				$self->{NoCarrier},1);
 }
