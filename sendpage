@@ -156,7 +156,7 @@ Sendpage::Page(3), Sendpage::Recipient(3), Sendpage::Queue(3)
 require 5.005;
 
 # Global variables;
-$VERSION="0.9.4c"; # our version!
+$VERSION="0.9.5"; # our version!
 undef $log;	  # hold logging object
 
 # Module-global variables
