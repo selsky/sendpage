@@ -550,6 +550,12 @@ sub SpawnChildren {
 			next;
 		}
 
+		# FIXME: there is a race condition here between the fork
+		# 	 and the call to "SignalInit" where a child could
+		#	 think it was still the manager, and receive yet
+		#	 another signal, and act on it.  I'd like to pause
+		#	 signal handling here, mabye.
+
 		$pid=fork();
 		if ($pid<0) {
 			# failure
@@ -565,6 +571,7 @@ sub SpawnChildren {
 		}
 		else {
 			# child
+			&SignalInit();
 			&DropPrivs();
 			&StartQueue($pc);	
 			$log->do('crit',"PC '$pc' died!  Whoops, that can't happen!");
@@ -644,6 +651,16 @@ sub Respawn {
 	}
 }
 
+sub SignalInit {
+	# set up signal handlers (to do respawning, signal sending, etc)
+	# (find out how to protect children from signal cascading from parents)
+	$SIG{'HUP'}='IGNORE';
+	$SIG{'USR1'}='IGNORE';
+	$SIG{'PIPE'} = 'IGNORE';
+	$SIG{'INT'}=$SIG{'QUIT'}=\&NiceShutdown;
+	$SIG{'TERM'}=\&ImmediateShutdown;
+}
+
 sub BecomeDaemon {
 	# check to see if we're already running
 	if (QueryDaemons()) {
@@ -686,12 +703,8 @@ sub BecomeDaemon {
 	# daemon mode starts here
 	DaemonInit();
 
-	# set up signal handlers (to do respawning, signal sending, etc)
-	# (find out how to protect children from signal cascading from parents)
-	$SIG{'HUP'}='IGNORE';
-	$SIG{'INT'}=$SIG{'QUIT'}=\&NiceShutdown;
-	$SIG{'TERM'}=\&ImmediateShutdown;
-	$SIG{'PIPE'} = 'IGNORE';
+	SignalInit();
+
 	$PC="";
 
 	# FIXME: close file handles? what about debugging.  ;)
@@ -731,16 +744,16 @@ sub BecomeDaemon {
 	die "parent died: this should never have happened: $!\n";
 }
 
-sub ListenForChildren {
-	$log->do('debug',"starting Queue Manager (sendpage v$VERSION)") if ($DEBUG);
-	while ($SHUTDOWN!=1) {
-		# restart children as they die
-		Respawn();
-	}
-	$log->do('debug',"Queue Manager shutting down") if ($DEBUG);
-	YankPidFile("");
-	exit(0);
-}
+#sub ListenForChildren {
+#	$log->do('debug',"starting Queue Manager (sendpage v$VERSION)") if ($DEBUG);
+#	while ($SHUTDOWN!=1) {
+#		# restart children as they die
+#		Respawn();
+#	}
+#	$log->do('debug',"Queue Manager shutting down") if ($DEBUG);
+#	YankPidFile("");
+#	exit(0);
+#}
 
 sub initSNPP {
 	# need to use "create" so that the "accept"s don't call the constructor

@@ -5,49 +5,50 @@ Things that we need, organized roughly
 
 Needed For Stable Release
 -------------------------
+*Code
 - implement SNPP "HOLD" function
-- fully implement SNPP client (fewer modules to load to send a page, no setgid)
+- implement a better audit log for pages (queued, sent, errors, contents(?))
 - do something so that queues that are waiting on a modem will run
   as soon as the modem is available.  How can I do this when there are
   multiple modems available?  Weird multi semaphore notifications queues
   based on modems?  Gah.  Strange.
-- write an email-parsing tool for sending pages from email.
-- need better documentation on how to install, set up, test, and run sendpage
-- document how to make a "sendpage" user, and find the groups you need
-- make sure sendpage.cf gets handled by Makefile.PL  etc dir?
-- implement max-blocks-per-session for a PC
-- implement email notification fall-back
 - email paging failures to page-daemon (Errors-To: ?)
-- need documentation on "page-daemon" alias for errors, bounces, warnings, etc?
-- implement a better audit log for pages (queued, sent, errors, contents)
-  other than just debugging output.
-- write POD for snpp tool
-- write POD for email2page tool
 - implement net/mask checking for SNPP client connections
 - does snpp tool need to generate "bounce" emails on bad pages?
 - create snpp.conf file for snpp tool to pull its defaults from
+*Docs
+- how to install, set up, test, and run sendpage
+- how to make a "sendpage" user & find the groups you need
+- hot "page-daemon" alias for errors, bounces, warnings, etc, works
+- POD for "snpp" tool
+- POD for "email2page" tool
 
 
 Would Be Nice
 -------------
+*Code
+- implement max-blocks-per-session for a PC
+- implement email notification fall-back
+- have all the conf files get handled by Makefile.PL  --  /etc dir?
 - fix all support modules to use a hash list of parameters instead of
   taking a KeesConf object.  This makes things more truely modular.
-- code needs more documentation
-- write more API documentation for all the modules via pod
-- write a data flow graph
-- update API doc to reflect changes made for PageQueue, Page, and Recipient
-- spit out short GPL note somewhere?
-- Write up an example CGI script for sending pages
-- Figure out how to do filelocking under Windows
-- Figure out what to replace my Syslog calls with under Windows
+- write up an example CGI script for sending pages
+- figure out how to do filelocking under Windows
+- figure out what to replace my Syslog calls with under Windows
 - add "include" verb to sendpage.cf for sucking in other files?
+- spit out short GPL note somewhere?
+*Docs
+- update API doc to reflect changes made for PageQueue, Page, and Recipient
+- more general in-code commenting & documentation
+- more API documentation for all the modules via POD
+- write a data flow graph
 
 
 
 Stuff I Might Need Some Time Soon
 ---------------------------------
 - implement multiple TAP protocols? (are there differences?  PG1, PG3, etc)
-  I don't think I'll ever need this due to my "pc:fields" variable.
+  I don't think I'll ever need this due to the "pc:fields" variable.
 
 
 I'm Probably Never Going To Implement These Crazy Ideas

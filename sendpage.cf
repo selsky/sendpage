@@ -274,17 +274,20 @@ maxchars=300
 #password=123456
 
 # Should we assume strict TAP protocol, and require CR before each answer?
-# If you can set this to true, do so, as it makes response codes easier to read.
+# If you can set this to true, do so, as it makes textual response codes
+# easier to read.  However, very few PCs use those codes, and very few
+# PCs have correctly implemented strict TAP, so it's unlikely you want this. 
 #	Default is "false"
 #stricttap=true
 
 # Characters less than 0x20 are allowed in a block's field?
-# If you can set this, it makes pages prettier (can send \n's etc)
+# If you can set this, it makes pages prettier (can send tabs, newlines,
+# etc), but some PCs really don't like this.  See 'esc' and 'lfok' options.
 #	Default is "false"
 #ctrl=true
 
 # Can characters less than 0x20 be escaped, as in TAP spec 1.8?
-# If you can't set ctrl to true, see if this one set to true works.
+# If you can't set "ctrl" to true, see if this one set to true works.
 #	Default is "false"
 #esc=true
 
@@ -317,18 +320,21 @@ maxchars=300
 # number from chicago, but I think it's valid as a national TAP access
 # number.
 [pc:skytel]
-phonenum= 18007596366
+areacode=800
+phonenum=7596366
 stricttap=true
 
 # I have a nextel that should work Nationally, but I've only called this
 # number from Chicago, while I was IN Chicago with the NexTel.
 [pc:nextel]
-phonenum= 13129076683
+areacode=312
+phonenum=9076683
 stricttap=true
 
 # This is the BellSouth RIM pager
 [pc:rim-pager]
-phonenum= 1800-868-2835
+areacode=800
+phonenum=868-2835
 stricttap=true
 
 
