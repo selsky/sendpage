@@ -117,7 +117,7 @@ sub check {
 	$key = $self->quote($key);
 
 	$table = $self->{TABLE};
-	$query = "select v from $table where k = $key;";
+	$query = "select v from $table where k = $key";
 
 	$sth = $self->query($query);
 
@@ -146,7 +146,7 @@ sub show {
 	my ($sth,$key,$table,$query);
 
 	$table = $self->{TABLE};
-	$query = "select k,v from $table;";
+	$query = "select k,v from $table";
 
 	$sth = $self->query($query);
 	if (! $sth) {
@@ -169,7 +169,7 @@ sub update {
 	$key = $self->quote($key);
 	$val = $self->quote($val);
 
-	$query = "select k,v from $table where k = $key;";
+	$query = "select k,v from $table where k = $key";
 	$sth = $self->query($query);
 	if (! $sth) {
 		return undef;
@@ -177,10 +177,10 @@ sub update {
 
 	$sth->finish;
 	if ($sth->rows > 0) {
-		$query = "update $table set v = $val where k = $key;";
+		$query = "update $table set v = $val where k = $key";
 		$sth = $self->query($query);
 	} else {
-		$query = "insert into $table values ($key,$val);";
+		$query = "insert into $table values ($key,$val)";
 		$sth = $self->query($query);
 	}
 	if (! $sth) {
@@ -197,7 +197,7 @@ sub delete {
 	$table = $self->{TABLE};
 
 	$key = $self->quote($key);
-	$query = "delete from $table where k = $key;";
+	$query = "delete from $table where k = $key";
 	$sth = $self->query($query);
 	if (! $sth) {
 		return undef;
