@@ -160,7 +160,7 @@ Sendpage::Page(3), Sendpage::Recipient(3), Sendpage::Queue(3)
 require 5.005;
 
 # Global variables;
-$VERSION="0.9.12"; # our version!
+$VERSION="0.9.13"; # our version!
 my $config;	# holds the configuration object
 undef $log;	# holds logging object
 
@@ -1562,6 +1562,8 @@ $config->define("tempfail-notify-after", { DEFAULT => 5 });
 $config->define("max-tempfail", { DEFAULT => 20 });
 # default email CC domain
 $config->define("fallback-email-domain", { DEFAULT => undef });
+# command to run after each successful or failed page
+$config->define("completion-cmd", { UNSET => 1 });
 # syslog toggle: strerr is used if not syslog
 $config->define("syslog", { DEFAULT => 1, ARGCOUNT => 0 });
 # syslog logopt words (any of "pid", "ndelay", "cons", "nowait")
@@ -1625,6 +1627,8 @@ $config->define("pc:cc-on-error",  { ARGCOUNT => 0, UNSET => 1 });
 $config->define("pc:fail-notify", { ARGCOUNT => 0, UNSET => 1 });
 $config->define("pc:tempfail-notify-after", { UNSET => 1 });
 $config->define("pc:max-tempfail", { UNSET => 1 });
+# command to run after each successful or failed page
+$config->define("pc:completion-cmd", { UNSET => 1 });
 $config->define("pc:modems", { ARGCOUNT => 2 });
 $config->define("pc:baud",   { DEFAULT => 9600 });
 $config->define("pc:data",   { DEFAULT => 7 });

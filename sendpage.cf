@@ -149,6 +149,15 @@
 # Default domain for email-cc (not implemented yet)
 #fallback-email-domain	=	@cpoint.net
 
+# Command to run after each successful or failed page
+#	Default is unset
+#	Command gets contents of page on stdin, and 2 command line
+#	parameters:
+#		arg 1: status (0=page failed, 1=page succeeded)
+#		arg 2: page alias (who was paged)
+#
+#completion-cmd = "/usr/local/bin/page-sent"
+
 ######################
 # modem configuration
 # 	Each section should be called "modem".  (e.g.  "[modem:sportster]")
@@ -283,6 +292,15 @@ dev	= /dev/modem
 # How many times does a page hit a temporary error before failing forever?
 #	Default is unset; will fall back to global option
 #max-tempfail=50
+
+# Command to run after each successful or failed page, overrides global
+#	Default is unset
+#	Command gets contents of page on stdin, and 2 command line
+#	parameters:
+#		arg 1: status (0=page failed, 1=page succeeded)
+#		arg 2: page alias (who was paged)
+#
+#completion-cmd = "/usr/local/bin/page-sent"
 
 # If for some reason you need to override the default list of modems,
 # do it here.

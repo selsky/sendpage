@@ -160,6 +160,8 @@ sub new {
 	$self->{FailNotify}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@fail-notify");
 	$self->{MaxTempFail}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@max-tempfail");
 
+	# Completion commands
+	$self->{CompletionCmd}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@completion-cmd",1);
 
 	$self->{LEAD}="";
 	$self->{LEAD}=$CR
@@ -504,9 +506,11 @@ sub deliver {
 			}
 
 			# external commands...
-			# open(CMD,"|$cmd $paged 1");
-			# print CMD $page->text();
-			# close(CMD);
+			if (defined($self->{CompletionCmd})) {
+				open(CMD,"|$self->{CompletionCmd} 1 $paged");
+				print CMD $page->text();
+				close(CMD);
+			}
 		}
 		elsif ($rc == $TEMP_ERROR) {
 			# temp failure
@@ -569,9 +573,11 @@ sub deliver {
 			}
 
 			# external commands...
-			# open(CMD,"|$cmd $paged 0");
-			# print CMD $page->text();
-			# close(CMD);
+			if (defined($self->{CompletionCmd})) {
+				open(CMD,"|$self->{CompletionCmd} 0 $paged");
+				print CMD $page->text();
+				close(CMD);
+			}
 		}
 		else {
 			# truely weird
