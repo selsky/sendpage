@@ -1,0 +1,13 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         sendpage
+version:      0.01
+version_from: sendpage
+installdirs:  site
+requires:
+    Device::SerialPort:            0.12
+    Mail::Send:                    1.08
+    Net::SNPP:                     1.1
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.17
