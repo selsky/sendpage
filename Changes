@@ -1,5 +1,9 @@
 $Id$
 
+1.0.0:
+	- tempfail-notify-after was going off on the very first temp
+	  failure, if it was set at all. (PagingCental.pm)
+
 0.9.9: (06Mar2001)
 	- improved call-out debugging in Modem.pm
 	- corrected pet3 handling, added the 'proto' option to PCs

@@ -518,7 +518,7 @@ sub deliver {
 			}
 		
 			# Send email notification
-			if ($self->{NotifyAfter} > 0 &&
+			if ($self->{NotifyAfter} > 0 && $attempts > 0 && 
 			    ($attempts % $self->{NotifyAfter} == 0) && 
 		   	    ($to ne "" || $errcc ne "")) {
 				$self->SendMail($to,
