@@ -264,6 +264,11 @@ maxchars=300
 #	Default is "6"
 #maxsplits=2
 
+# Which TAP protocol to use.  Should be either "PG1" or "PG3".  Most are "PG1".
+# If you had a "pet3" style PC before, this needs to be "PG3"
+#	Default is "PG1"
+#proto=PG3
+
 # How many fields does the PC expect to be getting during Block Transmission?
 # If you had a "pet3" style PC before, this needs to be "3".
 #	Default is "2"

@@ -1319,12 +1319,14 @@ $config->define("pc:areacode",{ UNSET => 1 });
 $config->define("pc:maxchars",{DEFAULT => 1024 });
 # how many page splits allowed per page?
 $config->define("pc:maxsplits",{DEFAULT => 6 });
-# allow for forced multiple fields in BlockTrans
-$config->define("pc:fields",{DEFAULT => 2 });
 # PC uses it's own dialwait for delaying
 $config->define("pc:dialwait",{ UNSET => 1 });
 $config->define("pc:rundelay",{DEFAULT => 30 });
 $config->define("pc:dialretries",{ DEFAULT => 3 });
+# allow for redefining the proto version
+$config->define("pc:proto",{DEFAULT => "PG1" });
+# allow for forced multiple fields in BlockTrans
+$config->define("pc:fields",{DEFAULT => 2 });
 $config->define("pc:password",{DEFAULT => "000000" });
 #  proto establishment info
 $config->define("pc:answerwait", { DEFAULT => 2 });

@@ -269,7 +269,7 @@ sub start_proto {
 
 	my $LEAD=$self->{LEAD};
 	my $LOGONretries=3;	# this is protocol-defined
-	my $SST="PG1";		# we only support this proto so far
+	my $SST=$self->{CONFIG}->get("pc:$self->{NAME}\@proto"); # PG1, etc
 	my $PASS=$self->{CONFIG}->get("pc:$self->{NAME}\@password");
 
 	# adjust the length of the password to MAKE SURE it's 6 chars
