@@ -221,7 +221,7 @@ sub start_proto {
 		$self->{CONFIG}->ifset("pc:$self->{NAME}\@stop"),
 		$self->{CONFIG}->ifset("pc:$self->{NAME}\@flow"));
 	if (!defined($result)) {
-		$main::log->do('alert',"Failed to init modem");
+		$main::log->do('alert',"Failed to initialize modem");
 		return (undef,"Could not initialize modem");
 	}
 
@@ -339,7 +339,7 @@ sub start_proto {
 	}
 
 	$self->{MODEM}=$modem;
-	return 1;
+	return (1,"Proto startup success");
 }
 
 sub send {
@@ -485,6 +485,21 @@ sub deliver {
 	$page->attempts(1);
 }
 
+sub dropmodem {
+	my $self = shift;
+
+	if (!defined($self->{MODEM})) {
+		# already dropped
+		return 1;
+	}
+
+	# give up the modem
+	$self->{MODEM}->unlock();
+	undef $self->{MODEM};
+
+	return 1;
+}
+
 sub disconnect {
 	my $self = shift;
 	my $report;
@@ -519,9 +534,7 @@ sub disconnect {
 					($self->{DEBUG} || $result!=1));
 	}
 
-	# give up the modem
-	$self->{MODEM}->unlock();
-	undef $self->{MODEM};
+	$self->dropmodem();
 
 	$main::log->do('debug',"PagingCentral '$self->{NAME}' disconnected")
 		if ($self->{DEBUG});
@@ -694,8 +707,8 @@ sub TransmitBlock {
    my($result,$done,$retries,$report);
 
    if (!defined($self->{MODEM})) {
-	$main::log->do('warning', "Yikes!  The modem disappeared!");
-        return $TEMP_ERROR;
+	$main::log->do('warning', "Yikes!  The modem object disappeared!");
+        return ($TEMP_ERROR,"Lost modem object");
    }
 
    $block=${STX}.$block.$sep;
@@ -709,6 +722,12 @@ sub TransmitBlock {
    undef $done;
    $retries=0;
    while (!defined($done) && $retries <= $N[2]) {
+
+	# make sure the modem stays connected
+	if (!$self->{MODEM}->ready("TransmitBlock")) {
+		$self->dropmodem();
+		return ($TEMP_ERROR,"Lost modem connection");
+	}
 
 	# transmit block here
 	$result=$self->{MODEM}->chat($block,"",

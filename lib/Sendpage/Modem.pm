@@ -40,6 +40,7 @@ Sendpage::Modem.pm - extends the Device::SerialPort package
 
     $modem=Sendpage::Modem->new($params);
     $modem->init($baud,$parity,$data,$stop,$flow,$str);
+    $modem->ready($functionname);
     $modem->dial($str);
     $modem->chat($send,$resend,$expect,$timeout,$retries,$dealbreaker,
     	$ignore_carrier);
@@ -341,6 +342,21 @@ sub init {
 	return $result;
 }
 
+sub ready {
+	my $self=shift;
+	my $func=shift;
+
+	if (!defined($self->{LOCKFILE})) {
+		$self->{LOG}->do('crit',"$func: Modem '$self->{NAME}' not locked");
+		return undef;
+	}
+	if (!$self->{INITDONE}) {
+		$self->{LOG}->do('crit',"$func: Modem '$self->{NAME}' not initialized");
+		return undef;
+	}
+	return 1;
+}
+
 # FIXME: implement dial retries
 sub dial {
 	my $self=shift;
@@ -348,11 +364,7 @@ sub dial {
 	my $dialwait=shift;
 	my $dialretries=shift;
 
-	if (!defined($self->{LOCKFILE})) {
-		$self->{LOG}->do('crit',"dial: Modem '$self->{NAME}' not locked");
-		return undef;
-	}
-
+	return undef unless $self->ready("dial");
 
 	my $dial = $self->{Dial};
 	$dialwait = $self->{DialWait} if (!defined($dialwait));
@@ -425,14 +437,7 @@ sub chat {
 		$ignore_carrier)=@_;
         my ($avail,$got);
 
-	if (!defined($self->{LOCKFILE})) {
-		$self->{LOG}->do('crit',"chat: Modem '$self->{NAME}' not locked");
-		return undef;
-	}
-	if (!$self->{INITDONE}) {
-		$self->{LOG}->do('crit',"chat: Modem '$self->{NAME}' not initialized");
-		return undef;
-	}
+	return undef unless $self->ready("chat");
 
 	$ignore_carrier=$self->{IgnoreCarrier}
 		if (!defined($ignore_carrier));
@@ -516,6 +521,8 @@ sub chat {
 				if (!$has_carrier) {
 					$self->{LOG}->do('warning',
 						"lost carrier during chat");
+					# modem no longer valid
+					$self->{INITDONE}=0;
 					return undef;
 				}
 			}
