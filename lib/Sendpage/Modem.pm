@@ -158,7 +158,7 @@ sub new {
 			return undef;
 		}
 		else {
-			$log->do('alert',"Modem '$name': cannot access lockfile '$lockfile': $!");
+			$log->do('alert',"Modem '$name': cannot access lockfile '$lockfile': %s",$!);
 			undef $log;
 			return undef;
 		}
@@ -173,7 +173,7 @@ sub new {
 	my $ref;
 
 	if (!defined($self)) {
-		$log->do('crit',"Modem '$name': could not start Device::Serial port: $!");
+		$log->do('crit',"Modem '$name': could not start Device::Serial port: %s",$!);
 		unlink $lockfile;
 		undef $log;
 		return undef;
@@ -192,7 +192,7 @@ sub new {
 
 	# Do Device::SerialPort capability sanity checking
 	if (!$self->can_ioctl()) {
-		$log->do('crit',"Modem '$name' cannot do ioctl's.  Did you run h2ph?");
+		$log->do('crit',"Modem '$name' cannot do ioctl's.  Did 'configure' run correctly when you built sendpage?");
 		# get rid of modem
 		$self->unlock();
 		undef $log;
@@ -437,7 +437,7 @@ sub dial {
 		$report="DialOut: '$modem_dialout' ".$report;
 	}
 
-	$self->{LOG}->do('debug',"Calling with $report") if ($self->{DEBUG});
+	$self->{LOG}->do('debug',"Calling with %s",$report) if ($self->{DEBUG});
 
 	return $self->chat($modem_dial.$modem_dialout.$actual_num."\r","",
 				$self->{DialOK},$dialwait,1,
@@ -466,7 +466,8 @@ sub safe_write {
 			$text=substr($text,$written);
 		}
 		if ($self->{DEBUG}) {
-			$self->{LOG}->do('debug',"wrote: $written ".
+			$self->{LOG}->do('debug',"wrote: %d %s",
+				$written,
 				$self->HexStr(substr($text,0,$written)));
 		}
 		$textlen-=$written;
@@ -500,11 +501,11 @@ sub chat {
 	$got=$self->{BUFFER};
 
 	if ($self->{DEBUG}) {
-		$self->{LOG}->do('debug',"\tto send: ".$self->HexStr($send));
-	        $self->{LOG}->do('debug',"\twant: ".$self->HexStr($expect));
-		$self->{LOG}->do('debug',"\tkicker: ".$self->HexStr($kicker));
+		$self->{LOG}->do('debug',"\tto send: %s",$self->HexStr($send));
+	        $self->{LOG}->do('debug',"\twant: %s",$self->HexStr($expect));
+		$self->{LOG}->do('debug',"\tkicker: %s",$self->HexStr($kicker));
 		$self->{LOG}->do('debug',"\ttimeout: $timeout retries: $retries");
-		$self->{LOG}->do('debug', "\thave: ".$self->HexStr($got));
+		$self->{LOG}->do('debug', "\thave: %s",$self->HexStr($got));
 	}
 
 	# useful variables:
@@ -538,7 +539,7 @@ sub chat {
 		my $matched=$1;
 		my $upto=$`.$1;
 		$self->{BUFFER}=$';	# keep right of match
-		$self->{LOG}->do('debug',"chat success: ".$self->HexStr($matched))
+		$self->{LOG}->do('debug',"chat success: %s",$self->HexStr($matched))
 			 if ($self->{DEBUG});
 		return $upto; 
 	}
@@ -546,7 +547,7 @@ sub chat {
 		my $matched=$1;
 		my $upto=$`.$1;
 		$self->{BUFFER}=$';	# keep right of match
-		$self->{LOG}->do('debug',"chat failure: ".$self->HexStr($matched))
+		$self->{LOG}->do('debug',"chat failure: %s",$self->HexStr($matched))
 			 if ($self->{DEBUG});
 		return undef;
 	}
@@ -584,10 +585,10 @@ sub chat {
 			# try to read char
 			($cnt,$avail)=$self->read(255);
 			if ($cnt > 0) {
-				$self->{LOG}->do('debug', "$cnt seen: ".$self->HexStr($avail))
+				$self->{LOG}->do('debug', "$cnt seen: %s",$self->HexStr($avail))
 					if ($self->{DEBUG});
 				$got.=$avail;
-				$self->{LOG}->do('debug', "have: ".$self->HexStr($got))
+				$self->{LOG}->do('debug', "have: %s",$self->HexStr($got))
 					if ($self->{DEBUG});
 				
 				# reset our timeout
@@ -597,7 +598,7 @@ sub chat {
 				my $msg=sprintf("(timeout: %d/%d, retries: %d/%d)",
 					$timeleft/$SPEED,$timeout/$SPEED,
 					$tries,$retries);
-				$self->{LOG}->do('debug', $msg)
+				$self->{LOG}->do('debug', "%s", $msg)
 					if (($timeleft % $SPEED) == 0);
 			}
 
@@ -607,7 +608,7 @@ sub chat {
 				my $upto=$`.$1;
 				$self->{BUFFER}=$';	# keep right of match
 				$self->{LOG}->do('debug',
-				   "chat success: ".$self->HexStr($matched))
+				   "chat success: %s",$self->HexStr($matched))
 					if ($self->{DEBUG});
 				return $upto; 
 			}
@@ -616,7 +617,7 @@ sub chat {
 				my $upto=$`.$1;
 				$self->{BUFFER}=$';	# keep right of match
 				$self->{LOG}->do('debug',
-				   "chat failure: ".$self->HexStr($matched))
+				   "chat failure: %s",$self->HexStr($matched))
 					 if ($self->{DEBUG});
 				return undef;
 			}

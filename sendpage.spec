@@ -21,7 +21,7 @@ version:	%{rpmversion}
 release:	1
 vendor:		Kees Cook <kees@outflux.net>
 packager:	Arix International <cpan2rpm@arix.com>
-license:	Artistic
+license:	GPL
 group:		Applications/CPAN
 url:		http://sendpage.org/
 buildroot:	%{_tmppath}/%{name}-%{version}-%(id -u -n)

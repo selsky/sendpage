@@ -133,7 +133,8 @@ sub do {
 
 	# question is: who adds the "\n"?  Me or syslog?  I assume me now.
 	if (!defined($self->{OPEN})) {
-		my $str=sprintf("($$: $pri) $format",@args);
+		my $str=sprintf("%s [$$ $pri]: $format",
+				scalar(localtime()),@args);
 		warn $str."\n";
 	}
 	else {

@@ -63,7 +63,7 @@ sub HandleSNPP {
 	my $peer=$sock->peerhost();
 
 	sub shutdown {
-		$log->do('debug',"SNPP client '$peer' signalled down")
+		$log->do('debug',"SNPP client '%s' signalled down",$peer)
 			if ($DEBUG);
 		$sock->command("221 administratively down");
 		exit(0);
@@ -94,7 +94,7 @@ sub HandleSNPP {
 
 	reset_inputs();
 
-	$log->do('debug',"Handling SNPP connection from ".$peer)
+	$log->do('debug',"Handling SNPP connection from %s",$peer)
 		if ($DEBUG);
 
 	# What is my hostname, for the banner?
@@ -114,7 +114,7 @@ sub HandleSNPP {
 			my $input=$sock->getline();
 
 			if (!defined($input)) {
-				$log->do('info',"Lost connection from ".$peer);
+				$log->do('info',"Lost connection from %s",$peer);
 				return;
 			}
 			$sock->debug_print(0,$input)
@@ -297,12 +297,12 @@ sub write_queued_pages {
                 # get our PC-list of recipients
                 $recips=$QPCS{$pc};
 
-                $log->do('debug',"opening queue for '$pc'") if ($DEBUG);
+                $log->do('debug',"opening queue for '%s'",$pc) if ($DEBUG);
                 # write a queue file with associated PINs
                 my $queue=Sendpage::PageQueue->new($config,
 			$config->get("queuedir")."/$pc" );
                 if (!defined($queue)) {
-                        $log->do('err', "cannot find queue for PC '$pc'");
+                        $log->do('err', "cannot find queue for PC '%s'",$pc);
 			next;
                 }
 
@@ -313,8 +313,8 @@ sub write_queued_pages {
                 my $pagingcentral=Sendpage::PagingCentral->new($config,$pc);
 
                 if (length($text) > $pagingcentral->maxchars()) {
-			$log->do('debug',"Splitting due to PC '$pc' maxchar ".
-				"limit: ".$pagingcentral->maxchars())
+			$log->do('debug',"Splitting due to PC '%s' maxchar ".
+				"limit: %d",$pc,$pagingcentral->maxchars())
 				if ($DEBUG);
                         my($newtext,$i,$splittext);
                         my $maxsplits=$pagingcentral->maxsplits();
@@ -364,8 +364,10 @@ sub write_queued_pages {
 				$repfrom="nobody" if ($repfrom eq "");
 				# log our enqueuement (new word?)
 				$log->do('info',
-"$pc/$file: state=Queued, to=".join(",",@tolist).", from=$repfrom($client), ".
-"size=".length($pagetext));
+					 "$pc/$file: state=Queued, to=%s, ".
+					 "from=%s(%s), size=%d",
+					 join(",",@tolist),$repfrom,$client,
+                                         length($pagetext));
 			}
                 }
 		print $pipe "$pc\n" if (defined($pipe));

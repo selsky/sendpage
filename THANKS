@@ -148,6 +148,8 @@ Pat Gunn
 David St. John
 	For hunting down and testing my fix for block-spanning pages.
 	And for donating $100 to the project!  Thanks!
+	David also funded some bug fixing work for weird SNPP hangs.
+	Terrific!
 
 Todd T. Fries
 	Wrote a full DBI-based pager lookup mechanism.  Great!

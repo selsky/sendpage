@@ -157,7 +157,7 @@ Sendpage::Page(3), Sendpage::Recipient(3), Sendpage::Queue(3)
 =cut
 
 # we need at least this version.  FIXME: I forgot why, though.  :P
-require 5.005;
+require 5.006;
 
 # Global variables;
 $VERSION=1.000_000; # our version!
@@ -178,10 +178,14 @@ my $DEBUG;	# for debugging
 my $DEBUG_SELECT;# for debugging select loop
 my $DEBUG_SNPP;	# for debugging SNPP issues
 my %opts;	# holds the command line args hash
+undef @modems;  # List of available modems
+undef @pcs;     # List of enabled PCs
 
-# Global SNPP server variables
+# Global socket variables
 undef $server;	# holds the SNPP server obj
 undef $s;	# holds our Select set
+undef %CNXNS;	# List of open SNPP client pipes by filehandle
+undef %PIPES;	# List of open SNPP client pipes by PID
 
 # Global queue run variables
 my $PC;		# holds name of PC for queue runners
@@ -262,7 +266,7 @@ $log->reconfig(Syslog => $config->get("syslog"),
 #		- force a queue run (optionally for only a certain PC)
 #
 if ($opts{t}) {
-	DaemonInit();
+	ModemInit();
 	exit(0);
 }
 if ($opts{b}) {
@@ -392,7 +396,7 @@ sub RecordPidFile {
 
 	$name=".$name" if ($name ne "");
 	$file=$config->get("pidfileprefix").$name.".pid";
-	open(FILE,">$file") || $log->do('err',"Cannot write to '$file': $!");
+	open(FILE,">$file") || $log->do('err',"Cannot write to '$file': %s",$!);
 	print FILE $pid,"\n";
 	close(FILE);
 }
@@ -404,7 +408,7 @@ sub YankPidFile {
 
 	$name=".$name" if ($name ne "");
 	$file=$config->get("pidfileprefix").$name.".pid";
-	unlink($file) || $log->do('err',"Cannot unlink '$file': $!");
+	unlink($file) || $log->do('err',"Cannot unlink '$file': %s",$!);
 }
 
 # sends a signal to the specified PID
@@ -443,7 +447,7 @@ sub PidOf {
 	if (-f $file) {
 		my $line;
 
-		open(FILE,"<$file") || $log->do('err',"Cannot read '$file': $!");
+		open(FILE,"<$file") || $log->do('err',"Cannot read '$file': %s",$!);
 		chomp($line=<FILE>);
 
 		# this is used to untaint for a sendpage -q
@@ -455,7 +459,7 @@ sub PidOf {
 	else {
 		my $warning=sprintf("No pid file found for sendpage%s!",
 			$name);
-		$log->do('warning',$warning) if (!defined($quiet));
+		$log->do('warning',"%s",$warning) if (!defined($quiet));
 	}
 	return ($pid+0);
 }
@@ -467,6 +471,7 @@ sub NiceShutdown {
 	if ($PC eq "") {
 		my($pc,$cnxn);
 
+		# Shutdown PCs
 		foreach $pc (@pcs) {
 			if ($config->get("pc:$pc\@enabled")==0) {
 				next;
@@ -474,8 +479,11 @@ sub NiceShutdown {
 			$log->do('debug',"Signalling '$pc' ...") if ($DEBUG);
 			SendSignal('QUIT',$pc);
 		}
+		# Shut down SNPP clients
 		foreach $cnxn (keys %PIPES) {
-			kill 'QUIT', $cnxn;
+			$log->do('debug',"Signalling SNPP client '$cnxn' ...")
+				if ($DEBUG);
+			SendSignal('QUIT',$cnxn);
 		}
 	}
 	else {
@@ -555,7 +563,7 @@ sub VerifyAddress {
 	exit(0);
 }
 
-sub DaemonInit {
+sub ModemInit {
 	my $modref;
 
 	# test modems, keeping functioning ones in a list for the PCs to pick
@@ -624,9 +632,6 @@ sub SpawnChildren {
 		$log->do('info',"starting Queue Manager (sendpage v$VERSION_human)");
 	}
 
-	# build new loop selector
-	$s=IO::Select->new();
-
 	# there was a race condition here between the fork
 	# 	 and the call to "SignalInit" where a child could
 	#	 think it was still the manager, and receive yet
@@ -644,7 +649,7 @@ sub SpawnChildren {
 		$pid=fork();
 		if ($pid<0) {
 			# failure
-			$log->do('emerg',"Cripes!  Cannot spawn process: $!");
+			$log->do('emerg',"Cripes!  Cannot spawn process: %s",$!);
 		}
 		elsif ($pid>0) {
 			# parent
@@ -658,13 +663,14 @@ sub SpawnChildren {
 			# child
 			
 			# set up
-			&SignalInit();
 			&DropPrivs(1);
+			&SignalInit();
 
-			# stop blocking signals
-			&UnblockSignals($sigset);
+                        $log->do('debug',"I am child: $$ for PC '$pc'")
+                                if ($DEBUG);
+                        &CheckFDs();
 
-			&StartQueue($pc);	
+			&StartQueue($pc,$sigset);
 			$log->do('crit',"PC '$pc' stopped processing!  ".
                                 "Whoops, that can't happen!");
 			exit(1);
@@ -699,12 +705,28 @@ sub DropPrivs {
 
 	$(=$)=$grouplist;
 	if ($( != $grouplist) {
-		$log->do('crit',"Could not setgid to '$grouplist': $! -- aborting!");
+		$log->do('crit',"Could not setgid to '$grouplist': %s -- aborting!",$!);
 	}
 
 	$<=$>=$setUID;
 	if ($< != $setUID) {
-		$log->do('crit',"Could not setuid: $! -- aborting!");
+		$log->do('crit',"Could not setuid: %s -- aborting!",$!);
+	}
+}
+
+# Debugging routine to check on the state of open file descriptors.
+# I used this will tracking weird problems with the select loop.
+sub CheckFDs
+{
+	return unless ($DEBUG);
+	for (my $fd = 0; $fd < 10; $fd ++ ) {
+		my $fh = IO::Handle->new_from_fd( $fd, "r" );
+		if (defined($fh)) {
+			$log->do('debug',"$fd: open");
+		}
+#		else {
+#			$log->do('debug',"$fd: $!");
+#		}
 	}
 }
 
@@ -712,6 +734,7 @@ sub Respawn {
         my($undef,$forwarded) = @_;
 	my($pid,$pc,$now);
 
+	$!=0;
 	if ($forwarded) {
 		$pid=$forwarded;
 	}
@@ -729,7 +752,7 @@ sub Respawn {
 			return;
 		}
 		else {
-			$log->do('warning',"Oops: waitpid spat totally unexpected error: $!");
+			$log->do('warning',"Oops: waitpid spat totally unexpected error: %s",$!);
 			return;
 		}
 	}	
@@ -752,11 +775,11 @@ sub Respawn {
 	}
 	elsif (defined($PIPES{$pid})) {
 		$log->do('debug',"SNPP connection (pid $pid) finished") if ($DEBUG_SNPP);
-		$s->remove($PIPES{$pid}); # don't select on this handle anymore
-		if ($DEBUG_SELECT) {
-			$log->do('debug',"(select removing pipe ".fileno($PIPES{$pid}).")");
-		}
-		PipeShutdownPipe($PIPES{$pid});
+# Only handle PID shutdown here
+#		$log->do('debug',"(select: removing pipe ".fileno($PIPES{$pid}).")")
+#			if ($DEBUG_SELECT);
+#		$s->remove($PIPES{$pid}); # don't select on this handle anymore
+#		PipeShutdownPipe($PIPES{$pid});
 		PipeShutdownPid($pid);
 	}
 	else {
@@ -823,7 +846,7 @@ sub BecomeDaemon {
 	}
 
 	# daemon mode starts here
-	DaemonInit();
+	ModemInit();
 
 	SignalInit();
 
@@ -852,6 +875,9 @@ sub BecomeDaemon {
 	$SHUTDOWN=0;
 	RecordPidFile($PC,$$);
 
+	# build new loop selector
+	$s=IO::Select->new();
+
 	# start the queue runners
 	SpawnChildren();
 
@@ -862,12 +888,12 @@ sub BecomeDaemon {
 	# listen for children death
 	#$SIG{'CHLD'}=\&Respawn;
 	
-	# handle the SNPP stuff now
-	ListenForSNPP();
+	# start the SNPP stuff now
+	StartSNPP();
 
-	# handle children
-	#ListenForChildren();
-	
+	# Enter the main processing loop
+	MainLoop();
+
 	die "parent died: this should never have happened: $!\n";
 }
 
@@ -884,7 +910,8 @@ sub initSNPP {
 			$server->sockport) if ($DEBUG_SNPP);
 	}
 	else {
-		$log->do('crit',"SNPP listener for '$host:$port' failed: $!");
+		$log->do('crit',"SNPP listener for '%s:%s' failed: %s",
+			 $host,$port,$!);
 	}
 
 	# Expand our snpp ACLs so we don't have to during each connection
@@ -907,7 +934,7 @@ sub initSNPP {
 sub StopSNPP {
 	$log->do('debug',"SNPP listeners shutting down")
 		if ($DEBUG_SNPP);
-	$log->do('debug',"(select dropping ".fileno($server).")")
+	$log->do('debug',"(select: dropping ".fileno($server).")")
 		if ($DEBUG_SELECT);
 	$s->remove($server);
 	undef $server;
@@ -917,9 +944,9 @@ sub StartSNPP {
 	$log->do('info',"starting SNPP listeners");
 	initSNPP();
 	if (defined($server)) {
-		$s->add($server);
-		$log->do('debug',"(select adding server ".fileno($server).")")
+		$log->do('debug',"(select: adding server ".fileno($server).")")
 			if ($DEBUG_SELECT);
+		$s->add($server);
 	}
 }
 
@@ -984,10 +1011,11 @@ sub IPAllowed {
 	return 1;
 }
 
-sub ListenForSNPP {
+# This main loop cycles through all the pending socket connections:
+#  - SNPP listeners to spawn SNPP clients
+#  - SNPP client pipes to start PC queue runs
+sub MainLoop {
 	my($fh,$read,$exc,$pipe,$sigset,$match,$pid);
-
-	StartSNPP();
 
 	while ($SHUTDOWN!=1) {
 		if (!defined($server)) {
@@ -1006,10 +1034,6 @@ sub ListenForSNPP {
 				$s->handles());
 		}
 
-		$match=0;
-		$!=0;
-		$log->do('debug',"(select starting)") if ($DEBUG_SELECT);
-
 		# handle children dying
                 while (($pid = waitpid(-1,&WNOHANG))>0) {
 			&Respawn('',$pid);
@@ -1020,21 +1044,25 @@ sub ListenForSNPP {
 			RestartSNPP();
 		}
 
-		($read,undef,$exc)=IO::Select->select($s,undef,$s,1.0);
-
-		if ($! != 0) {
+		$log->do('debug',"(select starting)") if ($DEBUG_SELECT);
+		$match=0;
+		$!=0;
+		my @events = IO::Select->select($s,undef,$s,1.0);
+		if (scalar(@events)==0 && $! != 0) {
 			if ($! == &EINTR()) {
 				$match=1;
-				$log->do('debug',"select loop: $! -- continuing")
+				$log->do('debug',"select loop: %s -- continuing",$!)
 					if ($DEBUG_SELECT);
 			}
 			else {
-				$log->do('warning',"select loop failed: $!");
+				$log->do('warning',"select loop failed: %s",$!);
 			}
 		}
 		$log->do('debug',"(select finished)") if ($DEBUG_SELECT);
 
+		($read,undef,$exc)=@events;
 		foreach $fh (@$read) {
+			# Handle a new SNPP connection
 			if ($fh == $server) {
 				my $pid;
 				my $sock = $fh->accept;
@@ -1042,11 +1070,11 @@ sub ListenForSNPP {
 				$match=1;
 	
 				if (!defined($sock)) {
-					$log->do('err',"SNPP accept: $!");
+					$log->do('err',"SNPP accept: %s",$!);
 					next;
 				}
 
-				$log->do('debug',"got connection from ".
+				$log->do('debug',"got connection from %s",
 					$sock->peerhost) if ($DEBUG_SNPP);
 
 				if (!IPAllowed($sock)) {
@@ -1066,13 +1094,10 @@ sub ListenForSNPP {
 					# close our forked socket
 					close($sock);
 
-					$s->add($pipe);
-					$log->do('debug',"(select adding pipe ".fileno($pipe).")")
+					$log->do('debug',"(select: adding pipe ".fileno($pipe).")")
 						if ($DEBUG_SELECT);
+					$s->add($pipe);
 					PipeRemember($pipe,$pid);
-	
-					# pause for a bit (no DoSing)
-					#select(undef,undef,undef,0.1);
 				}
 				elsif($pid==0) {
 					# Child
@@ -1089,8 +1114,12 @@ sub ListenForSNPP {
 					$PC="SNPP client";
 					$0="sendpage: SNPP client: ".
 						$sock->peerhost;
-					&SignalInit();
 					&DropPrivs();
+					&SignalInit();
+
+                                        $log->do('debug',"I am child: $$ for SNPP")
+						if ($DEBUG);
+                                        &CheckFDs();
 
 					# we will unblock signals in
 					#  the snpp handler
@@ -1106,22 +1135,23 @@ sub ListenForSNPP {
 						
 				}
 				else {
-					$log->do('err',"SNPP fork: $!");
+					$log->do('err',"SNPP fork: %s",$!);
 					# error on fork
 					close($sock);
 				}
 
 				&UnblockSignals($sigset);
 			}
+			# Handle SNPP client notifications
 			elsif (defined($pid=$CNXNS{$fh})) {
 				$match=1;
 
 				# is this pipe shutdown?
 				if ($fh->eof()) {
 					PipeShutdownPipe($fh);
-					$s->remove($fh);
-					$log->do('debug',"(select removing pipe ".fileno($fh).")")
+					$log->do('debug',"(select: removing pipe ".fileno($fh).")")
 						if ($DEBUG_SELECT);
+					$s->remove($fh);
 					close($fh);
 				}
 				# something is readable from a pipe
@@ -1135,12 +1165,13 @@ sub ListenForSNPP {
 				$match=1;
 
 				# toss any straggling pipes
-				$log->do('debug',"Removing stale selectable file handle: ".fileno($fh))
+				$log->do('debug',"(select: removing stale selectable file handle: ".fileno($fh).")")
 					if ($DEBUG_SELECT);
 				$s->remove($fh);
 				close($fh);
 			}
 		}
+		# Deal with exceptions
 		foreach $fh (@$exc) {
 			if ($fh == $server) {
 				$match=1;
@@ -1152,9 +1183,9 @@ sub ListenForSNPP {
 				$match=1;
 
 				$log->do('warning',"SNPP connection took a hit!");
-				$s->remove($fh);
-				$log->do('debug',"(select removing server ".fileno($fh).")")
+				$log->do('debug',"(select: removing server ".fileno($fh).")")
 					if ($DEBUG_SELECT);
+				$s->remove($fh);
 				close($fh);
 			}
 		}
@@ -1190,7 +1221,7 @@ sub PipeRemember {
 
 
 sub StartQueue {
-	my($name)=@_;
+	my($name,$sigset)=@_;
 
 	# Queue-runner variables
 	my($rundelay,$pc,$waiting);
@@ -1222,6 +1253,9 @@ sub StartQueue {
 		$log->do('alert',"Failed to open queue for '$PC'  --  exiting");
 		exit(1);
 	}
+
+	# stop blocking signals
+	&UnblockSignals($sigset);
 
 	while ($SHUTDOWN!=1) {
 		# reset our sleep time
@@ -1309,27 +1343,26 @@ sub Reload {
 			if ($config->get("pc:$pc\@enabled")==0) {
 				next;
 			}
-			$log->do('debug', "Signalling '$pc' ...") if ($DEBUG);
+			$log->do('debug', "Stopping '$pc' ...") if ($DEBUG);
 			SendSignal('QUIT',$pc);
+			$finished++;
 		}
 		# shut down all the SNPP clients too
 		foreach $pc (keys %PIPES) {
-			$log->do('debug',"Signalling SNPP client '$pc' ...")
+			$log->do('debug',"Stopping SNPP client '$pc' ...")
 				if ($DEBUG);
 			SendSignal('QUIT',$pc);
 			$finished++;
 		}
 
 		# Note:
-		# can't do "DaemonInit" until everyone is dead because we
+		# can't do "ModemInit" until everyone is dead because we
 		# need to re-init (to validate) all the modems.
 
 		my @keys=keys %OLD;
-		# how many PC children do we need to kill?
-		$finished+=$#keys+1;
 
 		undef $!;
-		$log->do('debug', "Waiting for PCs to die off...") if ($DEBUG);
+		$log->do('debug', "Waiting for $finished PCs/SNPPs to die off...") if ($DEBUG);
 		while ($finished!=0) {
 			$pid=wait;
 			if ($pid==-1) {
@@ -1338,7 +1371,7 @@ sub Reload {
 					$finished=0;
 				}
 				else {
-					$log->do('warning',"Oops: waitpid spat totally unexpected error: $!");
+					$log->do('warning',"Oops: waitpid spat totally unexpected error: %s",$!);
 				}
 			}	
 			elsif ($pid==0) {
@@ -1364,7 +1397,7 @@ sub Reload {
 
 		# reload our configurations
 		Initialize();
-		DaemonInit();
+		ModemInit();
 
 		# Restart logging
 		$log->reconfig(Syslog => $config->get("syslog"),
@@ -1450,8 +1483,8 @@ sub RecipDig {
 	}
 
 	if ($seen->{$recip->name()}>1) {
-		$log->do('alert',"Loop found in alias expansion!  Culprit recip: '".
-			$recip->name()."'");
+		$log->do('alert',"Loop found in alias expansion!  Culprit recip: '%s'",
+			$recip->name());
 		exit(1);
 	}
 
@@ -1465,16 +1498,16 @@ sub RecipDig {
 	$dests=$recip->dests();
 
 	# dump list
-	grep($log->do('debug',"starting with: '$_'"),@{$dests})
+	grep($log->do('debug',"starting with: '%s'",$_),@{$dests})
 		if ($config->get("alias-debug"));
 
 	# expand each one
 	foreach $one (@{ $dests }) {
-		$log->do('debug',"expanding: '$one'") if ($config->get("alias-debug"));
+		$log->do('debug',"expanding: '%s'",$one) if ($config->get("alias-debug"));
 		my %copy=%{$seen};
 		my $r=Sendpage::Recipient->new($config,$db,$one,$recip->data());
 		if (!defined($r)) {
-			$log->do('err',"undeliverable: '$one'");
+			$log->do('err',"undeliverable: '%s'",$one);
 		}
 		else {
 			my @results=RecipDig($r,\%copy);
@@ -1505,16 +1538,16 @@ sub ArrayDig {
 	# did a look-up fail?
 	$fail=0;
 	# dump list
-	grep($log->do('debug',"starting with: '$_'"),@array)
+	grep($log->do('debug',"starting with: '%s'",$_),@array)
 		if ($config->get("alias-debug"));
 
 	# expand each one
 	foreach $one (@array) {
-		$log->do('debug',"expanding: '$one'")
+		$log->do('debug',"expanding: '%s'",$one)
 			if ($config->get("alias-debug"));
 		my $recip=Sendpage::Recipient->new($config,$db,$one);
 		if (!defined($recip)) {
-			$log->do('err',"undeliverable: '$one'");
+			$log->do('err',"undeliverable: '%s'",$one);
 			$fail=1;
 		}
 		else {

@@ -75,7 +75,7 @@ sub new {
 		}
 		$list = {@list};
 		if (!defined($list)) {
-			$main::log->do('debug',"No such recipient: '$name'")
+			$main::log->do('debug',"No such recipient: '%s'",$name)
 				if ($self->{CONFIG}->get("alias-debug"));
 			return undef;
 		}
@@ -105,7 +105,7 @@ sub new {
 			# verify that we have a legit PC
 			if (!$self->{CONFIG}->instance_exists("pc:".$self->{PC})) {
 				$main::log->do('warning',
-					"no such PC '$self->{PC}' defined for '$self->{PIN}'!");
+					"no such PC '%s' defined for '%s'!",$self->{PC},$self->{PIN});
 				return undef;
 			}
 			# build up the destination "list"
@@ -133,7 +133,7 @@ sub new {
 		# verify that we have a legit PC
 		if (!$self->{CONFIG}->instance_exists("pc:".$self->{PC})) {
 			$main::log->do('warning',
-				"no such PC '$self->{PC}' defined for '$self->{PIN}'!");
+					"no such PC '%s' defined for '%s'!",$self->{PC},$self->{PIN});
 			return undef;
 		}
 	}

@@ -381,7 +381,7 @@ sub start_proto {
    	
 		   # make report on failure or debug
 		   $main::log->do($logged_in==1 ? 'debug' : 'crit',
-			   "proto_startup: $report")
+			   "proto_startup: %s",$report)
 			   if ($report ne "" && ($self->{DEBUG} || $logged_in!=1));
 	   }
 	   if (!$logged_in) {
@@ -401,7 +401,7 @@ sub start_proto {
 		   $modem->HexDump($result) if ($self->{DEBUG});
 		   $report=$self->ReportMsgSeq($result);
    
-		   $main::log->do('debug',"go ahead: $report")
+		   $main::log->do('debug',"go ahead: %s",$report)
 			   if ($report ne "" && $self->{DEBUG});
 	   }
 	}
@@ -513,9 +513,10 @@ sub deliver {
 
 		# log our page's state
 		$main::log->do('info',
-			"$pc/$file: state=$state, to=$paged, from=$sender, ".
-			"size=".length($page->text()).
-			($diag ne "" ? ", $diag" : ""));
+			"$pc/$file: state=$state, to=%s, from=%s, ".
+			"size=%d%s",
+			$paged,$sender,length($page->text()),
+			$diag eq "" ? "" : ", $diag");
 
 		if ($rc == $SUCCESS) {
 			# success
@@ -613,7 +614,7 @@ sub deliver {
 		else {
 			# truely weird
 			$main::log->do('warning',"PagingCentral: weird.  Bad return code");
-			$main::log->do('info',"from PC: $report")
+			$main::log->do('info',"from PC: %s",$report)
 				if ($report ne "");
 		}
 	}
@@ -671,13 +672,13 @@ sub disconnect {
 			$result=1;
 		}
 
-	   $main::log->do('debug',"PagingCentral '$report' reported")
+	   $main::log->do('debug',"PagingCentral '%s' reported",$report)
 		if ($self->{DEBUG});
 
 
 		# report on failure or debug
 		$main::log->do($result!=1 ? 'crit' : 'debug',
-			"disconnect: $report") if ($report ne "" &&
+			"disconnect: %s",$report) if ($report ne "" &&
 					($self->{DEBUG} || $result!=1));
 	   }
 	}
@@ -702,8 +703,8 @@ sub GenerateBlocks {
    # allow for extra fields (what was called "PET3" in old sendpage)
    $fields=$self->{FIELDS} if ($fields < $self->{FIELDS});
    if ($self->{DEBUG}) {
-   	$main::log->do('debug', "\t\tFields to send: $fields:");
-   	grep($main::log->do('debug',"\t\t\t".$_),@fields);
+   	$main::log->do('debug', "\t\tFields to send: %s:",$fields);
+   	grep($main::log->do('debug',"\t\t\t%s",$_),@fields);
    }
 
    # Build a message block.  Cannot exceed 256 characters.
@@ -788,7 +789,7 @@ sub HandleUCPMessage{
    # Transmit the message
    ($result,$report)=$self->TransmitUCPmsg($msg);
 
-   $main::log->do('info',"RETURN: ".$result,"");
+   $main::log->do('info',"RETURN: %s",$result);
    print length($fields[1])."\n"; 
    return ($result,$report);  
 }
@@ -956,7 +957,7 @@ sub PullNextChar {
 
 		# drop chars to 7 bits, as required by TAP protocol
 		if (ord($char) != (ord($char) & 0x7f)) {
-			$main::log->do('warning',"hi-bit character reduced to 7 bits: '$char'");
+			$main::log->do('warning',"hi-bit character reduced to 7 bits: '%s'",$char);
 			$char=chr(ord($char) & 0x7f);
 		}
 
@@ -1237,8 +1238,9 @@ sub SendMail {
 	$msg = new Mail::Send;
 
 	if ($self->{DEBUG}) {
-		$main::log->do('debug',"Emailing: To: '$to', Cc: '$cc', ".
-			"From: '$from', Subject: '$subject'");
+		$main::log->do('debug',"Emailing: To: '%s', Cc: '%s', ".
+			"From: '%s', Subject: '%s'",
+			$to,$cc,$from,$subject);
 	}
 
 	if (!defined($msg)) {
@@ -1260,8 +1262,8 @@ sub SendMail {
 			$main::log->do('crit',"Cannot deliver email!  Mail::Send won't open -- check your 'mail-agent' setting");
 		}
 		else {
-			print $fh $body || $main::log->do('crit',"Error writing email: $!");
-			$fh->close || $main::log->do('crit',"Error closing email -- check your 'mail-agent' setting: $!");
+			print $fh $body || $main::log->do('crit',"Error writing email: %s",$!);
+			$fh->close || $main::log->do('crit',"Error closing email -- check your 'mail-agent' setting: %s",$!);
 		}
 	}
 }

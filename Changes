@@ -16,6 +16,10 @@ $Id$
 	- added "chars-per-block" config to the sendpage.cf examples
 	- fixed field-spanning block code bug noticed by David St. John
 	- added DBI support from Todd T. Fries
+	- found evil SNPP hang bug, funded by David St. John
+	- added few more comments, and renamed functions more sensibly
+	- fixed up calls to KeesLog to not allow format strings to show up
+	  (thanks to Peter Smith for persisting with his queries about this)
 
 0.9.14: (31May2002)
 	- oops!  I recreated an earlier bug where splits would destroy

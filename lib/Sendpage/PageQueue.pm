@@ -158,7 +158,7 @@ sub pullPageFromFile {
 					}
 					else {
 						$main::log->do('warning',
-							"bad recip: '$value'");
+							"bad recip: '%s'",$value);
 					}
 				}
 				else {
