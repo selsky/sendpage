@@ -213,6 +213,8 @@ dev	= /dev/modem
 
 # The areacode this modem has (for figuring areacode matches with PCs)
 #	Default is unset
+# If you never use area code, either make this "-" or don't use "areacode"
+# options in the PC definitions.
 #areacode="847"
 
 # The dialing prefix for dialing long distance calls (some PBXs do weird stuff)
