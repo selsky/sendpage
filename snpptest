@@ -1,0 +1,25 @@
+#!/usr/local/bin/perl
+use Net::SNPP;
+
+$snpp = Net::SNPP->new('localhost', Debug => 1 );
+if (!defined($snpp)) {
+	die "SNPP failed\n";
+}
+
+my ($PIN, $Message) = @ARGV;
+
+if ($snpp->pager_id($PIN)) {
+	if ($snpp->content($Message)) {
+		$snpp->send();
+	}
+	else {
+		warn $snpp->message();
+	}
+}
+else {
+	warn $snpp->message();
+}
+
+$snpp->quit;
+
+undef $snpp;
