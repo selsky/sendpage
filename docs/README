@@ -1,15 +1,15 @@
 
 The TAP protocol specifications appear to be under copyright, so I can't
 include the specification with this code.  You'll need to check with the PCIA:
-   http://www.pcia.com/wireres/index.htm
+   http://www.pcia.com/WirelessCenter/protocol/tapv1p8/
 or with Motorola:
-   http://www.motorola.com/MIMS/MSPG/pcia_protocols/tap_v1p8/index.html
+   http://www.motorola.com/MIMS/MSPG/pcia_protocols/tap_v1p8/
 
 
 HTML version of TAP v1.8 can be found at
-	    http://www.pcia.com/wireres/protocol/tapv1p8/toc.htm
-PDF:	    http://www.pcia.com/wireres/protocol/tapv1p8/tap_v1p8.pdf
-PostScript: http://www.pcia.com/wireres/protocol/tapv1p8/tap_v1p8.ps
+	    http://www.pcia.com/WirelessCenter/protocol/tapv1p8/toc.htm
+PDF:	    http://www.pcia.com/WirelessCenter/protocol/tapv1p8/tap_v1p8.pdf
+PostScript: http://www.pcia.com/WirelessCenter/protocol/tapv1p8/tap_v1p8.ps
 
 Contact me if you need a copy of the specification and none of the above
 URLs work.  I'll help you find a copy.  ;)

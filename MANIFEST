@@ -6,9 +6,6 @@ Makefile.PL
 sendpage.cf
 email2page.conf
 docs/rfc1861.txt
-docs/design/chat-api.txt
-docs/design/API.txt
-docs/design/configable-items.txt
 docs/README
 docs/PagingCentrals.txt
 lib/Sendpage/KeesConf.pm
