@@ -1,0 +1,1660 @@
+#LyX 1.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 218
+\textclass book
+\language english
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize default
+\spacing single 
+\papersize Default
+\paperpackage a4
+\use_geometry 0
+\use_amsmath 0
+\paperorientation portrait
+\secnumdepth 2
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+
+Using Sendpage
+\newline 
+(the Sendpage Manual)
+\layout Author
+
+Kees Cook
+\newline 
+
+\family typewriter 
+cook@cpoint.net
+\layout Date
+
+3 March 2001
+\layout Standard
+
+
+\begin_inset LatexCommand \tableofcontents{}
+
+\end_inset 
+
+
+\layout Chapter
+
+How to Install the Sendpage Daemon
+\layout Section
+
+Prerequisites
+\layout Standard
+
+In order for sendpage to operate correctly, you need several things installed
+ and configured properly on your system.
+ The three major items are the correct set of Perl modules, the correct
+ syslog configuration, and a properly identified operating environment for
+ your sendpage program.
+\layout Subsection
+
+Perl Modules
+\layout Standard
+
+All of the perl modules you need for sendpage are available from 
+\family typewriter 
+http://www.cpan.org/
+\family default 
+ and instructions on how to install them can be found there.
+ What each module does for you is described below.
+\layout Subsubsection
+
+
+\family typewriter 
+Net::SNPP
+\family default 
+ (libnet)
+\layout Standard
+
+To run the SNPP client 
+\family typewriter 
+snpp
+\family default 
+ that comes with the sendpage package, you need the Perl module that will
+ talk SNPP with an SNPP server.
+ If you've got a proper install of Perl on your system, it is likely that
+ you already have the 
+\family typewriter 
+libnet
+\family default 
+ bundle, which includes 
+\family typewriter 
+Net::SNPP
+\family default 
+.
+\layout Subsubsection
+
+
+\family typewriter 
+Mail::Send (MailTools)
+\layout Standard
+
+To send email notifications with the sendpage package, you need the 
+\family typewriter 
+Mail::Send
+\family default 
+ module, which may also already be installed with Perl, depending on your
+ distribution.
+ This module is found in the 
+\family typewriter 
+MailTools
+\family default 
+ bundle.
+\layout Subsubsection
+
+
+\family typewriter 
+Device::SerialPort
+\layout Standard
+
+Of all the prerequisites for sendpage, the 
+\family typewriter 
+Device::SerialPort
+\family default 
+ module is the toughest to install.
+ As of version 0.10, this module will run fine under Linux and Solaris.
+ It will technically operate under AIX and HPUX, but lacks several important
+ features.
+ To read more on how to install this module correctly, please read the 
+\family typewriter 
+Device::SerialPort
+\family default 
+ 
+\family typewriter 
+README
+\family default 
+ file that comes with the package.
+\layout Standard
+
+If you're running under Windows, the 
+\family typewriter 
+Win32::SerialPort
+\family default 
+ module should also work.
+ As of sendpage version 0.9.9, this is an untested configuration, and would
+ probably take a good deal of work to get it functioning correctly.
+\layout Subsection
+
+Syslog Configuration
+\layout Standard
+
+To properly examine debugging information to help you trouble shoot problems
+ with sendpage, you need to have your syslog configuration set to correctly
+ capture all that sendpage makes available.
+ Sendpage uses the 
+\family typewriter 
+local6
+\family default 
+ syslog facility, and a variety of syslog levels from 
+\family typewriter 
+debug
+\family default 
+ through 
+\family typewriter 
+alert
+\family default 
+.
+ With a stock syslog configuration, it is likely that everything below 
+\family typewriter 
+info
+\family default 
+ will not be recorded, so you may need to edit your 
+\family typewriter 
+/etc/syslog.conf
+\family default 
+ file.
+\layout Subsubsection
+
+Same file or separate files
+\layout Standard
+
+If you syslog configuration looks like this:
+\layout Quotation
+
+
+\family typewriter 
+*.info;mail.none;authpriv.none;kern.none\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+/var/log/messages
+\layout Standard
+
+The easiest way to add 
+\family typewriter 
+local6
+\family default 
+ to your syslog configuration would be:
+\layout Quotation
+
+
+\family typewriter 
+*.info;
+\series bold 
+local6.*;
+\series default 
+mail.none;authpriv.none;kern.none\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+/var/log/messages
+\layout Standard
+
+If you want your sendpage output sent to a separate file, your syslog configurat
+ion would be:
+\layout Quotation
+
+
+\family typewriter 
+*.info;
+\series bold 
+local6.none;
+\series default 
+mail.none;authpriv.none;kern.none\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+/var/log/messages
+\layout Quotation
+
+
+\family typewriter 
+\series bold 
+local6.*\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+/var/log/sendpage
+\layout Subsubsection
+
+Split off debug output
+\layout Standard
+
+If you want to separate your debug output from all your other syslog files,
+ another configuration could be:
+\layout Quotation
+
+
+\family typewriter 
+*.info;
+\series bold 
+local6.none;
+\series default 
+mail.none;authpriv.none;kern.none\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+/var/log/messages
+\layout Quotation
+
+
+\family typewriter 
+\series bold 
+local6.info\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+/var/log/sendpage
+\layout Quotation
+
+
+\family typewriter 
+\series bold 
+*.=debug\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+/var/log/debug
+\layout Standard
+
+This will allow you to view all your debug output in a single separate file.
+ I find that the following syslog configuration allows me to view sendpage
+ logging either way I want: with debugging or without debugging:
+\layout Quotation
+
+
+\family typewriter 
+*.info;
+\series bold 
+local6.none;
+\series default 
+mail.none;authpriv.none;kern.none\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+/var/log/messages
+\layout Quotation
+
+
+\family typewriter 
+\series bold 
+local6.info\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+/var/log/sendpage
+\layout Quotation
+
+
+\family typewriter 
+\series bold 
+local6.debug\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+/var/log/sendpage.debug
+\layout Subsection
+
+
+\family typewriter 
+sendpage
+\family default 
+ user environment
+\layout Standard
+
+Sendpage performs 3 major duties on your system: 1) operates on your serial
+ port to use the modem, 2) writes to disk to store page information, 3)
+ operates on a network socket to receive new pages.
+ To get these things done in a secure fashion, sendpage tries to 
+\series bold 
+not
+\series default 
+ run as the 
+\family typewriter 
+root
+\family default 
+ user.
+ For some things, it must; binding to network ports below 1024 requires
+ 
+\family typewriter 
+root
+\family default 
+ permissions.
+ Also, the serial port needs to be reserved for use (with UUCP-style locking)
+ so that other processes can share the modem with sendpage.
+ Finally, the serial port itself will require some sort of privileges to
+ read and write to it.
+\layout Subsubsection
+
+Creating a 
+\family typewriter 
+sendpage
+\family default 
+ user
+\layout Standard
+
+To store pages and other information to disk, and to run network sessions
+ 
+\series bold 
+not
+\series default 
+ as the 
+\family typewriter 
+root
+\family default 
+ user, a regular user is required.
+ For the rest of this document, it is assumed that this user is named 
+\begin_inset Quotes eld
+\end_inset 
+
+sendpage
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ This user should have no special privileges, and can be an presently unused
+ user ID on your system.
+ If this user is not known as 
+\begin_inset Quotes eld
+\end_inset 
+
+sendpage
+\begin_inset Quotes erd
+\end_inset 
+
+, the sendpage daemon needs to know, and this can be changed using the 
+\family typewriter 
+user
+\family default 
+ configuration option.
+\layout Subsubsection
+
+Finding locking group
+\layout Standard
+
+To let sendpage reserve a serial port for use, the daemon will attempt to
+ use UUCP-style file locking.
+ Finding where this happens is important (and is set using the 
+\family typewriter 
+lockprefix
+\family default 
+ option).
+ Usually the locking directory is either 
+\family typewriter 
+/var/lock
+\family default 
+ or 
+\family typewriter 
+/var/spool/lock
+\family default 
+, and a single group will have permission to read and write in that directory.
+ Usually this group is the 
+\family typewriter 
+uucp
+\family default 
+ group.
+ If not, the locking group must be set using the 
+\family typewriter 
+group-lock
+\family default 
+ option.
+\layout Subsubsection
+
+Finding tty-use group
+\layout Standard
+
+To let sendpage read and write to a serial port, the daemon must know which
+ group to use to open the device.
+ By default, sendpage expects to use the 
+\family typewriter 
+tty
+\family default 
+ group, but sometimes this is the 
+\family typewriter 
+uucp
+\family default 
+ group.
+ This is set using the 
+\family typewriter 
+group-tty
+\family default 
+ option.
+ Sometimes there is no group that can read and write to the device.
+ In these cases, you will need to change the permissions on your serial
+ port so that some group can read and write your serial port.
+\layout Standard
+
+For example, if you want to use the 
+\family typewriter 
+tty
+\family default 
+ group, and your serial port looks like this:
+\layout Quotation
+
+
+\family typewriter 
+# ls -l /dev/ttyS0
+\layout Quotation
+
+
+\family typewriter 
+crw------- 1 root root 4, 64 Mar 1 18:37 /dev/ttyS0
+\layout Standard
+
+Then you would need to change the group and permissions like this:
+\layout Quotation
+
+
+\family typewriter 
+# chgrp tty /dev/ttyS0
+\layout Quotation
+
+
+\family typewriter 
+# chmod g+rw /dev/ttyS0
+\layout Quotation
+
+
+\family typewriter 
+# ls -l /dev/ttyS0
+\layout Quotation
+
+
+\family typewriter 
+crw-
+\series bold 
+rw
+\series default 
+---- 1 root 
+\series bold 
+tty\SpecialChar ~
+\SpecialChar ~
+
+\series default 
+4, 64 Mar 1 18:37 /dev/ttyS0
+\layout Section
+
+Compilation
+\layout Standard
+
+Since sendpage is mostly a collection of Perl modules, compilation is technicall
+y not required.
+ After you've unpacked the tar file and have all your prerequisites completed,
+ it's a simple matter of running:
+\layout Quotation
+
+
+\family typewriter 
+perl Makefile.PL
+\layout Quotation
+
+
+\family typewriter 
+make
+\layout Standard
+
+and you're done 
+\begin_inset Quotes eld
+\end_inset 
+
+compiling
+\begin_inset Quotes erd
+\end_inset 
+
+
+\layout Section
+
+Installation
+\layout Subsection
+
+Install the scripts and modules
+\layout Standard
+
+This part is easy.
+ Just run:
+\layout Quotation
+
+
+\family typewriter 
+make install
+\layout Subsection
+
+Queue directory
+\layout Standard
+
+Sendpage needs to store pages and process information somewhere.
+ By default, this is 
+\family typewriter 
+/var/spool/sendpage
+\family default 
+.
+ If you want to create this directory somewhere else, you can change it
+ using the 
+\family typewriter 
+queuedir
+\family default 
+ and 
+\family typewriter 
+pidfileprefix
+\family default 
+ options.
+ Since the queue directory isn't there with a fresh install, you will need
+ to create it, make it available to the 
+\family typewriter 
+sendpage
+\family default 
+ user, and secure it from prying eyes:
+\layout Quotation
+
+
+\family typewriter 
+mkdir -p /var/spool/sendpage
+\layout Quotation
+
+
+\family typewriter 
+chown sendpage /var/spool/sendpage
+\layout Quotation
+
+
+\family typewriter 
+chmod og-rwx /var/spool/sendpage
+\layout Subsection
+
+Configuration files
+\layout Standard
+
+Now you will need to copy the configuration files for 
+\family typewriter 
+sendpage
+\family default 
+, 
+\family typewriter 
+snpp
+\family default 
+, and 
+\family typewriter 
+email2page
+\family default 
+ into your 
+\family typewriter 
+/etc
+\family default 
+ directory:
+\layout Quotation
+
+
+\family typewriter 
+cp sendpage.cf snpp.conf email2page.conf /etc
+\layout Standard
+
+You will be editing these files in the 
+\family typewriter 
+/etc
+\family default 
+ directory to control how 
+\family typewriter 
+sendpage
+\family default 
+, 
+\family typewriter 
+snpp
+\family default 
+, and 
+\family typewriter 
+email2page
+\family default 
+ behave.
+\layout Section
+
+Configuration
+\layout Standard
+
+Changing how sendpage behaves is a matter of making changes to the 
+\family typewriter 
+/etc/sendpage.cf
+\family default 
+ file, and reloading the daemon.
+ A complete list of all the options available is documented in the file
+ itself.
+ However, some of these are covered here for your initial configuration.
+\layout Subsection
+
+General debugging
+\layout Standard
+
+The general operations of the sendpage daemon and the functions of the SNPP
+ server can be debugged by setting the 
+\family typewriter 
+debug
+\family default 
+ option to 
+\begin_inset Quotes eld
+\end_inset 
+
+true
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ To debug Paging Centrals or Modems, their debugging is turned on separately
+ in their respective sections.
+\layout Subsection
+
+How the 
+\family typewriter 
+page-daemon
+\family default 
+ alias works
+\layout Standard
+
+When sendpage delivers (or fails to deliver) pages, it will generate email
+ back to the sender (if there was a recorded sender), to the recipient (if
+ there was an 
+\family typewriter 
+email-cc
+\family default 
+ for the recipient), and possibly to the user set by the 
+\family typewriter 
+page-daemon
+\family default 
+ option (in the case of errors).
+\layout Subsubsection
+
+As the 'from' address
+\layout Standard
+
+Since email needs to come from somewhere, the user specified in the 
+\family typewriter 
+page-daemon
+\family default 
+ option (normally 
+\begin_inset Quotes eld
+\end_inset 
+
+sendpage
+\begin_inset Quotes erd
+\end_inset 
+
+) will be used as the 
+\begin_inset Quotes eld
+\end_inset 
+
+From
+\begin_inset Quotes erd
+\end_inset 
+
+ for all email generated.
+ This can be changed globally, or it can be changed for each configured
+ Paging Central.
+\layout Subsubsection
+
+For errors and warnings
+\layout Standard
+
+When a page fails to be delivered, the 
+\family typewriter 
+page-daemon
+\family default 
+ user will also get a notification.
+ In this way, system administrators can be notified of any failures.
+ If this is not a desired action, it can be disabled by setting the 
+\family typewriter 
+cc-on-error
+\family default 
+ option to 
+\begin_inset Quotes eld
+\end_inset 
+
+false
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ This can be configured globally, or on a per-PC basis.
+ In the case of temporary failures, the 
+\family typewriter 
+tempfail-notify-after 
+\family default 
+option can be set to how many temporary failures you want to have happen
+ before anyone is notified.
+ This is 10 by default.
+\layout Subsection
+
+SNPP server settings
+\layout Standard
+
+SNPP stands for 
+\begin_inset Quotes eld
+\end_inset 
+
+Simple Network Paging Protocol
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ This is the protocol that is used to send pages to an SNPP server for delivery,
+ similar to the Internet email protocol SMTP ('Simple Mail Transfer Protocol
+\begin_inset Quotes erd
+\end_inset 
+
+).
+ Sendpage has two SNPP parts: the server and the client.
+ The server portion is built in to the sendpage daemon, and can be configured
+ to listen on the network for clients who wish to send pages.
+ The client portion is the tool that users or other delivery processes (like
+ email delivery agents) will use to send pages through sendpage.
+ The client tool is known as 
+\family typewriter 
+snpp
+\family default 
+ and is covered in the 
+\begin_inset Quotes eld
+\end_inset 
+
+How to send pages
+\begin_inset Quotes erd
+\end_inset 
+
+ section.
+\layout Standard
+
+The SNPP server presently has two configurable options: which address it
+ binds to, and what port it listens on.
+ The default port is 444, the regular SNPP port.
+ By default, sendpage will only listen on the 127.0.0.1 (localhost) address.
+ To change these settings, edit 
+\family typewriter 
+/etc/sendpage.cf
+\family default 
+ and change the following values:
+\layout Subsubsection
+
+
+\family typewriter 
+snpp-port
+\layout Standard
+
+This is normally 
+\begin_inset Quotes eld
+\end_inset 
+
+444
+\begin_inset Quotes erd
+\end_inset 
+
+, but can be changed to any available port on your local system.
+\layout Subsubsection
+
+
+\family typewriter 
+snpp-addr
+\layout Standard
+
+This is normally 
+\begin_inset Quotes eld
+\end_inset 
+
+localhost
+\begin_inset Quotes erd
+\end_inset 
+
+, but can be changed to any IP address available on your local system.
+ The special IP address 
+\begin_inset Quotes eld
+\end_inset 
+
+0.0.0.0
+\begin_inset Quotes erd
+\end_inset 
+
+ means 
+\begin_inset Quotes eld
+\end_inset 
+
+all IP addresses
+\begin_inset Quotes erd
+\end_inset 
+
+ on the local system.
+\layout Section
+
+Running the 
+\family typewriter 
+sendpage
+\family default 
+ daemon
+\layout Standard
+
+Even though you need to configure your modem and Paging Centrals first,
+ this section covers how to start and stop the sendpage daemon.
+ A SysV-style init script named 
+\family typewriter 
+sendpage.init
+\family default 
+ was included in the package, and can be used to perform these functions
+ for you, if you wish.
+ To control the daemon directly, here are the methods:
+\layout Subsection
+
+Starting daemon
+\layout Standard
+
+To start sendpage, run:
+\layout Quotation
+
+
+\family typewriter 
+sendpage -bd
+\layout Standard
+
+The silly mnemonic is 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\series bold 
+b
+\series default 
+e a 
+\series bold 
+d
+\series default 
+aemon
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Subsection
+
+Stopping daemon
+\layout Standard
+
+To stop sendpage, either send the master process a 
+\family typewriter 
+QUIT
+\family default 
+ signal, or run:
+\layout Quotation
+
+
+\family typewriter 
+sendpage -bs
+\layout Standard
+
+The silly mnemonic here is 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\series bold 
+b
+\series default 
+e 
+\series bold 
+s
+\series default 
+topped
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Subsection
+
+Reloading daemon
+\layout Standard
+
+To reload sendpage, either send the master process a 
+\family typewriter 
+HUP
+\family default 
+ signal, or run:
+\layout Quotation
+
+
+\family typewriter 
+sendpage -br
+\layout Standard
+
+Mnemonic is 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\series bold 
+b
+\series default 
+e 
+\series bold 
+r
+\series default 
+eloaded
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Subsection
+
+Checking status of daemon
+\layout Standard
+
+To see if sendpage is already running (the 
+\family typewriter 
+-bd
+\family default 
+ option does this too, if sendpage is already running):
+\layout Quotation
+
+
+\family typewriter 
+sendpage -bq
+\layout Standard
+
+Mnemonic is 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\series bold 
+b
+\series default 
+e 
+\series bold 
+q
+\series default 
+uestioned
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Subsection
+
+Checking status of queues
+\layout Standard
+
+To see what is in the page queues, run:
+\layout Quotation
+
+
+\family typewriter 
+sendpage -bp
+\layout Standard
+
+Mnemonic is 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\series bold 
+b
+\series default 
+e nice and 
+\series bold 
+p
+\series default 
+rint the contents of your queues
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ (Okay, so I ran out of mnemonics; the options were based on 
+\family typewriter 
+sendmail
+\family default 
+'s options anyway...)
+\layout Section
+
+What are all these processes?
+\layout Standard
+
+Sendpage runs a separate process for each Paging Central queue that it maintains.
+ The master process will spawn the PC children, and run the SNPP server.
+ New SNPP connections will be forked off as children as well.
+ Only the master process runs as 
+\family typewriter 
+root
+\family default 
+, and the children run as the 
+\family typewriter 
+sendpage
+\family default 
+ user.
+ The PC children additionally run with the group IDs needed to lock and
+ open the serial port.
+\layout Standard
+
+Each process will identify what it is on the command line portion visible
+ in the process list.
+ For example:
+\layout Quotation
+
+
+\family typewriter 
+# ps -f -p 20900 -u sendpage
+\layout Quotation
+
+
+\family typewriter 
+UID\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+PID\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+PPID\SpecialChar ~
+\SpecialChar ~
+C\SpecialChar ~
+STIME\SpecialChar ~
+TTY\SpecialChar ~
+TIME\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+CMD
+\layout Quotation
+
+
+\family typewriter 
+root\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+20900\SpecialChar ~
+1\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+\SpecialChar ~
+0\SpecialChar ~
+Mar02\SpecialChar ~
+\SpecialChar ~
+?\SpecialChar ~
+\SpecialChar ~
+00:00:00\SpecialChar ~
+sendpage:\SpecialChar ~
+accepting\SpecialChar ~
+connections
+\layout Quotation
+
+
+\family typewriter 
+sendpage\SpecialChar ~
+20901\SpecialChar ~
+20900\SpecialChar ~
+0\SpecialChar ~
+Mar02\SpecialChar ~
+\SpecialChar ~
+?\SpecialChar ~
+\SpecialChar ~
+00:00:01\SpecialChar ~
+sendpage:\SpecialChar ~
+ameritech\SpecialChar ~
+queue
+\layout Quotation
+
+
+\family typewriter 
+sendpage\SpecialChar ~
+20902\SpecialChar ~
+20900\SpecialChar ~
+0\SpecialChar ~
+Mar02\SpecialChar ~
+\SpecialChar ~
+?\SpecialChar ~
+\SpecialChar ~
+00:00:00\SpecialChar ~
+sendpage:\SpecialChar ~
+attpcs\SpecialChar ~
+queue
+\layout Quotation
+
+
+\family typewriter 
+sendpage\SpecialChar ~
+20903\SpecialChar ~
+20900\SpecialChar ~
+0\SpecialChar ~
+Mar02\SpecialChar ~
+\SpecialChar ~
+?\SpecialChar ~
+\SpecialChar ~
+00:00:00\SpecialChar ~
+sendpage:\SpecialChar ~
+nextel\SpecialChar ~
+queue
+\layout Quotation
+
+
+\family typewriter 
+sendpage\SpecialChar ~
+20904\SpecialChar ~
+20900\SpecialChar ~
+0\SpecialChar ~
+Mar02\SpecialChar ~
+\SpecialChar ~
+?\SpecialChar ~
+\SpecialChar ~
+00:00:00\SpecialChar ~
+sendpage:\SpecialChar ~
+pagenet\SpecialChar ~
+queue
+\layout Quotation
+
+
+\family typewriter 
+sendpage\SpecialChar ~
+20905\SpecialChar ~
+20900\SpecialChar ~
+0\SpecialChar ~
+Mar02\SpecialChar ~
+\SpecialChar ~
+?\SpecialChar ~
+\SpecialChar ~
+00:00:00\SpecialChar ~
+sendpage:\SpecialChar ~
+rim-pager\SpecialChar ~
+queue
+\layout Quotation
+
+
+\family typewriter 
+sendpage\SpecialChar ~
+20906\SpecialChar ~
+20900\SpecialChar ~
+0\SpecialChar ~
+Mar02\SpecialChar ~
+\SpecialChar ~
+?\SpecialChar ~
+\SpecialChar ~
+00:00:00\SpecialChar ~
+sendpage:\SpecialChar ~
+skytel\SpecialChar ~
+queue
+\layout Quotation
+
+
+\family typewriter 
+sendpage\SpecialChar ~
+29833\SpecialChar ~
+20900\SpecialChar ~
+0\SpecialChar ~
+13:53\SpecialChar ~
+\SpecialChar ~
+?\SpecialChar ~
+\SpecialChar ~
+00:00:00\SpecialChar ~
+sendpage:\SpecialChar ~
+SNPP\SpecialChar ~
+client:\SpecialChar ~
+127.0.0.1
+\layout Standard
+
+You'll see that process 20900 is the master, and is taking SNPP connections.
+ Each of the PCs is identified by the name of the queue, and each attached
+ SNPP client shows the IP address of the peer.
+\layout Chapter
+
+How to add a modem
+\layout Section
+
+How are modems used?
+\layout Section
+
+Configurable options
+\layout Subsection
+
+Debugging
+\layout Subsection
+
+Modem defaults
+\layout Section
+
+The 
+\family typewriter 
+modemtest
+\family default 
+ tool
+\layout Chapter
+
+How to add a Paging Central
+\layout Section
+
+What is a Paging Central?
+\layout Section
+
+Configurable options
+\layout Subsection
+
+Debugging
+\layout Subsection
+
+Communication settings (and modem fall-back)
+\layout Subsection
+
+Character control settings
+\layout Subsection
+
+Queue run settings
+\layout Chapter
+
+How to add a Recipient
+\layout Section
+
+What is a recipient?
+\layout Subsection
+
+PIN@PC style
+\layout Subsection
+
+Alias style
+\layout Section
+
+Configurable options
+\layout Subsection
+
+Debugging
+\layout Subsection
+
+
+\family typewriter 
+email-cc
+\layout Subsection
+
+
+\family typewriter 
+dest
+\layout Section
+
+How to test aliases
+\layout Chapter
+
+How to send pages
+\layout Section
+
+From the command line
+\layout Subsection
+
+Local use of 
+\family typewriter 
+snpp
+\layout Subsection
+
+Remote use of 
+\family typewriter 
+snpp
+\layout Subsubsection
+
+Making changes to 
+\family typewriter 
+/etc/snpp.conf
+\layout Subsection
+
+Third-party SNPP clients
+\layout Section
+
+From an email gateway
+\layout Subsection
+
+How 
+\family typewriter 
+email2page
+\family default 
+ works
+\layout Subsubsection
+
+Header rules
+\layout Subsubsection
+
+Body rules
+\layout Subsubsection
+
+Prefix, suffix, and joining strings
+\layout Subsection
+
+How 
+\family typewriter 
+sendmail2snpp
+\family default 
+ works
+\layout Subsection
+
+Example of how to configure with 
+\family typewriter 
+sendmail
+\layout Subsection
+
+Example of how to configure with 
+\family typewriter 
+postfix
+\layout Section
+
+From a web page
+\layout Chapter
+
+Paging Central configuration tuning guidelines
+\layout Section
+
+TAP quirks
+\layout Subsection
+
+TAP specification
+\layout Subsection
+
+Control characters in a page
+\layout Subsection
+
+Response codes from the Paging Central
+\layout Subsection
+
+Block sizes
+\layout Subsection
+
+Page limits
+\layout Subsection
+
+Block limits
+\layout Section
+
+How to figure out which of 
+\family typewriter 
+esc
+\family default 
+,
+\family typewriter 
+ ctrl
+\family default 
+, or 
+\family typewriter 
+lfok
+\family default 
+ to use for a PC
+\layout Section
+
+How to figure out 
+\family typewriter 
+maxchars
+\family default 
+ for a PC
+\layout Subsection
+
+Errors vs timeouts during transmission
+\layout Subsection
+
+Example method
+\layout Subsubsection
+
+Try 10 characters
+\layout Subsubsection
+
+Try half block limit
+\layout Subsubsection
+
+Try half block limit + 1
+\layout Subsubsection
+
+Try block limit
+\layout Subsubsection
+
+Try block limit + 1
+\layout Chapter
+
+Trouble shooting
+\layout Section
+
+Does the modem work?
+\layout Section
+
+Does the Paging Central work?
+\the_end

@@ -10,6 +10,9 @@ Needed For Fist Stable Release
 - implement net/mask checking for SNPP client connections
 - implement a list of addresses for SNPP server to listen on (for multihomed)
 - write up an example CGI script for sending pages
+- fix fail-notify setting to be PC-aware
+- fix tempfail-notify-after setting to be PC-aware
+- fix HUP bug where a SNPP session is still running
 *Docs
 - how to install the sendpage daemon
 	- prereqs
