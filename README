@@ -115,6 +115,18 @@ the patch to 0.07 before installing it:
 	perl Makefile.PL
 	make install
 
+If you choose to do the "make test", Solaris for me failed in a number
+of places.  My output was:
+
+Failed Test  Status Wstat Total Fail  Failed  List of failed
+-------------------------------------------------------------------------------
+t/test1.t                   173    8   4.62%  118, 121, 133, 141-142, 152-154
+t/test3.t                   159    2   1.26%  107, 110
+
+Half of the errors are with "pulse" commands taking too long.  That's strange,
+but not terrible.  The other bugs are more serious, but shouldn't impact
+sendpage at all.  For now, you can safely ignore those errors.
+
 Make sure you create a sendpage user who has write access to /var/lock
 and who owns /var/spool/sendpage.  BE SURE that /var/spool/sendpage is
 set-group-id (as group "sendpage") and that sendpage itself is setgid
