@@ -96,12 +96,13 @@ and produces results to stdout.
 ";
 }
 
-my $prefix="";
-my $suffix="";
-my $headerjoin="|";
-my $headbodyjoin="\n";
-my @headrules=();
-my @bodyrules=();
+my $maxlines=0;			# how many lines to process of the body
+my $prefix="";			# prefix written to page text
+my $suffix="";			# suffix written to page text
+my $headerjoin="|";		# how to join header tags in the page text
+my $headbodyjoin="\n";		# how to join the header and body section
+my @headrules=();		# rules for handling header tags
+my @bodyrules=();		# rules for handling body text
 
 # get our options
 if (!getopts('hC:',\%opts) || $opts{h}) {
@@ -141,6 +142,9 @@ foreach $line (<$fh>) {
 	elsif ($cmd eq "suffix") {
 		$suffix=$arg;
 	}
+	elsif ($cmd eq "maxlines") {
+		$maxlines=$arg;
+	}
 	else {
 		warn "unknown command '$cmd' in '$opts{C}', line $num\n";
 	}
@@ -152,6 +156,11 @@ my $mail=Mail::Internet->new(\*STDIN);
 my $head=$mail->head();
 my $body=$mail->body();
 @body=@$body;
+
+# trim the body down to "maxlines"
+if ($maxlines > 0 && $#body > $maxlines) {
+	delete @body[$maxlines+1 .. $#body];
+}
 
 my @okheads=();
 

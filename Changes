@@ -1,6 +1,7 @@
 $Id$
 
 0.9.11: (15May2001)
+	- added "maxlines" to email2page.
 	- changed (once again) how I reap dead children.  (sendpage)
 	- added the ability to write directly to the queues.  (sendpage)
 	- updated documentation slightly, some fixes in SNPP module for
