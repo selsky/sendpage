@@ -13,7 +13,9 @@ docs/rfc1861.txt
 docs/README
 docs/PagingCentrals.txt
 docs/sendmail.txt
+docs/postfix.txt
 docs/sendpage.php
+docs/pc-testing.txt
 lib/Sendpage/KeesConf.pm
 lib/Sendpage/KeesLog.pm
 lib/Sendpage/Page.pm
