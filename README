@@ -37,6 +37,18 @@ Quick Start (for Linux)
 	  user id to 'sendpage'):
 
 		sendpage -bd
+
+	- go check your /var/log/messages for the syslog line saying
+	  that sendpage started up:
+
+		starting Queue Manager and SNPP listener (sendpage vX.X.X)
+
+   Sending a page.
+
+	- run the "snpp" command to send yourself a test page:
+
+		snpp -d -f me@yourdomain.org -m 'hi there!' yourPIN@yourPC
+
 	
 
 Long Version
@@ -139,10 +151,13 @@ to start up the daemon mode.  (Make sure that "sendpage" is in the PATH
 for the root user.)  The SNPP server connections and Paging Centrals will
 lose root privs when the fork, so that should be safe.
 
-To put a page into the queue, run "snpp RECIP MESSAGE" where RECIP is either a 
+To put a page into the queue, run "snpp RECIP" where RECIP is either a 
 valid alias "recip" section in /etc/sendpage.cf, or has the form PIN@PC,
 where the PC is a valid "pc" section in /etc/sendpage.cf.  It will deliver
-directly to the named PIN.
+directly to the named PIN.  "snpp" will read from STDIN for the message,
+unless you use the '-m' flag.  To use snpp from other networked machines,
+you'll need to edit sendpage.cf to bind snpp to "0.0.0.0" or some other
+network interface, and then use "snpp -s SERVER" from the remote client.
 
 To force a queue run immediately, run (as root) "sendpage -q".  If you have
 debugging turned on, it should be flooding your syslog with lots of fun

@@ -16,6 +16,7 @@ Needed For Stable Release
 - create snpp.conf file for snpp tool to pull its defaults from
 - implement more of the API calls with hash opts
 - implement character-based translation tables
+- write an init script for SysV-style init
 *Docs
 - how to install, set up, test, and run sendpage
 - how to make a "sendpage" user & find the groups you need
