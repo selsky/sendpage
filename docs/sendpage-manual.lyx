@@ -943,7 +943,7 @@ When a page fails to be delivered, the
 \family typewriter 
 page-daemon
 \family default 
- user will also get a notification.
+ user can also get a notification.
  In this way, system administrators can be notified of any failures.
  If this is not a desired action, it can be disabled by setting the 
 \family typewriter 
@@ -1008,13 +1008,9 @@ How to send pages
 
 The SNPP server presently has two configurable options: which address it
  binds to, and what port it listens on.
- The default port is 444, the regular SNPP port.
+ The default port is 444, which is the standard SNPP port.
  By default, sendpage will only listen on the 127.0.0.1 (localhost) address.
- To change these settings, edit 
-\family typewriter 
-/etc/sendpage.cf
-\family default 
- and change the following values:
+ To change these settings change the following values:
 \layout Subsubsection
 
 
@@ -1270,8 +1266,8 @@ sendpage
  open the serial port.
 \layout Standard
 
-Each process will identify what it is on the command line portion visible
- in the process list.
+Each process will identify itself on the command line portion visible in
+ the process list.
  For example:
 \layout Quotation
 
@@ -1441,7 +1437,7 @@ client:\SpecialChar ~
 127.0.0.1
 \layout Standard
 
-You'll see that process 20900 is the master, and is taking SNPP connections.
+You'll see that process 20900 is the master and is taking SNPP connections.
  Each of the PCs is identified by the name of the queue, and each attached
  SNPP client shows the IP address of the peer.
 \layout Chapter
@@ -1450,15 +1446,278 @@ How to add a modem
 \layout Section
 
 How are modems used?
+\layout Standard
+
+Since the TAP (
+\begin_inset Quotes eld
+\end_inset 
+
+Telocator Alphanumeric Protocol
+\begin_inset Quotes erd
+\end_inset 
+
+) is an ASCII-based communication system, a modem is used to send pages.
+ When using sendpage, you can specify any number of modems.
+ They will all be initialized during daemon start-up to verify that they
+ are functioning.
+ After that, each Paging Central queue will be able to use any of the defined
+ modems.
+ Sendpage uses UUCP-style file locking so that your modem devices can continue
+ to be shared with other processes.
+\layout Standard
+
+Once a PC queue locks a modem, it will dial out and attempt to reach the
+ remote Paging Central to deliver any pages in the queue.
+ Once all the pages have been sent (or some predefined delivery limit is
+ reached), the PC will hang up, unlock the modem, and continue waiting for
+ more pages.
 \layout Section
 
 Configurable options
+\layout Standard
+
+To define a new modem, you must start a new 
+\begin_inset Quotes eld
+\end_inset 
+
+section
+\begin_inset Quotes erd
+\end_inset 
+
+ in your 
+\family typewriter 
+/etc/sendpage.cf
+\family default 
+ file.
+ A modem section is written as:
+\layout Quotation
+
+
+\family typewriter 
+[modem:NAME]
+\layout Standard
+
+where 
+\family typewriter 
+NAME
+\family default 
+ is what you want to identify your modem as.
+ The only required option in this section is the 
+\family typewriter 
+dev
+\family default 
+ option, which specifies which serial port this modem is attached to.
 \layout Subsection
 
 Debugging
+\layout Standard
+
+Within the modem section, setting the debug option to 
+\begin_inset Quotes eld
+\end_inset 
+
+true
+\begin_inset Quotes erd
+\end_inset 
+
+ will enable a character by character debugging dump of what is going in
+ and out of the modem.
+ All expected values will be reported, and all settings used to configure
+ the modem will be shown.
 \layout Subsection
 
 Modem defaults
+\layout Standard
+
+Each modem has a set of communication parameters.
+ By default, these settings are 9600 baud, 7 data bits, even parity, and
+ 1 stop bit.
+ This is the default used by most TAP Paging Centrals.
+\layout Standard
+
+For initialization, dialing, connect, and error strings, please see the
+ 
+\family typewriter 
+/etc/sendpage.cf
+\family default 
+ file for a full run down on each of these parameters.
+\layout Subsection
+
+Dialing out, area codes, and long distance
+\layout Standard
+
+Since each modem is attached to some phone line somewhere, then it is possible
+ for sendpage to automatically determine when dialing a Paging Central is
+ considered 
+\begin_inset Quotes eld
+\end_inset 
+
+long distance
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ To allow for this, you can specify the 
+\family typewriter 
+areacode
+\family default 
+ option for a modem, along with the 
+\family typewriter 
+longdist
+\family default 
+ option to define the prefix to dial for long distance dialing.
+ In addition to these options, there is also the 
+\family typewriter 
+dialout
+\family default 
+ option used in situations where there is a constant prefix to get an outside
+ dial-tone (in the case of a PBX, hotel, or the like).
+\layout Standard
+
+For example, imagine you had a single modem configured in an office building
+ in the United States with a PBX and the only way to get an outside line
+ was to dial 
+\begin_inset Quotes eld
+\end_inset 
+
+9
+\begin_inset Quotes erd
+\end_inset 
+
+ first.
+ Say this PBX was in the 312 area code, and you had at least one PC configured
+ in the 630 area code.
+ To dial the 630 PC, your modem would need to dial 
+\begin_inset Quotes eld
+\end_inset 
+
+1
+\begin_inset Quotes erd
+\end_inset 
+
+ for long distance first.
+ The configuration for this modem would look something like:
+\layout Quotation
+
+
+\family typewriter 
+[modem:hayes]
+\layout Quotation
+
+
+\family typewriter 
+dev = /dev/ttyS0
+\layout Quotation
+
+
+\family typewriter 
+dialout = 
+\begin_inset Quotes eld
+\end_inset 
+
+9,
+\begin_inset Quotes erd
+\end_inset 
+
+
+\layout Quotation
+
+
+\family typewriter 
+areacode = 312
+\layout Quotation
+
+
+\family typewriter 
+longdist = 1
+\layout Standard
+
+When dialing a PC whose areacode was 
+\begin_inset Quotes eld
+\end_inset 
+
+312
+\begin_inset Quotes erd
+\end_inset 
+
+ and phone number was 
+\begin_inset Quotes eld
+\end_inset 
+
+555-1234
+\begin_inset Quotes erd
+\end_inset 
+
+, sendpage would compare the area codes, realize the call was local, and
+ dial 
+\family typewriter 
+dialout
+\family default 
+ + PC phone number: 
+\begin_inset Quotes eld
+\end_inset 
+
+9,555-1234
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Standard
+
+When dialing a PC whose areacode was 
+\begin_inset Quotes eld
+\end_inset 
+
+630
+\begin_inset Quotes erd
+\end_inset 
+
+ and phone number was 
+\begin_inset Quotes eld
+\end_inset 
+
+555-6789
+\begin_inset Quotes erd
+\end_inset 
+
+, sendpage would compare the area codes, realize the call was long distance,
+ and dial 
+\family typewriter 
+dialout
+\family default 
+ + 
+\family typewriter 
+longdist
+\family default 
+ + PC area code + PC phone number: 
+\begin_inset Quotes eld
+\end_inset 
+
+9,1630555-6789
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Standard
+
+Technically, you would not have to specify 
+\begin_inset Quotes eld
+\end_inset 
+
+
+\family typewriter 
+longdist = 1
+\family default 
+
+\begin_inset Quotes erd
+\end_inset 
+
+ since that is the default.
+ Since a modem's area code is unset by default, the 
+\family typewriter 
+longdist
+\family default 
+ default would have no effect.
 \layout Section
 
 The 
@@ -1466,6 +1725,30 @@ The
 modemtest
 \family default 
  tool
+\layout Standard
+
+Since modems (and serial ports) can be a real pain to get running correctly,
+ there is a tool included in the sendpage package directory called 
+\family typewriter 
+modemtest
+\family default 
+.
+ This is a quick-and-dirty Perl script that will attempt to operate on a
+ given serial port and talk to the modem in a way similar to how sendpage
+ would attempt communication.
+\layout Standard
+
+The idea is, if 
+\family typewriter 
+modemtest
+\family default 
+ can talk to your modem, then sendpage should be able to as well.
+ This tool was provided to help trouble shoot any problems with a serial
+ port, the 
+\family typewriter 
+Device::SerialPort
+\family default 
+ module, or the modem itself.
 \layout Chapter
 
 How to add a Paging Central
