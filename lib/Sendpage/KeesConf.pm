@@ -319,7 +319,7 @@ sub file {
 	#	4) parse, one line at a time
 
 	open(FILE,"<$filename") || die "Cannot read '$filename'\n";
-	@lines=grep(!/^#/,<FILE>);	# drop any lines starting with #
+	@lines=grep(!/^\s*#/,<FILE>);	# drop any lines starting with #
 	close(FILE);
 
 	# merge any line with a trailing \

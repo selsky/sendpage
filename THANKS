@@ -22,10 +22,20 @@ Jerry Paul Taft
 	will be missed.
 
 
+Todd M. Lewis
+	<utoddl@email.unc.edu>
+	Suggested a change to comment parsing (to allow leading whitespace).
+
+
 Jon Scarbrough
 	<jscarbrough@grouparnold.com>
 	Found a bug where modem settings were not being passed through
 	correctly (PC default were set instead).
+
+
+Kendall P. Bullen
+	<kendall@lists.tax.org>
+	Always finds my bugs as soon as I release a version.
 
 
 Philip Moors

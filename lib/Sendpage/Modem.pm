@@ -391,20 +391,35 @@ sub dial {
 	}
 
 	my $actual_num="";
+	my $report="";
 
 	if (defined($dial_areacode) && defined($modem_areacode)) {
 		if ($dial_areacode != $modem_areacode) {
-			$actual_num=$modem_longdist.$dial_areacode.$dial_num;
+			$actual_num=$modem_longdist.$dial_areacode;
+			$report="LongDist: '$modem_longdist' ";
+			$report.="PCAreaCode: '$dial_areacode' ";
 		}
 		else {
-			$actual_num=$dial_num;
+			$report="(Not LongDist) ";
 		}
 	}
 	else {
-		$actual_num=$dial_areacode.$dial_num;
+		# add the area code anyway
+		$actual_num=$dial_areacode;
+		if (defined($dial_areacode)) {
+			$report="(No Modem AreaCode) ";
+			$reprot.="PCAreaCode: '$dial_areacode' "
+		}
+	}
+	# we always need to end the dialing with the phone number...
+	$actual_num.=$dial_num;
+	$report.="Num: '$dial_num'";
+
+	if ($dialout ne "") {
+		$report="DialOut: '$dialout' ".$report;
 	}
 
-	$self->{LOG}->do('debug',"Calling '$actual_num'") if ($self->{DEBUG});
+	$self->{LOG}->do('debug',"Calling with $report") if ($self->{DEBUG});
 
 	return $self->chat($modem_dial.$dialout.$actual_num."\r","",
 				$self->{DialOK},$dialwait,1,
