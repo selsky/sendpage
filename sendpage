@@ -2,6 +2,11 @@
 
 eval 'exec /usr/local/bin/perl  -S $0 ${1+"$@"}'
     if 0; # not running under some shell
+
+#BEGIN {
+#        unshift(@INC,"/kees/projects/TAP/cvs/sendpage/lib");
+#}
+
 #
 # sendpage is the tool that will handle all the paging functions
 #
@@ -159,7 +164,7 @@ Sendpage::Page(3), Sendpage::Recipient(3), Sendpage::Queue(3)
 require 5.005;
 
 # Global variables;
-$VERSION="0.9.6"; # our version!
+$VERSION="0.9.7"; # our version!
 undef $log;	  # hold logging object
 
 # Module-global variables
@@ -183,6 +188,7 @@ use Sendpage::PageQueue;
 use Sendpage::Page;
 use Sendpage::Recipient;
 use Sendpage::KeesLog;
+use Sendpage::SNPPServer;
 
 sub Usage {
 	die "Usage: $0 [OPTIONS] [alias ...]
@@ -247,83 +253,7 @@ if ($opts{q}) {
 	exit;
 }
 
-if (!defined($ARGV[0])) {
-	Usage();
-}
-else {
-	my($pin,%PINS,%QPCS,$pc,$recips,$recip,@recips,$fail);
-
-	($fail,@recips)=ArrayDig(@ARGV);
-	if ($fail != 0) {
-		$log->do('crit',"Page aborted: undeliverable addresses.");
-		exit(1);
-	}
-	$recips=\@recips;
-
-	my $text=TakePage();
-
-	# sort them into PC bins
-	foreach $recip (@{ $recips }) {
-		# make list of PCs
-		push(@{ $QPCS{$recip->pc()} },$recip);
-	}
-
-	# 
-	foreach $pc (sort keys %QPCS) {
-		# get our PC-list of recipients
-		$recips=$QPCS{$pc};
-
-		$log->do('debug',"opening queue for '$pc'") if ($DEBUG);
-		# write a queue file with associated PINs
-		my $queue=Sendpage::PageQueue->new($config,$config->get("queuedir")."/$pc");
-		if (!defined($queue)) {
-			$log->do('err', "cannot find queue for PC '$pc'");
-		}
-
-		my @pages;
-		undef @pages;
-
-		my $pagingcentral=Sendpage::PagingCentral->new($config,$pc);
-
-		if (length($text) > $pagingcentral->maxchars()) {
-			my($newtext,$i);
-			my $maxsplits=$pagingcentral->maxsplits();
-			my $format=length($maxsplits);
-			my $availlen=$pagingcentral->maxchars()-($format * 2)-2;
-			my $chunks=POSIX::ceil(length($text)/$availlen);
-			
-			# never send more than $maxsplits pages from one text
-			$chunks=$maxsplits if ($chunks>$maxsplits);
-
-			for ($i=0; $i<$chunks; $i++) {
-				$newtext=sprintf("%0${format}d/%0${format}d:",
-						$i+1,$chunks);
-				$newtext.=substr($text,0,$availlen);
-				$text=substr($text,$availlen);
-
-				push(@pages,$newtext);
-			}
-			if ($text ne "") {
-				$log->do('warning',"threw away %d extra chars at the end of a page with more than %d splits",length($text),$chunks);
-			}
-		}
-		else {
-			push(@pages,$text);
-		}
-
-		umask(0007); # allow group read/write
-		foreach $text (@pages) {
-			if (!defined($queue->addPage(Sendpage::Page->new($recips,\$text,
-				{ 'when' => time,
-				  'from' => $opts{f} ? $opts{f} : 
-					scalar(getpwuid($<))
-				 })))) {
-				$log->do('err',
-					"cannot send this page: queue failed");
-			}
-		}
-	}
-}
+Usage();
 
 sub QueryDaemons {
 	my($display)=@_;
@@ -482,6 +412,7 @@ sub NiceShutdown {
 			$log->do('debug',"Signalling '$pc' ...") if ($DEBUG);
 			SendSignal('QUIT',$pc);
 		}
+		$log->do('debug',"Manager returning from NiceShutdown") if ($DEBUG);
 	}
 	else {
 		$log->do('debug',"Shutting down nicely: '$PC'") if ($DEBUG);
@@ -528,8 +459,9 @@ sub DisplayQueue {
 			while (defined($page=$queue->getPage())) {
 				print "\tqueue filename: ".$queue->file()."\n";
 				print "\tdeliverable:    ".$page->deliverable()."\n";
-				
 				print "\tattempts:       ".$page->attempts()."\n";
+				print "\tfrom:           ".$page->option('from')."\n"
+					if ($page->option('from') ne "");
 				for ($page->reset(), $page->next();
 				     defined($recip=$page->recip());
                                      $page->next()) {
@@ -724,10 +656,13 @@ sub BecomeDaemon {
 	# listen for reload info
 	$SIG{'HUP'}=\&Reload;
 	# listen for children death
-	$SIG{'CHLD'}=\&DoNothing;
+	$SIG{'CHLD'}=\&Respawn;
 	
+	# handle the SNPP stuff now
+	ListenForSNPP();
+
 	# handle children
-	ListenForChildren();
+	#ListenForChildren();
 	
 	die "parent died: this should never have happened: $!\n";
 }
@@ -744,11 +679,57 @@ sub ListenForChildren {
 }
 
 sub ListenForSNPP {
-	$log->do('debug',"starting SNPP listener") if ($DEBUG);
-	while ($SHUTDOWN!=1) {
-		sleep(60);
+	$log->do('debug',"starting Queue Manager and SNPP listener (sendpage v$VERSION)") if ($DEBUG);
+
+	my $server=Sendpage::SNPPServer->new(LocalPort => 3044);
+
+	$log->do('debug',"SNPP listener running on port ".$server->sockport)
+		if ($DEBUG);
+
+	my $vec='';
+	my $r;
+
+	vec($vec,fileno($server),1) = 1;
+
+	while($SHUTDOWN!=1 && select($r=$vec,undef,undef,undef)) {
+		$log->do('debug',"returned from SNPP select")
+			if ($DEBUG);
+		my $pid;
+		my $sock = $server->accept;
+	
+		$log->do('debug',"got connection from ".$sock->peerhost)
+			if ($DEBUG);
+	
+		if (!defined($sock)) {
+			carp $!;
+			next;
+		}
+	
+		if(($pid = fork())>0) {
+			# Parent
+	
+			# pause for a second (no DOSing)
+			select(undef,undef,undef,0.1);
+			close($sock);
+		}
+		elsif($pid==0) {
+			# Child
+
+			$0="sendpage: SNPP client: ".$sock->peerhost;
+	
+			$sock->HandleSNPP("SNPP Sendpage $VERSION",$config,$log,
+				$DEBUG);
+	
+			exit(0);
+				
+		}
+		else {
+			$log->do('err',"SNPP listener fork: $!");
+			# error on fork
+			close($sock);
+		}
 	}
-	$log->do('debug',"SNPP shutting down") if ($DEBUG);
+	$log->do('debug',"SNPP listener shutting down") if ($DEBUG);
 	YankPidFile("");
 	exit(0);
 }
