@@ -65,7 +65,7 @@ This is a module for use in sendpage(1).
 
 =head1 BUGS
 
-Needs more docs.
+Obviously, needs more docs.
 
 =cut
 
