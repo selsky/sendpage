@@ -616,8 +616,7 @@ sub Respawn {
 	}
 	elsif (defined($PIPES{$pid})) {
 		$log->do('debug',"SNPP connection (pid $pid) finished") if ($DEBUG);
-		# I shouldn't do this here, I should do it in the select
-		#PipeShutdown($PIPES{$pid});
+		PipeShutdownPid($pid);
 	}
 	else {
 		# defunct children?  no!  bastards!  :)
@@ -820,7 +819,7 @@ sub ListenForSNPP {
 			elsif (defined($pid=$CNXNS{$fh})) {
 				# is this pipe shutdown?
 				if ($fh->eof()) {
-					PipeShutdown($fh);
+					PipeShutdownPipe($fh);
 					$s->remove($fh);
 					close($pipe);
 				}
@@ -851,23 +850,22 @@ sub ListenForSNPP {
 			}
 		}
 	}
+	$log->do('info',"stopping Queue Manager and SNPP listener (sendpage v$VERSION)");
 	StopSNPP();
 	YankPidFile("");
 	exit(0);
 }
 
-sub PipeShutdown {
+sub PipeShutdownPipe {
 	my $pipe = shift;
 
-	my $pid;
-
-	if (!defined($pid=$CNXNS{$pipe})) {
-		$log->do('warning',"Yikes!  Tried to disable pipe for unknown file handle");
-		return;
-	}
-	
-	delete $PIPES{$pid};
 	delete $CNXNS{$pipe};
+}
+
+sub PipeShutdownPid {
+	my $pid = shift;
+
+	delete $PIPES{$pid};
 }
 
 sub PipeRemember {

@@ -92,6 +92,9 @@ sub getPage {
 		# read the data
 		my $page=Sendpage::Page->new($self->pullPageFromFile($handle));
 
+		if ($page) {
+			$page->option('FILE',$self->file());
+		}
 		return $page;
 	}
 	else {
@@ -175,7 +178,7 @@ sub pullPageFromFile {
 sub addPage {
 	my ($self,$page) = @_;
 
-	my $rc;
+	my($rc,$filename);
 	my $handle = $self->getNewFile();
 
 	if (!defined($handle)) {
@@ -183,7 +186,10 @@ sub addPage {
 	}
 
 	$rc=$self->writePage($page);
-	$self->doneNewFile();
+	$filename=$self->doneNewFile();
+	if ($rc) {
+		return $filename;
+	}
 	return $rc;
 }
 

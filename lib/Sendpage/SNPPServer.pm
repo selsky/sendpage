@@ -53,14 +53,14 @@ sub HandleSNPP {
 	my $log = shift;
 	my $DEBUG = shift;
 
-        my($pin,%PINS,%QPCS,$pc,$recips,$recip,@recips,$fail,$text,$caller);
+        my($pin,@PINS,$pc,$recips,$recip,@recips,$fail,$text,$caller);
 
 	# how far are we in the process?
 	my $NEED_PIN=1;
 	my $NEED_TEXT=1;
 
 	sub shutdown {
-		$log->do('debug',"SNPP client signalled down");
+		$log->do('debug',"SNPP client signalled down") if ($DEBUG);
 		$sock->command("221 administratively down");
 		exit(0);
 	}
@@ -71,8 +71,7 @@ sub HandleSNPP {
 	local $SIG{HUP}=\&shutdown;
 
 	sub reset_inputs {
-		%PINS=();
-		%QPCS=();
+		@PINS=();
 		@recips=();
 		$caller=$pin=$pc=$recips=$recip=$fail=$text=undef;
 
@@ -122,19 +121,14 @@ sub HandleSNPP {
 				return;
 			}
 			elsif ($cmd =~ /^PAGE/) {
+				my($pin,$pass)=split(/\s+/,$args,2);
 				# collect pager ids here
-				my @pins=split(/\s+/,$args);
+				my @pins=($pin);
 				# validate pager ids
 			        ($fail,@recips)=main::ArrayDig(@pins);
 			        if ($fail == 0 && $#recips > -1) {
-        				$recips=\@recips;
-
-				        # sort them into PC bins
-				        foreach $recip (@{ $recips }) {
-				                # make list of PCs
-				                push(@{ $QPCS{$recip->pc()} },$recip);
-				        }
 					$sock->command("250 Pager ID Accepted: '$args'");
+					push(@PINS,$pin);
 					$NEED_PIN=0;
 				}
 				else {
@@ -191,7 +185,7 @@ sub HandleSNPP {
 					next;
 				}
 
-				my $queued=$sock->write_queued_pages($pipe,$caller,$text,$config,$log,$DEBUG,%QPCS);
+				my $queued=$sock->write_queued_pages($pipe,$caller,$text,$config,$log,$DEBUG,@PINS);
 
 				if ($queued>0) {
 					$sock->command("250 $queued Queued Successfully (caller: '$caller')");
@@ -258,10 +252,20 @@ sub HandleSNPP {
 }
 
 sub write_queued_pages {
-	my ($self,$pipe,$from,$text,$config,$log,$DEBUG,%QPCS)=@_;
-	my ($pc,$recips,$queued);
+	my ($self,$pipe,$from,$text,$config,$log,$DEBUG,@PINS)=@_;
+	my ($pc,$recips,%QPCS,$fail,@recips,$recip);
 
-	$queued=0;
+	my $queued=0;
+	my $client=$self->peerhost;
+
+	($fail,@recips)=main::ArrayDig(@PINS);
+	if ($fail == 0 && $#recips > -1) {
+		# sort them into PC bins
+		foreach $recip (@recips) {
+			# make list of PCs
+			push(@{ $QPCS{$recip->pc()} },$recip);
+		}
+	}
 
 	my $mask=umask(0077); # allow only user read/write
         foreach $pc (sort keys %QPCS) {
@@ -311,7 +315,8 @@ sub write_queued_pages {
                 }
 
                 foreach $text (@pages) {
-                        if (!defined($queue->addPage(Sendpage::Page->new($recips,\$text,
+			my $file;
+                        if (!defined($file=$queue->addPage(Sendpage::Page->new($recips,\$text,
                                 { 'when' => time,
                                   'from' => ($from ne "") ? $from : undef
                                  })))) {
@@ -320,6 +325,18 @@ sub write_queued_pages {
                         }
 			else {
 				$queued++;
+				# gather list of names we just queued
+				my @tolist=();
+				my $r; # recip
+	
+				foreach $r (@{$recips}) {
+					push(@tolist,$r->name());
+				}
+				$from="nobody" if ($from eq "");
+				# log our enqueuement (new word?)
+				$log->do('info',
+"$pc/$file: state=Queued, to=".join(",",@tolist).", from=$from($client), ".
+"size=".length($text));
 			}
                 }
 		print $pipe "$pc\n";

@@ -428,10 +428,30 @@ sub deliver {
 			$extra="---diagnostics---\n".$extra;
 		}
 
+		# logging info
+		my $paged=$recip->name();
+		my $pc=$self->{NAME};
+		my $file=$page->option('FILE');
+		my $sender=$to;
+		$sender="nobody" if ($sender eq "");
+		my $diag="";
+		$diag="PC=$report" if ($report ne "");
+		# eliminate ctrl chars in "diag"
+		$diag=Sendpage::Modem->HexStr($diag); # call this directly
+		
+		my $state="unknown";
+		$state="Sent" if ($rc == $SUCCESS);
+		$state="Temp-Failure" if ($rc == $TEMP_ERROR);
+		$state="Abandoned" if ($rc == $PERM_ERROR);
+
+		# log our page's state
+		$main::log->do('info',
+			"$pc/$file: state=$state, to=$paged, from=$sender, ".
+			"size=".length($page->text()).
+			($diag ne "" ? ", $diag" : ""));
+
 		if ($rc == $SUCCESS) {
 			# success
-
-			$main::log->do('debug', "Page sent!") if ($self->{DEBUG});
 
 			# remove recipient from list
 			$page->drop_recip();
@@ -441,22 +461,15 @@ sub deliver {
 				$self->SendMail($to,
 					$self->{CONFIG}->get('page-daemon'),
 					$cc,"Page delivered",
-					"The following page was delivered to "
-					. $recip->name() . ":\n\n"
+					"The following page was delivered to ".
+					"$paged:\n\n"
 					. $page->text() . "\n\n"
 					. $extra);
 			}
-
-			$main::log->do('info',"from PC: $report")
-				if ($report ne "" && $self->{DEBUG});
 		}
 		elsif ($rc == $TEMP_ERROR) {
 			# temp failure
 		
-			$main::log->do('debug', "Page had temporary failure")
-				if ($self->{DEBUG});
-
-			# FIXME: send after X fails	
 			# Send email notification
 			if ($temprep > 0 && ($attempts % $temprep == 0) && 
 		   	    ($to ne "" || $cc ne "")) {
@@ -468,15 +481,10 @@ sub deliver {
 					. $page->text() . "\n\n"
 					. $extra );
 			}
-
-			$main::log->do('info',"from PC: $report")
-				if ($report ne "");
 		}
 		elsif ($rc == $PERM_ERROR) {
 			# total failure
 			
-			$main::log->do('debug', "Page failed!") if ($self->{DEBUG});
-
 			# remove recipient from list
 			$page->drop_recip();
 
@@ -485,14 +493,11 @@ sub deliver {
 				$self->SendMail($to,
 					$self->{CONFIG}->get('page-daemon'),
 					$cc,"Page NOT delivered",
-					"The following page has failed to be delivered to "
+					"The following page has FAILED to be delivered to "
 					. $recip->name() . ":\n\n"
 					. $page->text() . "\n\n"
 					. $extra );
 			}
-
-			$main::log->do('info',"from PC: $report")
-				if ($report ne "");
 		}
 		else {
 			# truely weird

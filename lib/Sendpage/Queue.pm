@@ -252,7 +252,7 @@ sub getNewFile {
 sub doneNewFile {
 	my($self)=shift;
 
-	my $fname;
+	my($fname,$final);
 
 	if (!defined($self->{OPEN})) {
 		$main::log->do('alert', "Cannot close new file while no file is open!");
@@ -270,13 +270,16 @@ sub doneNewFile {
 
 	# need the queue dirs here, too
 	$fname=$self->{DIR}."/$fname";
-	$newname=$self->{DIR}."/$newname";
-	if (!rename($fname,$newname)) {
-		$main::log->do('crit', "Cannot rename '$fname' -> '$newname': $!\n");
+	$final=$self->{DIR}."/$newname";
+	if (!rename($fname,$final)) {
+		$main::log->do('crit', "Cannot rename '$fname' -> '$final': $!\n");
 	}
 
 	# done with this handle
-	$self->fileDone();	
+	if ($self->fileDone()) {
+		return $newname;
+	}
+	return undef;
 }
 
 
