@@ -307,19 +307,6 @@ sub Initialize {
 	@pcs=$config->instances("pc");
 	undef %pcs; grep($pcs{$_}=1,@pcs);
 	@modems=$config->instances("modem");
-
-	# sanity check our queue names and directories
-	if (!$opts{C}) { # only if running with regular config file, though
-		my $mask=umask(0002); # make sure we can group write to the dirs
-		foreach $pc (@pcs) {
-			$dir=$config->get("queuedir")."/$pc";
-			if (! -d $dir) {
-				mkdir($dir,0775) ||
-					warn "Cannot mkdir '$dir': $!\n";
-			}
-		}
-		umask($mask);
-	}
 }
 
 # plops down a pid file
@@ -924,7 +911,15 @@ sub StartQueue {
 
 	$log->do('debug', "starting queue runs for '$PC'") if ($DEBUG);
 
-	$queue=Sendpage::PageQueue->new($config,$config->get("queuedir")."/$PC");
+	my $dir=$config->get("queuedir")."/$PC";
+	if (! -d $dir) {
+		if (!mkdir($dir,0700)) {
+			$log->do('alert',"Cannot mkdir '$dir': $!");
+			exit(1);
+		}
+	}
+
+	$queue=Sendpage::PageQueue->new($config,$dir);
 
 	if (!defined($queue)) {
 		$log->do('alert',"Failed to open queue for '$PC'  --  exiting");

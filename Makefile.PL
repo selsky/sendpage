@@ -27,15 +27,13 @@ sub chk_version
 
 #--- Check for Packages
 
-if (!chk_version(Device::SerialPort => 0.07) &&
+if (!chk_version(Device::SerialPort => 0.09) &&
     !chk_version(Win32::SerialPort => 0.07)) {
     warn  "\n"
-	. "'Device::SerialPort' version 0.07 or better or\n"
+	. "'Device::SerialPort' version 0.09 or better or\n"
 	. "'Win32::SerialPort' version 0.07 or better is required.\n"
         . "Look for Device-SerialPort-x.xx.tar.gz on CPAN in:\n"
-        . "\thttp://cpan.perl.org/authors/id/B/BB/BBIRTH/\n";
-        . "or for version 0.09, check in:\n";
-	. "\thttp://sendpage.cpoint.net/device-serialport/\n\n";
+	. "\thttp://cpan.perl.org/modules/by-module/Device/\n\n";
     $fail=1;
 }
 
