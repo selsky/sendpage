@@ -112,7 +112,7 @@ likely if running 0.07 under anything but linux), then I recommend applying
 the patch to 0.07 before installing it:
 	cd Device-SerialPort-0.07
 	patch -p1 < ../sendpage-0.9.5/devserial-0.07-k1.patch
-	perl Makefile.PL
+	perl Makefile.PL /dev/term/a
 	make install
 
 If you choose to do the "make test", Solaris for me failed in a number
