@@ -27,6 +27,10 @@ url:		http://sendpage.org/
 buildroot:	%{_tmppath}/%{name}-%{version}-%(id -u -n)
 buildarch:	noarch
 source:		%{namever}.tar.gz
+
+Requires: perl perl-Device-SerialPort >= 1.0.2 perl-Net-SNPP perl-MailTools
+BuildRequires: perl perl-Device-SerialPort >= 1.0.2 perl-Net-SNPP perl-MailTools
+
 %description
 Sendpage is designed to speak SNPP on one end and TAP (or UCP) on the
 other.  It gets pages from the network via SNPP, and then uses a modem

@@ -12,15 +12,21 @@ provider), and you need to know the PINs of the pagers you want to deliver
 pages to.  All of this information is known by your paging provider.
 If you ARE a paging provider, your job is much easier.  ;)
 
+Quick Start (for RPM-based Linux distro)
+----------------------------------------
+Why are you reading this README?  Just run "rpmbuild -ta inkscape-*.tar.gz"
+There is a .spec file included for easy building.  :)  I've only tested it
+on SuSE 9.2, so please send me patches if you uncover problems with other
+distros.
 
-Quick Start (for Linux)
------------
+Quick Start (for non-RPM Linux distro)
+--------------------------------------
 
    Requirements.
 
 	- Net::SNPP (part of the libnet Perl module bundle)
-	- Device::SerialPort version 0.12+  (or Win32::SerialPort, untested)
-	- Mail::MailTools
+	- Device::SerialPort version 1.02+  (or Win32::SerialPort, untested)
+	- MailTools (provides Mail::Send)
 
    Installation.
 
