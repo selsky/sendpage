@@ -67,9 +67,8 @@ sub new {
         my $proto = shift;
         my $class = ref($proto) || $proto;
         my $self  = {};
+	$self->{DIR}=shift; # location of my queue
 
-	# self configuration area
-	$self->{DIR}=shift;   # location of my queue
 	@{$self->{FILES}}=undef; # where to store our directory list
 	$self->{OPEN}=undef;  # current open file
 	$self->{COUNTER}=0;   # for the unique filename
@@ -193,18 +192,29 @@ sub getReadyFile {
 
 # releases locks, closes file, removes file, etc
 sub fileToss {
-	my($self)=shift;
+	my($self,@args)=@_;
 
 	if (!$self->{OPEN}) {
 		$main::log->do('alert', "Cannot call fileToss without an open file!");
 		return undef;
 	}
 
-	# unlink before unlock: no one can get it then FIXME: this is not right
+	# rename before unlock: no one can get it then FIXME: this is not right
 	my $fname = $self->{DIR}."/".$self->{FILES}[0];
 
+#	my $newname=$fname;
+#	$newname =~ s/^./X/;
+#
+#	# need the queue dirs here, too
+#	$fname=$self->{DIR}."/$fname";
+#	$final=$self->{DIR}."/$newname";
+#	if (!rename($fname,$final)) {
+#		$main::log->do('crit', "Cannot rename '$fname' -> '$final': $!\n");
+#	}
+
 	if (unlink($fname)<1) {
-		$main::log->do('alert', "Could not delete file '$fname': $!");
+		$main::log->do('alert',
+			"Could not delete file '$fname': $!");
 	}
 
 	$self->unlockFile($fname);

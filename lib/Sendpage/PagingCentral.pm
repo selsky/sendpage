@@ -502,6 +502,11 @@ sub deliver {
 					. $page->text() . "\n\n"
 					. $extra);
 			}
+
+			# external commands...
+			# open(CMD,"|$cmd $paged 1");
+			# print CMD $page->text();
+			# close(CMD);
 		}
 		elsif ($rc == $TEMP_ERROR) {
 			# temp failure
@@ -562,6 +567,11 @@ sub deliver {
 					. $page->text() . "\n\n"
 					. $extra );
 			}
+
+			# external commands...
+			# open(CMD,"|$cmd $paged 0");
+			# print CMD $page->text();
+			# close(CMD);
 		}
 		else {
 			# truely weird

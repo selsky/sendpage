@@ -669,6 +669,9 @@ sub DESTROY {
  	$self->{LOG}->do('debug',"Modem Object '$self->{NAME}' being destroyed") if ($self->{DEBUG});
 
 	$self->unlock() if (defined($self->{LOCKFILE}));
+
+	# Very weird: don't Perl objects destroy parents?
+	$self->close();
 }
 
 # extra bits...

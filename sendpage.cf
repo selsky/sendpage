@@ -31,6 +31,8 @@
 #debug=true
 
 # select-loop debugging.  Default is "false"
+#	Leave this as it is unless you're digging around in the select
+#	loop code.  It is VERY annoying.  :)
 #
 #debug-select=true
 

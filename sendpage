@@ -505,6 +505,7 @@ sub DisplayQueue {
 
 	foreach $pc (@pcs) {
 		$queue=Sendpage::PageQueue->new($config,$config->get("queuedir")."/$pc");
+
 		if (($waiting=$queue->ready())>-1) {
 			print "\nin the '$pc' queue: ".($waiting+1)."\n";
 			while (defined($page=$queue->getPage())) {
@@ -1194,7 +1195,7 @@ sub StartQueue {
 		}
 	}
 
-	$queue=Sendpage::PageQueue->new($config,$dir);
+	$queue=Sendpage::PageQueue->new($config, $dir);
 
 	if (!defined($queue)) {
 		$log->do('alert',"Failed to open queue for '$PC'  --  exiting");

@@ -26,6 +26,11 @@ Jerry Paul Taft
 	will be missed.
 
 
+Mark Frey
+	<markfrey@sympatico.ca>
+	Found a strange bug (in Perl?) where Modem.pm wasn't closing
+	the device on a DESTROY.
+
 Steve Szabo
 	<steves@fundserv.com>
 	Let me use and abuse his Sun Blade running Solaris 8.  Nailed
