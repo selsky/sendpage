@@ -59,7 +59,7 @@ This needs more docs.
 
 
 # globals
-my $SPEED=10;	# how much to speed up the char reader
+my $SPEED=1;	# how much to speed up the char reader
 
 # new methods here are:
 #	init		- inits modem
@@ -578,7 +578,7 @@ sub chat {
 			}
 			elsif ($self->{DEBUG}) {
 				my $msg=sprintf("(timeout: %d/%d, retries: %d/%d)\n",
-					$timeleft/10,$timeout/10,
+					$timeleft/$SPEED,$timeout/$SPEED,
 					$tries,$retries);
 				$self->{LOG}->do('debug', $msg)
 					if (($timeleft % $SPEED) == 0);

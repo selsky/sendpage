@@ -1,7 +1,7 @@
 $Id$
 
 0.9.12:
-	- changing how to deal with vmin problems under Solaris
+	- changed Modem.pm to deal with vmin problems under Solaris
 
 0.9.11: (15May2001)
 	- added "maxlines" to email2page.
