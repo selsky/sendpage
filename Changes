@@ -1,5 +1,9 @@
 $Id$
 
+0.9.9:
+	- improved call-out debugging
+	- corrected pet3 handling, added the 'proto' option to PCs
+
 0.9.8: (30Jan2001)
 	- further updates to Device::SerialPort and associated documentation
 	- further updates to signal handlers
