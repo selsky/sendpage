@@ -768,10 +768,8 @@ sub BecomeDaemon {
 }
 
 sub initSNPP {
-	my ($host,$port);
-
-	$host=$config->get("snpp-addr");
-	$port=$config->get("snpp-port");
+	my $host=$config->get("snpp-addr");
+	my $port=$config->get("snpp-port");
 
 	# need to use "create" so that the "accept"s don't call the constructor
 	$server=Sendpage::SNPPServer->create(Addr => $host, Port => $port);
@@ -783,6 +781,22 @@ sub initSNPP {
 	}
 	else {
 		$log->do('crit',"SNPP listener for '$host:$port' failed: $!");
+	}
+
+	# Expand our snpp ACLs so we don't have to during each connection
+	@ACLs=();
+	my $item;
+        foreach $item (@{$config->get("snpp-acl")}) {
+                my ($netmask,$way) = split(/:/,$item,2);
+                $way=uc($way);
+                my ($net_str,$mask_str) = split(/\//,$netmask,2);
+                $log->do('debug',"ACL loaded: '$net_str'/'$mask_str' is '$way'")
+                        if ($DEBUG);
+
+                my $net  = inet_aton($net_str);
+                my $mask = inet_aton($mask_str);
+
+		push(@ACLs,[ $net, $mask, $net_str, ($way eq "ALLOW") ]);
 	}
 }
 
@@ -824,29 +838,25 @@ sub IPAllowed {
         my $item;
         my $allowed=0;
 	my $found=0;
-        foreach $item (@{$config->get("snpp-acl")}) {
-                my ($netmask,$way) = split(/:/,$item,2);
-                $way=uc($way);
-                my ($net_str,$mask_str) = split(/\//,$netmask,2);
-                $log->do('debug',"ACL: '$net_str'/'$mask_str' is '$way'")
-                        if ($DEBUG);
-
-                my $net  = inet_aton($net_str);
-                my $mask = inet_aton($mask_str);
+        foreach $item (@ACLs) {
+                my ($net,$mask,$net_str,$allow) = @{$item};
 
                 # Drop the peer IP through the mask
                 my $net_check = ($iaddr & $mask);
 
                 my $check_str=inet_ntoa($net_check);
 
-                $log->do('debug',"ip: '$peer' mask: '$mask_str' masked: '$check_str' net: '$net_str'")
-                if ($DEBUG);
+                if ($DEBUG) {
+			my $mask_str=inet_ntoa($mask);
+	                $log->do('debug',"ip: '$peer' mask: '$mask_str' ".
+				"masked: '$check_str' net: '$net_str'");
+		}
 
                 # if result is our network, we have a hit
                 if ($check_str eq $net_str) {
 			$found=1;
                         $log->do('debug', "Matched ACL") if ($DEBUG);
-                        if ($way eq "ALLOW") {
+                        if ($allow==1) {
                                 $allowed=1;
                         }
                         # if not allow, then reject

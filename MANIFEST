@@ -13,6 +13,7 @@ docs/rfc1861.txt
 docs/README
 docs/PagingCentrals.txt
 docs/sendmail.txt
+docs/sendpage.php
 lib/Sendpage/KeesConf.pm
 lib/Sendpage/KeesLog.pm
 lib/Sendpage/Page.pm

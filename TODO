@@ -7,14 +7,13 @@ Needed For Fist Stable Release
 -------------------------
 *Code
 - implement SNPP "HOLD" function
-- pre-expand all the SNPP ACLs
-- implement a list of addresses for SNPP server to listen on (for multihomed)
-- write up an example CGI script for sending pages
 *Docs
 - finish sendpage-manual
+- add info about "snpp-acl"
 
 Needed For Next Stable Release
 ------------------------------
+- implement a list of addresses for SNPP server to listen on (for multihomed)
 - do something so that queues that are waiting on a modem will run
   as soon as the modem is available.  How can I do this when there are
   multiple modems available?  Weird multi semaphore notifications queues
@@ -28,6 +27,8 @@ Needed For Next Stable Release
 Would Be Nice
 -------------
 *Code
+- do something about the 500 functions packed into "sendpage" instead of
+  cleanly implemented in modules elsewhere.
 - implement email notification fall-back for recips
 - have all the conf files get handled by Makefile.PL  --  /etc dir?
 - change PagingCentral module to deal with modems differently so we don't

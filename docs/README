@@ -23,6 +23,9 @@ paging centrals I know about.
 "sendmail.txt" is a quick tutorial on how to get sendpage working with
 a standard v8.8+ install of sendmail.
 
+"sendpage.php" is a quick PHP script for sending pages using "snpp" from
+a web page.
+
 
 -Kees Cook
  cook@cpoint.net
