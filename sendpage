@@ -160,7 +160,7 @@ Sendpage::Page(3), Sendpage::Recipient(3), Sendpage::Queue(3)
 require 5.005;
 
 # Global variables;
-$VERSION="0.9.14"; # our version!
+$VERSION="0.9.15"; # our version!
 my $config;	# holds the configuration object
 undef $log;	# holds logging object
 
