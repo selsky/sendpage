@@ -214,7 +214,7 @@ sub start_proto {
 	#   timeout("\r")
 	$result=$modem->chat("\r","\r","ID=",
 		$self->{CONFIG}->get("pc:$self->{NAME}\@answerwait"),
-		$self->{CONFIG}->get("pc:$self->{NAME}\@answerretries");
+		$self->{CONFIG}->get("pc:$self->{NAME}\@answerretries"));
 	if (!defined($result)) {
 		$main::log->do('crit',"PC did not send 'ID=' tag");
 		return (undef,"Could not perform protocol startup");
