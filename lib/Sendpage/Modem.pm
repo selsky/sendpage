@@ -104,11 +104,14 @@ sub new {
 	# We need to build the name of the lock file
 	$lockfile=$lockprefix;
 	
-	# figure out what the REAL device name is
-	if (!defined($realdev=readlink($dev))) {
-		# not a symlink
+	# FIXME: I need clarification on this: should we discover the
+	# true name of the device or not?
+	## figure out what the REAL device name is
+	#if (!defined($realdev=readlink($dev))) {
+	#	# not a symlink
 		$realdev=$dev;
-	}
+	#}
+
 	# now, chop the name of the dev off
 	my @parts=split(m#/#,$realdev);
 	$lockfile.=pop(@parts);
