@@ -724,8 +724,10 @@ sub initSNPP {
 	# need to use "create" so that the "accept"s don't call the constructor
 	$server=Sendpage::SNPPServer->create(Port => $config->get("snpp-port"));
 
-	$log->do('debug',"SNPP listener running on port ".$server->sockport)
-		if ($DEBUG);
+	if (defined($server)) {
+		$log->do('debug',"SNPP listener running on port ".
+			$server->sockport) if ($DEBUG);
+	}
 }
 
 sub StopSNPP {
@@ -737,7 +739,7 @@ sub StopSNPP {
 
 sub StartSNPP {
 	initSNPP();
-	$s->add($server);
+	$s->add($server) if (defined($server));
 }
 
 sub RestartSNPP {

@@ -358,6 +358,11 @@ sub create {
 				Proto => 'tcp', 
 				Reuse => 1 );
 
+ # if net fails, we quit too
+ if (!defined($self)) {
+	return undef;
+ }
+
  bless ($self, $class);
 
  return $self;
