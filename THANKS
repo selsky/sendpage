@@ -22,68 +22,61 @@ Jerry Paul Taft
 	will be missed.
 
 
+Jason Ernst
+	<grog@blight.com>
+	For totally redesigning the sendpage website to make it cool great,
+	and for making adorable little raccoon images to go with it.  :)
+
 Jonathan C. Detert
 	<detertj@msoe.edu>
 	Found a bug with the "dialout" modem setting.
 
-
 Todd M. Lewis
 	<utoddl@email.unc.edu>
 	Suggested a change to comment parsing to allow for leading whitespace.
-
 
 Jon Scarbrough
 	<jscarbrough@grouparnold.com>
 	Found a bug where modem settings were not being passed through
 	correctly (PC default were set instead).
 
-
 Kendall P. Bullen
 	<kendall@lists.tax.org>
 	Always finds my bugs as soon as I release a version.
-
 
 Philip Moors
 	<PMoors@edisonmission.com>
 	Found a bug in the Modem disconnect function.  I wasn't actually
 	letting go of the modem on a chat failure.
 
-
 John Furman
 	<jfurman@b2bscene.com>
 	Found a setgid taint bug in Modem.pm for me.
 
-
 Drew Smith
 	<drew@pctc.com>
 	Reported and helped me track down a numeric-only paging problem.
-
 
 Andy Wardley
 	<abw@cre.canon.co.uk>
 	for giving me an API that I liked and adapted for my own use, even
 	if I didn't use any of the code (AppConfig).
 
-
 Eric Schenk
 	<Eric.Schenk@dna.lth.se>
 	for giving me a clear example of how to create a uucp-style lock file
 	for a serial device.   (And for teaching me about "kill(0, pid)"!)
 
-
 tomiii@qpage.net
 	for a huge list of PC information.
-
 
 Kurt Boyack
 	<Kurt.Boyack@pyxis.com>
 	for paging central information.
 
-
 Aaron Botsis
 	for making me realize that other people besides me, do, in fact,
 	use sendpage.
-
 
 Paul Holcomb
 	<pholcomb@cpoint.net>
