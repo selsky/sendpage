@@ -234,9 +234,13 @@ maxchars=300
 #	Default is "true"
 #fieldsplits=false
 
-# How many seconds to wait before giving up waiting for the ID= tag?
+# How many seconds to wait before sending CR when waiting for the ID= tag?
 #	Default is "2", from the T1 of the TAP protocol
 #answerwait=10
+
+# How many retries to allow before giving up waiting for the ID= tag?
+#	Default is "3", from the N3 of the TAP protocol
+#answerretries=3
 
 # How many seconds before we giving up trying to dial this PC?
 #	Default is whatever the modem's dialwait is

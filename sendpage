@@ -1117,6 +1117,7 @@ $config->define("pc:dialretries",{ DEFAULT => 3 });
 $config->define("pc:password",{DEFAULT => "000000" });
 #  proto establishment info
 $config->define("pc:answerwait", { DEFAULT => 2 });
+$config->define("pc:answerretries", { DEFAULT => 3 });
 #  protocol settings
 #   MUST have the leading "<CR>" for each answer?
 $config->define("pc:stricttap",		{ DEFAULT => 0, ARGCOUNT => 0 });

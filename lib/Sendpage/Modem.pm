@@ -386,6 +386,15 @@ sub chat {
 	my $tries;
 	for ($tries=0; $tries<$retries; $tries++) {
 
+		# send kicker (unless this is the first time through)
+		if ($kicker ne "" && $tries>0) {
+			$main::log->do('debug', "timed out, sending kicker")
+				if ($self->{DEBUG});
+			if (!defined($self->safe_write($kicker))) {
+				$main::log->do('alert',"safe_write failed!");
+			}
+		}
+
 		# start timeout loop while reading chars
 		my $timeleft;
 		for ($timeleft=0; $timeleft<$timeout; $timeleft++) {
@@ -438,15 +447,6 @@ sub chat {
 				   "chat failure: ".$self->HexStr($matched))
 					 if ($self->{DEBUG});
 				return undef;
-			}
-		}
-
-		# send kicker
-		if ($kicker ne "") {
-			$main::log->do('debug', "timed out, sending kicker")
-				if ($self->{DEBUG});
-			if (!defined($self->safe_write($kicker))) {
-				$main::log->do('alert',"safe_write failed!");
 			}
 		}
 	}
