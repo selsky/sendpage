@@ -1,0 +1,62 @@
+This document is a really rough example of how to examine a paging central to
+figure out the paging limits for a particular pager or service.
+
+
+start with PC configuration defaults.
+send page just to make sure you CAN get a page.
+
+set "esc=true"
+Send page with "\n" and "\t"'s (eg "This\nis a CR and this\tis a tab.")
+
+if you see \n and \t okay, you have a real 1.8 TAP, and you're done.
+otherwise:
+   remove "esc=true"
+   set "ctrl=true"
+   Send page with "\n" and "\t"'s (eg "This\nis a CR and this\tis a tab.")
+
+   if both \n and \t show up correctly, you have a weak TAP, but you're done.
+   if the \n was displayed correctly, you can pass \n's only, so:
+	unset "ctrl=true"
+	set "lfok=true"
+	and you're done
+   otherwise:
+	unset "ctrl=true"
+	you can't send ctrl chars at all.  sorry!
+
+
+
+now, gauge the size of your paging length (test with ctrl/esc/lfok off):
+
+page of 100 chars:
+a123456789b123456789c123456789d123456789e123456789f123456789g123456789h123456789i123456789j123456789
+
+page of 200 chars:
+a123456789b123456789c123456789d123456789e123456789f123456789g123456789h123456789i123456789j123456789A123456789B123456789C123456789D123456789E123456789F123456789G123456789H123456789I123456789J123456789
+
+page of 240 chars:
+a123456789b123456789c123456789d123456789e123456789f123456789g123456789h123456789i123456789j123456789A123456789B123456789C123456789D123456789E123456789F123456789G123456789H123456789I123456789J123456789a123456789b123456789c123456789d123456789
+
+page of 250 chars:
+a123456789b123456789c123456789d123456789e123456789f123456789g123456789h123456789i123456789j123456789A123456789B123456789C123456789D123456789E123456789F123456789G123456789H123456789I123456789J123456789a123456789b123456789c123456789d123456789e123456789
+
+page of 300 chars:
+a123456789b123456789c123456789d123456789e123456789f123456789g123456789h123456789i123456789j123456789A123456789B123456789C123456789D123456789E123456789F123456789G123456789H123456789I123456789J123456789a123456789b123456789c123456789d123456789e123456789f123456789g123456789h123456789i123456789j123456789
+
+start with X=100 chars
+start with SIZE=100 chars
+
+try to send a page:
+send a page with SIZE chars
+if it xmit fail or go through truncated?
+	decrease X by half
+	decrease SIZE by X
+else
+	increase SIZE by X
+try page again
+	
+Some PCs will stall on a "continued.." block, so you may need to force splits
+at 250 - pinsize - 2 chars (usually 240).
+
+
+-Kees Cook
+cook@cpoint.net
