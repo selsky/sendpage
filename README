@@ -177,6 +177,11 @@ Solaris:  Some headers under Solaris don't behave very well, so I had
 	  Most of that is unreliable anyway under Linux, so sendpage has
 	  already worked around these bugs.
 
+	  Also, I've seen trouble using Syslog correctly under Solaris.
+	  Once again, this appears to be perl's fault.  If it breaks
+	  ("Your vendor has not defined the Sys::Syslog macro _PATH_LOG")
+	  then just edit KeesLog.pm and remove the calls to "setlogsock".
+
 HPUX:	  Untested so far...
 
 AIX:	  Untested so far...

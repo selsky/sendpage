@@ -97,8 +97,11 @@ sub on {
 
 	$self->off();
 	if ($self->{SYSLOG}==1) {
-		# FIXME: shouldn't I check error codes?
-		setlogsock('unix');
+		# Comment out the following three lines if Solaris complains
+		# about syslog.
+		if (!defined(setlogsock('unix'))) {
+			setlogsock('inet');
+		}
 		my $ret=openlog "sendpage",
 				$self->{OPTS},
 				$self->{FACILITY};
