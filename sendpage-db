@@ -26,7 +26,7 @@
 use Getopt::Std;
 use Sendpage::Db;
 
-getopts('hpadvtc:');
+getopts('hpadvtc:U:P:');
 
 if ($opt_c) {
 	$dbtype = $opt_c;
@@ -34,7 +34,15 @@ if ($opt_c) {
 	$dbtype = "dbi:mysql:database=test;host=localhost;port=3306";
 }
 
-my $db = Sendpage::Db->new($dbtype);
+if ($opt_U) {
+       $dbuser = $opt_U;
+}
+
+if ($opt_P) {
+       $dbpass = $opt_P;
+}
+
+my $db = Sendpage::Db->new($dbtype,$dbuser,$dbpass);
 
 sub HELP_MESSAGE {
 	printf STDERR "Usage: \n";
@@ -43,6 +51,8 @@ sub HELP_MESSAGE {
 	printf STDERR "-a          add an entry\n";
 	printf STDERR "-d          remove an entry\n";
 	printf STDERR "-c <dbtype> database connection type, e.g. dbi:mysql:\n";
+        printf STDERR "-U <dbuser> database user (optional)\n";
+        printf STDERR "-P <dbpass> database password (optional)\n";
 	exit(0);
 }
 
