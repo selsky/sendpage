@@ -170,12 +170,14 @@
 #debug	= true
 
 # This modem's transmission settings.
-#	Defaults are data=7, parity=even, stop=1, flow=rts, baud=9600
-#data	= 8
-#parity	= none
-#stop	= 1
-#flow   = soft
-#baud   = 38400
+#	Defaults are data=7, parity=even, stop=1, flow=rts,
+#                    baud=9600, strict-parity=false
+#data	       = 8
+#parity	       = none
+#stop	       = 1
+#flow          = soft
+#baud          = 38400
+#strict-parity = true
 
 # Which device this modem should use
 #	Default is "/dev/null", so you better specify one.  :)
@@ -309,12 +311,14 @@ dev	= /dev/modem
 #modems	= sportster
 
 # If you need specific communication settings for this PC, they go here.
-#	Defaults are data=7, parity=even, stop=1, flow=rts, baud=115200
-#data	= 8
-#parity	= none
-#stop	= 1
-#flow	= soft
-#baud	= 9600
+#	Defaults are data=7, parity=even, stop=1, flow=rts,
+#                    baud=115200, strict-parity=false
+#data	       = 8
+#parity	       = none
+#stop	       = 1
+#flow	       = soft
+#baud	       = 9600
+#strict-parity = true
 
 # What areacode is this PC in?  If unset, the modem won't match areacodes
 #	Default is unset

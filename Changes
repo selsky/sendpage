@@ -1,6 +1,6 @@
 $Id$
 
-0.10.0: (CVS)
+1.0.0: (CVS)
 	- changed how email2page handles the header regex list.  This
 	  what it'll allow each rule to match each header line, rather
 	  that just the first match.  Recommended by Erastus Z Allen.
@@ -12,6 +12,7 @@ $Id$
 	- updated copyright years
 	- added debian rules
 	- added sendpage.spec
+	- handling "strict parity" from Device::SerialPort
 
 0.9.14: (31May2002)
 	- oops!  I recreated an earlier bug where splits would destroy

@@ -149,6 +149,7 @@ sub new {
 	# Serial characteristics
 	$self->{Baud}	= $self->{CONFIG}->ifset("pc:$self->{NAME}\@baud"),
 	$self->{Parity}	= $self->{CONFIG}->ifset("pc:$self->{NAME}\@parity"),
+	$self->{StrictParity}	= $self->{CONFIG}->ifset("pc:$self->{NAME}\@strict-parity"),
 	$self->{Data}	= $self->{CONFIG}->ifset("pc:$self->{NAME}\@data"),
 	$self->{Stop}	= $self->{CONFIG}->ifset("pc:$self->{NAME}\@stop"),
 	$self->{Flow}	= $self->{CONFIG}->ifset("pc:$self->{NAME}\@flow");
@@ -230,6 +231,7 @@ sub start_proto {
                         Log => $main::log,
                         Baud => $config->get("modem:${name}\@baud"),
                         Parity => $config->get("modem:${name}\@parity"),
+                        StrictParity => $config->get("modem:${name}\@strict-parity"),
                         Data => $config->get("modem:${name}\@data"),
                         Stop => $config->get("modem:${name}\@stop"),
                         Flow => $config->get("modem:${name}\@flow"),
@@ -267,7 +269,9 @@ sub start_proto {
 		$self->{Parity},
 		$self->{Data},
 		$self->{Stop},
-		$self->{Flow});
+		$self->{Flow},
+		undef,			# init string: use modem default
+		$self->{StrictParity});
 	if (!defined($result)) {
 		$main::log->do('alert',"Failed to initialize modem");
 		return (undef,"Could not initialize modem");

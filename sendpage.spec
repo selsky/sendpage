@@ -6,8 +6,8 @@
 %define filelist %{pkgname}-%{version}-filelist
 %define maketest 1
 # Be sure to change both
-%define pkgversion 0.01
-%define rpmversion 0.10.0
+%define pkgversion 1
+%define rpmversion 1.0.0
 %define namever %{pkgname}-%{pkgversion}
 
 name:		perl-sendpage

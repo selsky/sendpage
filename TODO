@@ -49,6 +49,7 @@ Would Be Nice
 - TCP modems (open a socket instead of a file) by Jim Gottlieb
 - generalized the "xmit message" code to deal with whatever type of sending
   we're doing, TAP, UCP, SNPP, etc. (from Jon Meek)
+- figure out what the cryptic message "ESC EOT hangups" meant, and fix it
 *Docs
 - update API doc to reflect changes made for PageQueue, Page, and Recipient
 - more general in-code commenting & documentation

@@ -160,8 +160,11 @@ Sendpage::Page(3), Sendpage::Recipient(3), Sendpage::Queue(3)
 require 5.005;
 
 # Global variables;
-$VERSION=0.010_000; # our version!
-$VERSION_human=sprintf("%d.%d.%d","${VERSION}000000"=~/^(\d+)\.(\d{3})(\d{3})/);
+$VERSION=1.000_000; # our version!
+$VERSION_human=sprintf("%d.%d.%d",
+        int(${VERSION}),
+        (int(${VERSION}*1000)=~/(\d{3})$/),
+        (int(${VERSION}*1000000)=~/(\d{3})$/));
 
 my $config;	# holds the configuration object
 undef $log;	# holds logging object
@@ -1392,6 +1395,7 @@ sub verifyModems {
 			Log => $log,
 			Baud => $config->get("modem:${modem}\@baud"),
 			Parity => $config->get("modem:${modem}\@parity"),
+			StrictParity => $config->get("modem:${modem}\@strict-parity"),
 			Data => $config->get("modem:${modem}\@data"),
 			Stop => $config->get("modem:${modem}\@stop"),
 			Flow => $config->get("modem:${modem}\@flow"),
@@ -1607,6 +1611,7 @@ $config->define("modem:data",   { DEFAULT => 7 });
 $config->define("modem:parity", { DEFAULT => "even" });
 $config->define("modem:stop",   { DEFAULT => 1 });
 $config->define("modem:flow",   { DEFAULT => "rts" });
+$config->define("modem:strict-parity", { ARGCOUNT => 0, DEFAULT => 0 });
 $config->define("modem:dev",    { DEFAULT => "/dev/null" });
 $config->define("modem:carrier-detect", { DEFAULT => "on" });
 # time to force DTR down during reset (0 = don't do it at all)
@@ -1649,6 +1654,7 @@ $config->define("pc:data",   { DEFAULT => 7 });
 $config->define("pc:parity", { DEFAULT => "even" });
 $config->define("pc:stop",   { DEFAULT => 1 });
 $config->define("pc:flow",   { DEFAULT => "rts" });
+$config->define("pc:strict-parity", { ARGCOUNT => 0, DEFAULT => 0 });
 $config->define("pc:phonenum",{DEFAULT => "" });
 $config->define("pc:areacode",{ UNSET => 1 });
 # how many chars per page before auto-splitting?

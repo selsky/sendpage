@@ -3,7 +3,7 @@ BEGIN {
 
 	# Architecture check for SerialPort driver
 	$serialport_driver="Device::SerialPort";
-	$serialport_version="0.12";
+	$serialport_version="1.0";
 	if( $^O =~ /Win/io ) {
 		$serialport_driver="Win32::SerialPort";
 		$serialport_version="0.07";

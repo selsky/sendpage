@@ -201,7 +201,7 @@ sub new {
 
 	# grab config settings
 	my $index;
-	foreach $index (qw(Baud Parity Data Stop Flow Init InitOK InitWait InitRetry Error Dial DialOK DialWait DialRetry NoCarrier CarrierDetect DTRToggleTime AreaCode LongDist DialOut)) {
+	foreach $index (qw(Baud Parity StrictParity Data Stop Flow Init InitOK InitWait InitRetry Error Dial DialOK DialWait DialRetry NoCarrier CarrierDetect DTRToggleTime AreaCode LongDist DialOut)) {
 		if (defined($arg{$index})) {
 			$self->{$index} = $arg{$index};
 			$log->do('debug',"Modem '$name' setting '$index': '".
@@ -219,7 +219,7 @@ sub new {
 #	baud, parity, data, stop, flow, init str
 sub init {
 	my $self = shift;
-	my($baud,$parity,$data,$stop,$flow,$str) = @_;
+	my($baud,$parity,$data,$stop,$flow,$str,$strict_parity) = @_;
 	$name="Modem '$self->{MYNAME}'";
 
 	if (!defined($self->{LOCKFILE})) {
@@ -234,6 +234,7 @@ sub init {
 	$stop   = $self->{Stop} unless ($stop);
 	$flow   = $self->{Flow} unless ($flow);
 	$str    = $self->{Init} unless ($str);
+	$strict_parity = $self->{StrictParity} unless ($strict_parity);
 	my $ok     = $self->{InitOK};
 	my $initwait=$self->{InitWait};
 	my $initretries=$self->{InitRetry};
@@ -281,6 +282,19 @@ sub init {
 	if ($parity ne $parity_set) {
 		$self->{LOG}->do('alert', "$name failed to set parity!");
 		return undef;
+	}
+
+	# Make sure we're backward compatible with Win32
+	if ($self->can("stty_inpck") &&
+            $self->can("stty_istrip")) {
+		if ($strict_parity) {
+			$self->stty_inpck(1);
+			$self->stty_istrip(1);
+		}
+		else {
+			$self->stty_inpck(0);
+			$self->stty_istrip(0);
+		}
 	}
 
 	my $data_set=$self->databits($data);
