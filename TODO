@@ -13,11 +13,11 @@ Needed For Stable Release
   based on modems?  Gah.  Strange.
 - implement net/mask checking for SNPP client connections
 - create snpp.conf file for snpp tool to pull its defaults from
+- implement a list of addresses for SNPP server to listen on (for multihomed)
 - implement character-based translation tables
-- write up an example CGI script for sending pages
-- implement "maxblocks" (max-blocks-per-session for a PC)
 - implement "dialretries" (attempt dialing again for PC)
 - implement "fieldsplits" (fields cannot be split across blocks for PC)
+- write up an example CGI script for sending pages
 *Docs
 - write some clear and well-divided documentation
 - how to install, set up, test, and run sendpage

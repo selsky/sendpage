@@ -270,6 +270,10 @@ phonenum= 5149243
 #	Default is 0 (unlimited)
 #maxpages=12
 
+# How many blocks can be sent in each session with this PC?
+#	Default is 0 (unlimited)
+#maxblocks=60
+
 # How many characters can be sent in each page for this PC?
 #	Default is 1024
 maxchars=300

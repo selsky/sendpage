@@ -16,6 +16,8 @@ $Id$
 	  page-daemon will actually get CC's of failed pages
 	- implemented "maxpages" variable to force PC to hang up after
           handling a certain number of pages
+	- implemented "maxblocks" variable to force PC to hang up after
+	  transmitting a certain number of blocks
 
 0.9.8: (30Jan2001)
 	- further updates to Device::SerialPort and associated documentation

@@ -1346,7 +1346,7 @@ $config->define("pc:lfok",		{ DEFAULT => 0, ARGCOUNT => 0 });
 #   fields cannot be split across blocks? (FIXME: unimplemented)
 $config->define("pc:fieldsplits",	{ DEFAULT => 1, ARGCOUNT => 0 });
 #  paging central limits
-#   max blocks per connection (0 = unlimited) (FIXME: unimplemented)
+#   max blocks per connection (0 = unlimited)
 $config->define("pc:maxblocks",		{ DEFAULT => 0 });
 #   max pages per connection (0 = unlimited)
 $config->define("pc:maxpages",		{ DEFAULT => 0 });

@@ -127,9 +127,6 @@ sub new {
 	$self->{NAME}   = shift;
 	$self->{MODEMS} = shift;
 
-	# clear counters
-	$self->{PagesProcessed}=0;
-
 	# load config information
 	$self->{DEBUG}  = $self->{CONFIG}->get("pc:$self->{NAME}\@debug");
 	# TAP protocol/block handling options
@@ -140,6 +137,7 @@ sub new {
 	$self->{FIELDS} = $self->{CONFIG}->get("pc:$self->{NAME}\@fields");
 	$self->{MAXSPLITS}=$self->{CONFIG}->get("pc:$self->{NAME}\@maxsplits");
 	$self->{MaxPages}=$self->{CONFIG}->get("pc:$self->{NAME}\@maxpages");
+	$self->{MaxBlocks}=$self->{CONFIG}->get("pc:$self->{NAME}\@maxblocks");
 	# TAP character translation options
 	$self->{ESC}    = $self->{CONFIG}->get("pc:$self->{NAME}\@esc");
 	$self->{CTRL}   = $self->{CONFIG}->get("pc:$self->{NAME}\@ctrl");
@@ -170,6 +168,16 @@ sub new {
 	return $self;
 }
 
+# Clear work-tracking counters
+sub clear_counters {
+	my $self=shift;
+
+	# clear counters
+	$self->{PagesProcessed}=0;
+	$self->{BlocksProcessed}=0;
+}
+
+# Get a modem, init, dial, and authenticate to TAP
 sub start_proto {
 	my $self=shift;
 
@@ -241,7 +249,7 @@ sub start_proto {
 	}
 
 	# Clear counters
-	$self->{PagesProcessed}=0;
+	$self->clear_counters();
 
 	# Init modem
 	my $result=$modem->init(
@@ -396,7 +404,7 @@ sub send {
 		# shouldn't send any more pages
 		
 		# make a note in the logs
-		$main::log->do('info',"Shutting down Paging Central: %d page limit reached.",$self->{MaxPages});
+		$main::log->do('info',"Disconnecting from Paging Central: %d page limit reached.",$self->{MaxPages});
 
 		# drop the connection (don't check for errors...)
 		$self->disconnect();
@@ -582,7 +590,7 @@ sub disconnect {
 	my $report;
 
 	# clear our counters
-	$self->{PagesProcessed}=0;
+	$self->clear_counters();
 
 	if (!defined($self->{MODEM})) {
 		# already disconnected
@@ -622,30 +630,25 @@ sub disconnect {
 	return $result;
 }
 
-
-sub HandleMessage {
-   my $self = shift;
-   my(@fields)=@_;
-   my($i,$field,$origfield,$fields,$sep,$result,$report);
-   my $send=undef;
-   my $block="";
-   my $part=1;
+sub GenerateBlocks {
+   my $self=shift;
+   my @fields=@_;
+   my(@blocks,$field,$fields,$origfield,$newfield,$chunk,$block);
 
    $fields=$#fields+1;  # count fields (that many more control chars)
-   # allow for what was called "PET3" in old sendpage: forced extra fields
+   # allow for extra fields (what was called "PET3" in old sendpage)
    $fields=$self->{FIELDS} if ($fields < $self->{FIELDS});
    if ($self->{DEBUG}) {
    	$main::log->do('debug', "\t\tFields to send: $fields:");
    	grep($main::log->do('debug',"\t\t\t".$_),@fields);
    }
 
-   $result=$SUCCESS;
-
-
    # Build a message block.  Cannot exceed 256 characters.
    # (250 + 3 control chars + 3 checksum chars) == 256 chars)
    # so $self->{CharsPerBlock} == 250 normally
 
+   @blocks=();
+   $chunk=$block="";
    undef $field;
    while ((defined($field) && length($field)>0) || ($#fields>=0)) {
 	if (!defined($field) || $field eq "") {
@@ -656,9 +659,8 @@ sub HandleMessage {
 #	warn "origfield: '$origfield'\n";
 #	warn "field:     '$field'\n";
 
-	my($chunk,$newfield)=$self->PullNextChar($field); # pull the next char and
-						   # translate and escape it if 
-						   # we need to
+	# pull the next char and translate and escape it if we need to
+	my($chunk,$newfield)=$self->PullNextChar($field);
 
 #	warn "chunk:     '$chunk'\n";
 #	warn "newfield:  '$newfield'\n";
@@ -692,23 +694,68 @@ sub HandleMessage {
 		else {
 			$sep = $US;
 		}
-		($result,$report)=$self->TransmitBlock($block,$part,$sep);
-		if ($result == $SKIP_MSG) {
-			return ($PERM_ERROR,$report);
-		}
-		elsif ($result != $SUCCESS) {
-			return ($result,$report);
-		}
+		push(@blocks,[ $block, $sep ]);
 		$part++;	# now on to the next part?
 		$block="";
 	}
    }
    if (defined($block)) {
-	# done with everything, transmit the final block
-	($result,$report)=$self->TransmitBlock($block,$part,$ETX);
+	# done with everything, store the final block
+	push(@blocks,[ $block, $sep ]);
    }
-   if ($result == $SKIP_MSG) {
-	return ($PERM_ERROR,$report);
+
+   return @blocks;
+}
+
+sub HandleMessage {
+   my $self = shift;
+   my(@fields)=@_;
+   my($i,@blocks,$block,$result,$report,$rc);
+   my $send=undef;
+
+   # new process needed here to support "maxblocks":
+   # 1) generate full translated/escape text *first*
+   # 2) figure out how many blocks it will take
+   @blocks=GenerateBlocks(@fields);
+
+   # 3) sanity-check the "maxblocks" setting to make sure we could EVER
+   #    send the page
+   if ($self->{MaxBlocks}>0) {
+	if ($#blocks+1 > $self->{MaxBlocks}) {
+		$main::log->do('crit',"HandleMessage: could NEVER send this "
+		"page if 'maxblocks' is %d!",$self->{MaxBlocks});
+   	}
+   # 4) decide if we drop the connection (enough spare blocks to send message?)
+	elsif ($self->{BlocksProcessed}+$#blocks+1>$self->{MaxBlocks}) {
+	   	$main::log->do('info',"Disconnecting from Paging Central: %d "
+			"block limit reached.",$self->{MaxBlocks});
+   		$self->disconnect();
+   	}
+   }
+   
+   # 5) verify TAP connectivity (and establish if we need to, like "send")
+   if (!defined($self->{MODEM})) {
+	($rc,$report)=$self->start_proto();
+	if (!defined($rc)) {
+		$main::log->do('crit',"proto startup failed (%s)",$report);
+		return ($TEMP_ERROR,$report); # temp failure
+	}
+   }
+
+   # 6) go ahead with regular block processing
+   $result=$SUCCESS;
+   $report="";
+
+   foreach $block (@blocks) {
+	my($blockbody,$blocksep)=@$block;
+
+	($result,$report)=$self->TransmitBlock($blockbody,$blocksep);
+	if ($result == $SKIP_MSG) {
+		return ($PERM_ERROR,$report);
+	}
+	elsif ($result != $SUCCESS) {
+		return ($result,$report);
+	}
    }
    return ($result,$report);
 }
@@ -781,7 +828,7 @@ sub CharOK {
 
 sub TransmitBlock {
    my $self = shift;
-   my($block,$part,$sep)=@_;
+   my($block,$sep)=@_;
    my($result,$done,$retries,$report);
 
    if (!defined($self->{MODEM})) {
@@ -796,6 +843,9 @@ sub TransmitBlock {
 
    $main::log->do('debug', "Block to trans: ".Sendpage::Modem->HexStr($block))
 	if ($self->{DEBUG});
+
+   # count this block as being sent
+   $self->{BlocksProcessed}++;
 
    undef $done;
    $retries=0;
