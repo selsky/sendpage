@@ -125,7 +125,7 @@ sub new {
 				O_RDONLY))) {
 				# read pid
 				chomp($pid=<LOCKFILE>);
-				if ($pid=~/^(\d+)$/) {
+				if ($pid=~/^\s*(\d+)$/) {
 					$pid=$1;
 				}
 				else {
