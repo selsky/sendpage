@@ -259,7 +259,7 @@ Solaris:  Some headers under Solaris don't behave very well, so I had
 		can set the variable default_dtrlow to control the number of
 		seconds of the delay. If the variable is set to zero, dtr
 		can be toggled many times a second. For example, in
-		/etc/system add the line "set zs:default_dtrlow = 1" to have
+		/etc/system add the line "set zs:default_dtrlow=1" to have
 		a 1 second delay.  
 
 		If your workstation has an se serial port, the /etc/system
@@ -278,7 +278,7 @@ Solaris:  Some headers under Solaris don't behave very well, so I had
 
 	  So, since I have zs serial ports on my Sun, I added the line:
 
-		set zs:default_dtrlow = 0
+		set zs:default_dtrlow=0
 
 	  so I could toggle the DTR rapidly.
 
@@ -287,12 +287,65 @@ Solaris:  Some headers under Solaris don't behave very well, so I had
 	  ("Your vendor has not defined the Sys::Syslog macro _PATH_LOG")
 	  then just edit KeesLog.pm and remove the calls to "setlogsock".
 
-AIX:	  Tested with 4.3.2, and works fine.
+AIX:	  Tested with 4.3.2, and works fine, some modem lines don't work.
 
-OpenBSD:  Tested with 2.8, and works fine with version 0.09.
+*BSD:     Tested with 2.8.  Carrier detection works after Sendpage 0.9.13.
 
 HPUX:	  Untested so far...
 
+SCO7:     Install notes from Pat Gunn:
+
+          Removed system perl first (MUST happen before installing skunkperl
+          or perl will become messed up)
+
+          Then installed skunkperl from skunkware
+          (stage.caldera.com/uw7/Packages/)
+        
+          In /usr/local/lib/perl5/site_perl/5.005/i386-svr4/_h2ph_pre.ph,
+          comment out the line:
+                 unless (defined &) { sub () { "" } }
+
+          In /usr/local/lib/perl5/site_perl/5.005/i386-svr4/sys/types.ph,
+          comment out the following lines:
+                if( &model((defined(&lp64) ? &lp64 : 0))) {
+                   unless(defined(&_INT64_T)) {
+                       eval 'sub _INT64_T () {1;}' unless defined(&_INT64_T);
+                   }
+                   unless(defined(&_UINT64_T)) {
+                       eval 'sub _UINT64_T () {1;}' unless defined(&_UINT64_T);
+                   }
+                   unless(defined(&_SIZE32_T)) {
+                       eval 'sub _SIZE32_T () {1;}' unless defined(&_SIZE32_T);
+                   }
+                } else {
+                   unless(defined(&_INT64_T)) {
+                       eval 'sub _INT64_T () {1;}' unless defined(&_INT64_T);
+                   }
+                   unless(defined(&_UINT64_T)) {
+                       eval 'sub _UINT64_T () {1;}' unless defined(&_UINT64_T);
+                   }
+                }
+
+          Used CPAN module to upgrade prerequisites (didn't allow it to
+          rebuild Perl itself. I have GCC and other gnu tools installed)
+
+          Installed Device::Serialport (after these mods, it might work through
+          CPAN, but you're better off doing it by hand so you can troubleshoot
+          problems more easily)
+
+          Installed sendpage.
+
+          Created sendpage user, created /var/lock, set its group to uucp and
+          changed its mode to 775, created sendpage spool directory, configured
+          sendpage.conf and snpp.conf. Note that syslog does not appear to work
+          with sendpage's logging component, so it's probably better to log to
+          stderr. Change snpp.conf accordingly. It might be possible to fix
+          this with some tinkering, but I'm not interested enough to take the
+          time.
+
+          The modem device on my system (serial port A) is /dev/term/00m,
+          although I made a symlink to there from /dev/modem, and put
+          /dev/modem in the configfile.
 
 
 Porting Device::SerialPort
