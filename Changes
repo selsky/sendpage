@@ -5,6 +5,7 @@ $Id$
 	- corrected pet3 handling, added the 'proto' option to PCs
 	- allow whitespace to preceed comments in sendpage.cf
 	- fixed "dialout" typo in Modem.pm
+	- changed the email-sending error messages
 
 0.9.8: (30Jan2001)
 	- further updates to Device::SerialPort and associated documentation
@@ -109,7 +110,7 @@ $Id$
 	- tested with 2 more PCs.  Seems totally fine.
 
 0.9.0: (04/27/2000)
-	- initial public release.
+	- initial public release of new perl version (0.9.x+ tree). 
 	- TAP protocol implemented and tested.
 	- configuration engine implemented and tested.
 	- I registered a Sourceforge account.

@@ -21,7 +21,7 @@ Needed For Stable Release
 - how to make a "sendpage" user & find the groups you need
 - how to send pages with email2page
 - how to send pages with sendmail
-- hot "page-daemon" alias for errors, bounces, warnings, etc, works
+- how "page-daemon" alias for errors, bounces, warnings, etc, works
 
 
 Would Be Nice
@@ -31,7 +31,7 @@ Would Be Nice
 - implement email notification fall-back
 - have all the conf files get handled by Makefile.PL  --  /etc dir?
 - fix all support modules to use a hash list of parameters instead of
-  taking a KeesConf object.  This makes things more truely modular.
+  taking a KeesConf object.  This makes things more truly modular.
 - write up an example CGI script for sending pages
 - figure out how to do filelocking under Windows
 - figure out what to replace my Syslog calls with under Windows
@@ -48,7 +48,8 @@ Would Be Nice
 Stuff I Thought Of, But Will Most Likely Never Need
 ---------------------------------------------------
 - implement multiple TAP protocols? (are there differences?  PG1, PG3, etc)
-  I don't think I'll ever need this due to the "pc:fields" variable.
+  I don't think I'll ever need this due to the "pc:fields", and "pc:proto"
+  variables.
 
 
 I'm Probably Never Going To Implement These Crazy Ideas

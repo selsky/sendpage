@@ -911,11 +911,11 @@ sub SendMail {
 		$fh = $msg->open($self->{CONFIG}->get("mail-agent"));
 
 		if (!defined($fh)) {
-			$main::log->do('crit',"Cannot deliver email!  Mail::Send won't open");
+			$main::log->do('crit',"Cannot deliver email!  Mail::Send won't open -- check your 'mail-agent' setting");
 		}
 		else {
 			print $fh $body || $main::log->do('crit',"Error writing email: $!");
-			$fh->close || $main::log->do('crit',"Error sending email: $!");
+			$fh->close || $main::log->do('crit',"Error closing email -- check your 'mail-agent' setting: $!");
 		}
 	}
 }
