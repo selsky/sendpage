@@ -1,5 +1,11 @@
 $Id$
 
+0.9.5:
+	- move kicker section of "chat" in Modem.pm to the front,
+	  so kickers won't be sent during the last timeout cycle.
+	- created an "answerretries" variable for the Paging Central
+	  to match "answerwait" for some slow Paging Centrals.
+
 0.9.4c: (07/28/2000, argh: deadly typo.  I should be more careful)
 	- fixed a stupid typo in Modem.pm
 
