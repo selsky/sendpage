@@ -1,5 +1,10 @@
 $Id$
 
+0.9.11:
+	- changed (once again) how I reap dead children.  (sendpage)
+	- added the ability to write directly to the queues.  (sendpage)
+	- updated documentation slightly, some fixes in SNPP module for direct writing.
+
 0.9.10: (20Apr2001)
 	- tempfail-notify-after was going off on the very first temp
 	  failure, if it was set at all. (PagingCental.pm)
