@@ -166,6 +166,25 @@ else {
 # override config file and defaults
 $opts{s}=$server unless ($opts{s});
 
+# verify that there is a "SNPP" service (weakness in Net::SNPP...)
+$proto=getprotobyname("tcp");
+if (!defined($proto))
+{
+	die "Could not resolve 'tcp' protocol into a protocol number!\nPlease check /etc/protocols\n";
+}
+else
+{
+	warn "'tcp' is proto $proto\n" if ($opts{d});	
+}
+$port=getservbyname("snpp","tcp");
+if (!defined($port))
+{
+	die "Could not resolve 'snpp' service into a port number!\nPlease check /etc/services\n";
+}
+else
+{
+	warn "'snpp' is service $port\n" if ($opts{d});	
+}
 $snpp = Net::SNPP->new($opts{s}, Debug => $opts{d} );
 if (!defined($snpp)) {
 	die "Could not connect to SNPP server '$opts{s}'\n";
