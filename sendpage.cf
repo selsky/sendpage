@@ -108,12 +108,12 @@
 #debug	= true
 
 # This modem's transmission settings.
-#	Defaults are data=7, parity=even, stop=1, flow=rts, baud=115200
+#	Defaults are data=7, parity=even, stop=1, flow=rts, baud=9600
 #data	= 8
 #parity	= none
 #stop	= 1
 #flow   = soft
-#baud   = 9600
+#baud   = 38400
 
 # Which device this modem should use
 #	Default is "/dev/null", so you better specify one.  :)
@@ -123,11 +123,11 @@ dev	= /dev/modem
 #	Default is "ATZ"
 #init   = ATE&1
 
-# This modem's "okay" response string
+# This modem's "okay" response string (this is a regexp)
 #	Default is "OK"
 #initok = 0
 
-# What to look for if something has gone wrong while init'ing
+# What to look for if something has gone wrong while init'ing (this is a regexp)
 #	Default is "ERROR"
 #error=1
 
@@ -143,11 +143,11 @@ dev	= /dev/modem
 #	Default is "ATDT"
 #dial=ATDT9,
 
-# What to look for after connecting successfully
+# What to look for after connecting successfully (this is a regexp)
 #	Default is "CONNECT"
 #dialok=0
 
-# What to look for if something goes wrong while dialing
+# What to look for if something goes wrong while dialing (this is a regexp)
 #	Default is "ERROR|NO CARRIER|BUSY|NO DIAL|VOICE"
 #no-carrier=ERROR
 

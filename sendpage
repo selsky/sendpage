@@ -1086,7 +1086,7 @@ $config->define("modem:initok", { DEFAULT => "OK" });
 $config->define("modem:initwait",{DEFAULT => 4 });
 $config->define("modem:initretries",{ DEFAULT => 2 });
 $config->define("modem:dial",   {DEFAULT => "ATDT" });
-$config->define("modem:dialok", {DEFAULT => "CONNECT" });
+$config->define("modem:dialok", {DEFAULT => "CONNECT.*\r" });
 $config->define("modem:dialwait",{DEFAULT => 60 });
 $config->define("modem:error",{DEFAULT => "ERROR" });
 $config->define("modem:no-carrier",

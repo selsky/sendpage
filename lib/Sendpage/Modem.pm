@@ -280,7 +280,7 @@ sub init {
 	}
 
 	# set a char timeout for modem commands
-	$self->read_char_time(1);          # avg time between read char
+	$self->read_char_time(0);          # avg time between read char
         $self->read_const_time(1000/$SPEED);   # delay between calls
 
 	# hang up just in case
@@ -454,7 +454,7 @@ sub chat {
 			}
 
 			# try to read char
-			($cnt,$avail)=$self->read(255);
+			($cnt,$avail)=$self->read_vmin(255);
 			if ($cnt > 0) {
 				$main::log->do('debug', "$cnt seen: ".$self->HexStr($avail))
 					if ($self->{DEBUG});
