@@ -1,5 +1,5 @@
-#LyX 1.1 created this file. For more info see http://www.lyx.org/
-\lyxformat 218
+#LyX 1.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 220
 \textclass book
 \language english
 \inputencoding auto
@@ -11,6 +11,8 @@
 \paperpackage a4
 \use_geometry 0
 \use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
 \paperorientation portrait
 \secnumdepth 2
 \tocdepth 3
@@ -33,7 +35,7 @@ Kees Cook
 \newline 
 
 \family typewriter 
-cook@cpoint.net
+kees@outflux.net
 \layout Date
 
 $Revision$ $Date$
@@ -125,10 +127,10 @@ Of all the prerequisites for sendpage, the
 \family typewriter 
 Device::SerialPort
 \family default 
- module is the toughest to install.
- As of version 0.10, this module will run fine under Linux and Solaris.
- It will technically operate under AIX and HPUX, but lacks several important
- features.
+ module is the most important.
+ As of version 0.20, this module has been tested to run fine under Linux,
+ Solaris, and BSD.
+ It should operate under AIX and HPUX, but may require some testing.
  To read more on how to install this module correctly, please read the 
 \family typewriter 
 Device::SerialPort
@@ -137,7 +139,7 @@ Device::SerialPort
 \family typewriter 
 README
 \family default 
- file that comes with the package.
+ file that comes with that package.
 \layout Standard
 
 If you're running under Windows, the 
@@ -145,21 +147,21 @@ If you're running under Windows, the
 Win32::SerialPort
 \family default 
  module should also work.
- As of sendpage version 0.9.9, this is an untested configuration, and would
- probably take a good deal of work to get it functioning correctly.
+ As of sendpage version 0.9.9, this is an untested configuration, and may
+ take a good deal of work to get it functioning correctly.
 \layout Subsection
 
 Syslog Configuration
 \layout Standard
 
-To properly examine debugging information to help you trouble shoot problems
+To properly examine debugging information to help you troubleshoot problems
  with sendpage, you need to have your syslog configuration set to correctly
- capture all that sendpage makes available.
+ capture all that sendpage sends to it.
  Sendpage uses the 
 \family typewriter 
 local6
 \family default 
- syslog facility, and a variety of syslog levels from 
+ syslog facility by default, and a variety of syslog levels from 
 \family typewriter 
 debug
 \family default 
@@ -182,7 +184,7 @@ info
 Same file or separate files
 \layout Standard
 
-If you syslog configuration looks like this:
+If your syslog configuration looks like this:
 \layout Quotation
 
 
@@ -426,7 +428,9 @@ local6.info\SpecialChar ~
 \layout Standard
 
 This will allow you to view all your debug output in a single separate file.
- I find that the following syslog configuration allows me to view sendpage
+\layout Standard
+
+I find that the following syslog configuration allows me to view sendpage
  logging either way I want: with debugging or without debugging:
 \layout Quotation
 
@@ -1450,7 +1454,7 @@ How to add a modem
 How are modems used?
 \layout Standard
 
-Since the TAP (
+Since TAP (
 \begin_inset Quotes eld
 \end_inset 
 
@@ -1548,9 +1552,9 @@ For initialization, dialing, connect, and error strings, please see the
 Dialing out, area codes, and long distance
 \layout Standard
 
-Since each modem is attached to some phone line somewhere, then it is possible
- for sendpage to automatically determine when dialing a Paging Central is
- considered 
+Since each modem is attached to some phone line somewhere, it is possible
+ for sendpage to automatically determine when dialing a Paging Central if
+ it is considered 
 \begin_inset Quotes eld
 \end_inset 
 
@@ -1573,7 +1577,7 @@ longdist
 dialout
 \family default 
  option used in situations where there is a constant prefix to get an outside
- dial-tone (in the case of a PBX, hotel, or the like).
+ dial-tone (in the case of an office phone switch, PBX, or similar).
 \layout Standard
 
 For example, imagine you had a single modem configured in an office building
@@ -1589,7 +1593,7 @@ For example, imagine you had a single modem configured in an office building
  first.
  Say this PBX was in the 312 area code, and you had at least one PC configured
  in the 630 area code.
- To dial the 630 PC, your modem would need to dial 
+ To dial the 630 PC, your modem would additionally need to dial 
 \begin_inset Quotes eld
 \end_inset 
 
@@ -1597,7 +1601,7 @@ For example, imagine you had a single modem configured in an office building
 \begin_inset Quotes erd
 \end_inset 
 
- for long distance first.
+ for long distance before dialing the PC.
  The configuration for this modem would look something like:
 \layout Quotation
 
@@ -1745,7 +1749,7 @@ The idea is, if
 modemtest
 \family default 
  can talk to your modem, then sendpage should be able to as well.
- This tool was provided to help trouble shoot any problems with a serial
+ This tool was provided to help troubleshoot any problems with a serial
  port, the 
 \family typewriter 
 Device::SerialPort
@@ -1942,4 +1946,28 @@ Does the modem work?
 \layout Section
 
 Does the Paging Central work?
+\layout Chapter
+
+Configuration Options
+\layout Section
+
+sendpage.cf
+\layout Subsection
+
+Global
+\layout Subsection
+
+Modem
+\layout Subsection
+
+Paging Central
+\layout Subsection
+
+Recipient
+\layout Section
+
+snpp.conf
+\layout Section
+
+email2page.conf
 \the_end

@@ -3,7 +3,7 @@ figure out the paging limits for a particular pager or service.
 
 
 start with PC configuration defaults.
-send page just to make sure you CAN get a page.
+send a page just to make sure you CAN get a page.
 
 set "esc=true"
 Send page with "\n" and "\t"'s (eg "This\nis a CR and this\tis a tab.")
@@ -15,7 +15,7 @@ otherwise:
    Send page with "\n" and "\t"'s (eg "This\nis a CR and this\tis a tab.")
 
    if both \n and \t show up correctly, you have a weak TAP, but you're done.
-   if the \n was displayed correctly, you can pass \n's only, so:
+   if only the \n was displayed correctly, you can pass \n's only, so:
 	unset "ctrl=true"
 	set "lfok=true"
 	and you're done
@@ -59,4 +59,4 @@ at 250 - pinsize - 2 chars (usually 240).
 
 
 -Kees Cook
-cook@cpoint.net
+kees@outflux.net
