@@ -1,6 +1,6 @@
 $Id$
 
-0.9.9:
+0.9.9: (06Mar2001)
 	- improved call-out debugging in Modem.pm
 	- corrected pet3 handling, added the 'proto' option to PCs
 	- allow whitespace to preceed comments in sendpage.cf
@@ -31,6 +31,7 @@ $Id$
 	  to PC section, allowing for global fall back
 	- added first pass at IP address Access Control Lists
 	- wrote a simple PHP script to demo CGI-style delivery
+	- updated README to reflect changes in docs directory
 
 0.9.8: (30Jan2001)
 	- further updates to Device::SerialPort and associated documentation

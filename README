@@ -174,9 +174,11 @@ To put a page into the queue, run "snpp RECIP" where RECIP is either a
 valid alias "recip" section in /etc/sendpage.cf, or has the form PIN@PC,
 where the PC is a valid "pc" section in /etc/sendpage.cf.  It will deliver
 directly to the named PIN.  "snpp" will read from STDIN for the message,
-unless you use the '-m' flag.  To use snpp from other networked machines,
+unless you use the '-m' flag.  To use "snpp" from other networked machines,
 you'll need to edit sendpage.cf to bind snpp to "0.0.0.0" or some other
 network interface, and then use "snpp -s SERVER" from the remote client.
+Be sure to read and set at least one "snpp-acl" line so that your remote
+machine will have permission to connect to the SNPP server.
 
 To force a queue run immediately, run (as root) "sendpage -q".  If you have
 debugging turned on, it should be flooding your syslog with lots of fun
@@ -187,7 +189,10 @@ the TAP specifications, the SNPP RFC, and a list of the known paging centrals
 in the file "PagingCentrals.txt".  See if the PCs for your area are listed. 
 If not, and you locate them, you should email them to me, and I'll update this
 list.  There is also a searchable database of these available at the website
-below.
+below.  For an example of how to set up sendpage as an email gateway, read
+"sendmail.txt".  For an example of how to make a web page to send pages,
+look at the "sendpage.php" PHP script.  Also in this directory is the
+beginnings of my official "Sendpage Manual" in LyX format.
 
 Logging
 -------
