@@ -1,4 +1,7 @@
 #!/usr/local/bin/perl
+
+eval 'exec /usr/local/bin/perl  -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
 #
 # sendpage is the tool that will handle all the paging functions
 #
@@ -480,7 +483,9 @@ sub NiceShutdown {
 			SendSignal('QUIT',$pc);
 		}
 	}
-	$log->do('debug',"Shutting down nicely: '$PC'") if ($DEBUG);
+	else {
+		$log->do('debug',"Shutting down nicely: '$PC'") if ($DEBUG);
+	}
 }
 
 sub ImmediateShutdown {
@@ -926,9 +931,9 @@ sub verifyModems {
 			DialWait => $config->get("modem:${modem}\@dialwait"),
 			DialRetry => $config->get("modem:${modem}\@dialretries"),
 			NoCarrier => $config->get("modem:${modem}\@no-carrier"),
-			IgnoreCarrier => $config->get("modem:${name}\@ignore-carrier",1),
-			
-				);
+			DTRToggleTime => $config->get("modem:${modem}\@dtrtime"),
+			IgnoreCarrier => $config->get("modem:${modem}\@ignore-carrier",1)
+			);
 		if (!defined($m)) {
 			$log->do('warning',"Cannot find modem '$modem'");
 			next;
@@ -1109,6 +1114,8 @@ $config->define("modem:stop",   { DEFAULT => 1 });
 $config->define("modem:flow",   { DEFAULT => "rts" });
 $config->define("modem:dev",    { DEFAULT => "/dev/null" });
 $config->define("modem:ignore-carrier", { UNSET => 1 });
+# time to force DTR down during reset (0 = don't do it at all)
+$config->define("modem:dtrtime", { DEFAULT => 0.5 });
 $config->define("modem:init",   { DEFAULT => "ATZ" });
 $config->define("modem:initok", { DEFAULT => "OK" });
 $config->define("modem:initwait",{DEFAULT => 4 });

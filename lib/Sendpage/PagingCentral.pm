@@ -177,10 +177,34 @@ sub start_proto {
 
 	@modems=@okay;
 
+	my $config=$self->{CONFIG};
 
 	# try each modem,  FIXME: should we do some sort of round-robin?
 	foreach $name (@modems) {
-		$modem = Sendpage::Modem->new($self->{CONFIG},$name);
+                $modem = Sendpage::Modem->new(Name => $name,
+                        Dev => $config->get("modem:${name}\@dev"),
+                        Lockprefix => $config->get("lockprefix"),
+                        Debug => $config->get("modem:${name}\@debug"),
+                        Log => $main::log,
+                        Baud => $config->get("modem:${name}\@baud"),
+                        Parity => $config->get("modem:${name}\@parity"),
+                        Data => $config->get("modem:${name}\@data"),
+                        Stop => $config->get("modem:${name}\@stop"),
+                        Flow => $config->get("modem:${name}\@flow"),
+                        Init => $config->get("modem:${name}\@init"),
+                        InitOK => $config->get("modem:${name}\@initok"),
+                        InitWait => $config->get("modem:${name}\@initwait"),
+                        InitRetry => $config->get("modem:${name}\@initretries"),
+                        Error => $config->get("modem:${name}\@error"),
+                        Dial => $config->get("modem:${name}\@dial"),
+                        DialOK => $config->get("modem:${name}\@dialok"),
+                        DialWait => $config->get("modem:${name}\@dialwait"),
+                        DialRetry => $config->get("modem:${name}\@dialretries"),
+                        NoCarrier => $config->get("modem:${name}\@no-carrier"),
+			DTRToggleTime => $config->get("modem:${name}\@dtrtime"),
+                        IgnoreCarrier => $config->get("modem:${name}\@ignore-carrier",1)
+                );
+
 		last if (defined($modem));
 	}
 	# make sure we got one

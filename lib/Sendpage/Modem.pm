@@ -201,8 +201,6 @@ sub new {
 					if ($self->{DEBUG});
 		}
 	}
-	# handle stuff that MUST have a setting:
-	$self->{DTRToggleTime}=1.5 unless defined($self->{DTRToggleTime});
 
 	$self->{LOG} = $log;		# get the log object
 	return $self;
@@ -305,25 +303,37 @@ sub init {
 	$self->read_char_time(0);          # avg time between read char
         $self->read_const_time(1000/$SPEED);   # delay between calls
 
-	# hang up just in case
-	$self->{LOG}->do('debug', "reseting DTR ...") if ($self->{DEBUG});
-	$self->dtr_active(F);
-	select(undef,undef,undef,$self->{DTRToggleTime});  # force the dtr down
-	$self->dtr_active(T);
+	if ($self->{DTRToggleTime} != 0) {
+		# hang up just in case
+		$self->{LOG}->do('debug', "reseting DTR ...")
+			if ($self->{DEBUG});
+		# force the dtr down
+		$self->dtr_active(F);
+		select(undef,undef,undef,$self->{DTRToggleTime});
+		$self->dtr_active(T);
+	}
+	else {
+		$self->{LOG}->do('debug',"skipping DTR toggle ...")
+			if ($self->{DEBUG});
+	}
 
 	# make sure the RTS is up
-	$self->{LOG}->do('debug', "reseting RTS ...") if ($self->{DEBUG});
+	$self->{LOG}->do('debug', "forcing RTS ...") if ($self->{DEBUG});
 	$self->rts_active(T);
 
 	my $result = undef;
-	# allow for blank inits
+	# allow for blank inits (direct attaches)
 	if ($str eq "") {
+		$self->{LOG}->do('debug',"skipping init string ...")
+			if ($self->{DEBUG});
 		$result=1;
 	}
 	else {
 		# send the init string through
+		$self->{INITDONE}=1; # frame this to let chat work
 		$result=$self->chat("$str\r","$str\r",$ok,$initwait,
 			$initretries, $self->{Error},1);
+		$self->{INITDONE}=0; # disable again
 	}
 	if (defined($result)) {
 		$self->{INITDONE}=1;
@@ -348,8 +358,15 @@ sub dial {
 	$dialwait = $self->{DialWait} if (!defined($dialwait));
 	$dialretries = $self->{DialRetry} if (!defined($dialretries));
 
+	# allow for blank dial strs (direct attaches)
+	if ($dial eq "") {
+		$self->{LOG}->do('debug',"skipping dial ...")
+			if ($self->{DEBUG});
+		return 1;
+	}
+
 	if (!defined($str) || $str eq "") {
-		$self->{LOG}->do('err',"Nothing to dial (no phone number passed)");
+		$self->{LOG}->do('err',"Nothing to dial (no phone number)");
 		return undef;
 	}
 
@@ -573,7 +590,7 @@ sub hangup {
 		return undef;
 	}
 
-	if ($self->carrier()) {
+	if (!$self->{IgnoreCarrier} && $self->carrier()) {
 		$self->{LOG}->do('debug',"hanging up Modem '$self->{NAME}'")
 			if ($self->{DEBUG});
 		$self->pulse_dtr_off(500);
@@ -605,7 +622,7 @@ sub unlock {
 sub DESTROY {
 	my $self = shift;
 
- 	$self->{LOG}->do('debug',"Modem '$self->{NAME}' being destroyed") if ($self->{DEBUG});
+ 	$self->{LOG}->do('debug',"Modem Object '$self->{NAME}' being destroyed") if ($self->{DEBUG});
 
 	$self->unlock() if (defined($self->{LOCKFILE}));
 }

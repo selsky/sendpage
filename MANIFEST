@@ -18,6 +18,7 @@ lib/Sendpage/PagingCentral.pm
 lib/Sendpage/Queue.pm
 lib/Sendpage/Recipient.pm
 lib/Sendpage/Modem.pm
+lib/Sendpage/SNPPServer.pm
 TODO
 FEATURES
 sendpage
