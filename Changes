@@ -22,6 +22,7 @@ $Id$
 	- whoops: fixed total lack of "snpp-addr" working
 	- fixed bug in SNPPServer.pm during unexpected loss of socket
 	- implemented "/etc/snpp.conf" file for snpp defaults
+	- fixed bug with "esc=true" for PagingCentral.pm
 
 0.9.8: (30Jan2001)
 	- further updates to Device::SerialPort and associated documentation

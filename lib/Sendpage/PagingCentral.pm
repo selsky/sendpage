@@ -817,10 +817,12 @@ sub CharOK {
 	# don't bother checking empties
 	return 1 if ($char eq "");
 
-	if (ord($char) < 0x20 && !$self->{CTRL} &&
+	if (ord($char) < 0x20 && !$self->{CTRL} && !$self->{ESC} &&
             ($char ne $LF || !$self->{LFOK})) {
 		# be more silent about dropping $LF (e.g., for numeric pagers)
-		$main::log->do('warning',"Dropping bad char 0x".sprintf("%02X",ord($char))) if ($char ne $LF || $self->{DEBUG});
+		$main::log->do('warning',"Dropping bad char 0x".
+			sprintf("%02X",ord($char)))
+				if ($char ne $LF || $self->{DEBUG});
 		return undef;
 	}
 	return 1;
@@ -841,8 +843,9 @@ sub TransmitBlock {
 
    my $LEAD=$self->{LEAD};
 
-   $main::log->do('debug', "Block to trans: ".Sendpage::Modem->HexStr($block))
-	if ($self->{DEBUG});
+   $main::log->do('debug', "Block to trans (%d): ".
+	Sendpage::Modem->HexStr($block),length($block))
+		if ($self->{DEBUG});
 
    # count this block as being sent
    $self->{BlocksProcessed}++;

@@ -17,6 +17,7 @@ Needed For Fist Stable Release
 - how to send pages with email2page
 - how to send pages with sendmail
 - how "page-daemon" alias for errors, bounces, warnings, etc, works
+- how to set variables for maxchars and char processing values
 
 Needed For Next Stable Release
 ------------------------------
