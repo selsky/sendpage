@@ -262,10 +262,7 @@ dev	= /dev/modem
 # Paging central section
 #	each section should be called "pc" (e.g. "[pc:ameritech]")
 #########################
-# I have an ameritech pager.  It actually works in the entire state,
-# so I should dig up the Champaign/Urbana PC info.  For now, this is the
-# chicago access number
-[pc:ameritech]
+#[pc:example]
 # Is this PC enabled?  Set to false to stop processing a PC, for example
 #	Default is "true"
 #enabled= false
@@ -322,11 +319,11 @@ dev	= /dev/modem
 
 # What areacode is this PC in?  If unset, the modem won't match areacodes
 #	Default is unset
-areacode= 312
+#areacode= 312
 
 # What phone number to reach this PC at.
 #	Default is "", so you better fill one in
-phonenum= 5149243
+#phonenum= 5149243
 
 # How many pages can be sent in each session with this PC?
 #	Default is 0 (unlimited)
@@ -345,7 +342,7 @@ phonenum= 5149243
 # encoding requires 6 chars).  Making this higher than 250 isn't sensible,
 # but some TAPs need it smaller.
 #	Default is "250"
-chars-per-block=230
+#chars-per-block=230
 
 # How many times are we allowed to split up a page that exceeds the
 # max chars limit?  (For example, if maxchars was "100" and maxsplits was

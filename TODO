@@ -2,9 +2,13 @@
 
 Things that need to be done...
 
-
 Needed For First Stable Release
--------------------------
+-------------------------------
+*Packaging
+- set up spool directory and sendpage user
+
+Needed For Next Stable Release
+------------------------------
 *Code
 - implement SNPP "HOLD" function
 - have PCs shutdown on signal if active, but not sending a page.
@@ -16,8 +20,8 @@ Needed For First Stable Release
 - add info about "snpp-acl"
 - find counting error for tempfail
 
-Needed For Next Stable Release
-------------------------------
+Needed For Next Next Stable Release
+-----------------------------------
 - implement a list of addresses for SNPP server to listen on (for multihomed)
 - do something so that queues that are waiting on a modem will run
   as soon as the modem is available.  How can I do this when there are

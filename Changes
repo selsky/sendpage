@@ -10,8 +10,8 @@ $Id$
 	  prior behavior, set "syslog-minlevel = debug".
 	- creating a "stable" version since I'll never reach 1.0.0  :)
 	- updated copyright years
-	- added debian rules
-	- added sendpage.spec
+	- added older debian rules to CVS
+	- created sendpage.spec from many sources
 	- handling "strict parity" from Device::SerialPort
 	- added "chars-per-block" config to the sendpage.cf examples
 	- fixed field-spanning block code bug noticed by David St. John
