@@ -168,6 +168,7 @@ $VERSION_human=sprintf("%d.%d.%d",
 
 my $config;	# holds the configuration object
 undef $log;	# holds logging object
+my $db;		# holds the db object, if used
 
 # Module-global variables
 my %CHILDREN;	# who the childrens are
@@ -197,6 +198,7 @@ use Sendpage::Page;
 use Sendpage::Recipient;
 use Sendpage::KeesLog;
 use Sendpage::SNPPServer;
+use Sendpage::Db;
 use Socket;
 use IO::Select;
 use IO::Pipe;
@@ -1470,7 +1472,7 @@ sub RecipDig {
 	foreach $one (@{ $dests }) {
 		$log->do('debug',"expanding: '$one'") if ($config->get("alias-debug"));
 		my %copy=%{$seen};
-		my $r=Sendpage::Recipient->new($config,$one,$recip->data());
+		my $r=Sendpage::Recipient->new($config,$db,$one,$recip->data());
 		if (!defined($r)) {
 			$log->do('err',"undeliverable: '$one'");
 		}
@@ -1510,7 +1512,7 @@ sub ArrayDig {
 	foreach $one (@array) {
 		$log->do('debug',"expanding: '$one'")
 			if ($config->get("alias-debug"));
-		my $recip=Sendpage::Recipient->new($config,$one);
+		my $recip=Sendpage::Recipient->new($config,$db,$one);
 		if (!defined($recip)) {
 			$log->do('err',"undeliverable: '$one'");
 			$fail=1;
@@ -1553,6 +1555,10 @@ sub initConfig {
 	my $config = Sendpage::KeesConf->new(\%cfg);
 
 # global variables
+$config->define("dsn", { DEFAULT => "" });
+$config->define("dbuser", { DEFAULT => "" });
+$config->define("dbpass", { DEFAULT => "" });
+$config->define("dbtable", { DEFAULT => "" });
 $config->define("cfgfile",   { DEFAULT => "/etc/sendpage.cf" });
 $config->define("pidfileprefix",{ DEFAULT => "/var/spool/sendpage/sendpage" });
 $config->define("lockprefix",{ DEFAULT => "/var/lock/LCK.." });
@@ -1712,6 +1718,19 @@ sub loadConfig {
 	# yes, this seems silly, but we allow cmdline options to change
 	# various defaults, including this one
 	$config->file($cfgfile);
+
+	if($config->get("dsn")) {
+		my ($dsn, $dbuser, $dbpass, $dbtable);
+		$dsn = $config->get("dsn");
+		$dbuser = $config->get("dbuser");
+		$dbpass = $config->get("dbpass");
+		$dbtable = $config->get("dbtable");
+		if($db) {
+			$db->setdb($dsn,$dbuser,$dbpass,$dbtable);
+		} else {
+			$db = Sendpage::Db->new($dsn,$dbuser,$dbpass,$dbtable);
+		}
+	}
 }
 
 

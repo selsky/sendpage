@@ -19,6 +19,7 @@ Email notification on success/failure
 SNPP Server
 SNPP Client
 Direct-queue Client
+DBI support for pager database
 
 
 Partially Implemented

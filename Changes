@@ -15,6 +15,7 @@ $Id$
 	- handling "strict parity" from Device::SerialPort
 	- added "chars-per-block" config to the sendpage.cf examples
 	- fixed field-spanning block code bug noticed by David St. John
+	- added DBI support from Todd T. Fries
 
 0.9.14: (31May2002)
 	- oops!  I recreated an earlier bug where splits would destroy

@@ -19,6 +19,8 @@ Needed For Next Stable Release
 - finish sendpage-manual
 - add info about "snpp-acl"
 - find counting error for tempfail
+- document sendpage-db
+- document DBI schema
 
 Needed For Next Next Stable Release
 -----------------------------------

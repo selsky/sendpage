@@ -1,0 +1,99 @@
+#!/usr/bin/perl
+#
+# dbi is the tool that will assist in loading data into a database
+#
+# $Id$
+#
+# Copyright (C) 2004 Todd T. Fries
+# todd@fries.net, http://FreeDaemonConsulting.com/
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# http://www.gnu.org/copyleft/gpl.html
+
+
+use Getopt::Std;
+use Sendpage::Db;
+
+getopts('hpadvtc:');
+
+if ($opt_c) {
+	$dbtype = $opt_c;
+} else {
+	$dbtype = "dbi:mysql:database=test;host=localhost;port=3306";
+}
+
+my $db = Sendpage::Db->new($dbtype);
+
+sub HELP_MESSAGE {
+	printf STDERR "Usage: \n";
+	printf STDERR "-v          verbose\n";
+	printf STDERR "-p          show table entries\n";
+	printf STDERR "-a          add an entry\n";
+	printf STDERR "-d          remove an entry\n";
+	printf STDERR "-c <dbtype> database connection type, e.g. dbi:mysql:\n";
+	exit(0);
+}
+
+if ($opt_h) {
+	HELP_MESSAGE;
+	exit(0);
+}
+if ($opt_v) {
+	# verbose
+	$debug = 1;
+} else {
+	$debug = 0;
+}
+
+if ($opt_p) {
+	$db->show;
+	exit(0);
+}
+
+if ($opt_a) {
+	while(<stdin>) {
+		($recip,$var,$value) = split(/ /,$_);
+		chomp($value);
+		if ($var eq "email-cc" or $var eq "dest") {
+			if($debug) {
+				print "adding $recip with $var = $value\n";
+			}
+			$db->update("$recip:$var",$value);
+		} else {
+			print "invalid synatx, parsed: ";
+			print "recip = $recip, var = $var, val = $value\n";
+		}
+	}
+	if($debug) {
+		$db->show;
+	}
+	exit(0);
+}
+
+if ($opt_d) {
+	while(<stdin>) {
+		chomp($recip = $_);
+		if($debug) {
+			print "deleting $recip info\n";
+		}
+		$db->delete("$recip:dest");
+		$db->delete("$recip:email-cc");
+	}
+	exit(0);
+}
+
+HELP_MESSAGE;
+
+0;

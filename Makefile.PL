@@ -42,7 +42,13 @@ my %opts=(
     'AUTHOR'        => 'Kees Cook <kees@outflux.net>',
     'VERSION_FROM'  => 'sendpage', # finds $VERSION
     'ABSTRACT_FROM' => 'sendpage',
-    'EXE_FILES'     => [ qw(sendpage snpp email2page sendmail2snpp) ],
+    'EXE_FILES'     => [ qw(
+    				sendpage
+				snpp
+				email2page
+				sendmail2snpp
+				sendpage-db
+			) ],
     'PREREQ_PM'     => {
 		'Net::SNPP' => 1.10,
 		'Mail::Send' => 1.08,

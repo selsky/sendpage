@@ -59,6 +59,16 @@
 #
 #queuedir = /tmp/var/spool/sendpage
 
+# Database dbi type/connection info for large user lists
+#
+#	Default is ""
+#
+#dsn = dbi:Pg:Db:dbname=sendpage
+#dsn = dbi:mysql:database=sendpage;host=db.mydomain.name;port=3306
+#dbuser = sendpage
+#dbpass = mekmitasdigoat
+#dbtable = sendpage
+
 # Username that sendpage should be running as.
 #	Default is "sendpage"
 #user = nemesis

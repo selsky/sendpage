@@ -60,6 +60,7 @@ sub new {
         my $self  = {};
 
 	$self->{CONFIG}= shift;		# configuration
+	my $db = shift;			# db info, if using a db
 	my $name = shift;		# our look-up name
 	my $data = shift;		# ref to hash of misc info
 	my @list;
@@ -67,11 +68,18 @@ sub new {
 	# who are all our destinations?
 	my $list  = $self->{CONFIG}->get("recip:${name}\@dest",1);
 	if (!defined($list) && $name !~ /\@/) {
-		$main::log->do('debug',"No such recipient: '$name'")
-			if ($self->{CONFIG}->get("alias-debug"));
-		return undef;
-	}
-	else {
+		# try looking in the db if it is in use
+		if ($db) {
+			#warn "db check ${name} dest\n";
+			@list = $db->check("${name}:dest");
+		}
+		$list = {@list};
+		if (!defined($list)) {
+			$main::log->do('debug',"No such recipient: '$name'")
+				if ($self->{CONFIG}->get("alias-debug"));
+			return undef;
+		}
+	} else {
 		@list=@{ $list };
 	}
 

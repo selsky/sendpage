@@ -149,3 +149,6 @@ David St. John
 	For hunting down and testing my fix for block-spanning pages.
 	And for donating $100 to the project!  Thanks!
 
+Todd T. Fries
+	Wrote a full DBI-based pager lookup mechanism.  Great!
+
