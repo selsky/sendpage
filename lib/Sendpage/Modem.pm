@@ -23,7 +23,6 @@
 
 package Sendpage::Modem;
 use POSIX;
-#use Sendpage::KeesConf; # FIXME: make this a generic module for all
 use IO::Handle;
 use Sendpage::KeesLog;
 

@@ -41,7 +41,7 @@ PagingCental.pm - implements the TAP protocol over the Modem module
 
     $rc=$pc->deliver($page);
 
-    $pc->SendMail($to,$from,$cc,$subject,$body);
+    $pc->SendMail($to,$from,$cc,$errorsto,$subject,$body);
 
 =head1 DESCRIPTION
 
@@ -156,6 +156,11 @@ sub new {
 	$self->{LEAD}="";
 	$self->{LEAD}=$CR
 		if ($self->{CONFIG}->get("pc:$self->{NAME}\@stricttap"));
+
+	# get the daemon info, allowing for fall-back
+	$self->{PageDaemon}=$self->{CONFIG}->get("pc:$self->{NAME}\@page-daemon",1);
+	$self->{PageDaemon}=$self->{CONFIG}->get("page-daemon")
+		if ($self->{PageDaemon} eq "");
 
 	bless($self,$class);
 	return $self;
@@ -459,8 +464,10 @@ sub deliver {
 			# Send email notification
 			if ($to ne "" || $cc ne "") {
 				$self->SendMail($to,
-					$self->{CONFIG}->get('page-daemon'),
-					$cc,"Page delivered",
+					$self->{PageDaemon},
+					$cc,
+					$self->{PageDaemon},
+					"Page delivered",
 					"The following page was delivered to ".
 					"$paged:\n\n"
 					. $page->text() . "\n\n"
@@ -474,8 +481,10 @@ sub deliver {
 			if ($temprep > 0 && ($attempts % $temprep == 0) && 
 		   	    ($to ne "" || $cc ne "")) {
 				$self->SendMail($to,
-					$self->{CONFIG}->get('page-daemon'),
-					$cc,"Page temporarily failed",
+					$self->{PageDaemon},
+					$cc,
+					$self->{PageDaemon},
+					"Page temporarily failed",
 					"The following page is still trying to be delivered to "
 					. $recip->name() . ":\n\n"
 					. $page->text() . "\n\n"
@@ -491,8 +500,10 @@ sub deliver {
 			# Send email notification
 			if ($failrep && ($to ne "" || $cc ne "")) {
 				$self->SendMail($to,
-					$self->{CONFIG}->get('page-daemon'),
-					$cc,"Page NOT delivered",
+					$self->{PageDaemon},
+					$cc,
+					$self->{PageDaemon},
+					"Page NOT delivered",
 					"The following page has FAILED to be delivered to "
 					. $recip->name() . ":\n\n"
 					. $page->text() . "\n\n"
@@ -891,7 +902,7 @@ sub maxsplits {
 }
 
 sub SendMail {
-	my($self,$to,$from,$cc,$subject,$body)=@_;
+	my($self,$to,$from,$cc,$errorsto,$subject,$body)=@_;
 
 	my($msg,$fh);
 
@@ -904,6 +915,8 @@ sub SendMail {
 		$msg->to($to) if (defined($to) && $to ne "");
 		$msg->cc($cc) if (defined($cc) && $cc ne "");
 		$msg->set('X-Pager',"sendpage v$main::VERSION");
+		$msg->set('Errors-To',"<$errorsto>")
+			if (defined($errorsto) && $errorsto ne "");
 		$msg->set('From',$from);
 		$msg->subject($subject);
 

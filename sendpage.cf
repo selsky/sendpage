@@ -61,10 +61,10 @@
 #	Default is "tty"
 #group-tty=users
 
-# Email address that sendpage claimed to be coming from.
+# Email address that page emails claims to be coming from.
 #	Default is "sendpage"
 #
-#page-daemon = nemesis
+#page-daemon = nemesis@outflux.net
 
 # By which mechanism should email be delivered?  mail, sendmail, or SMTP?
 #	Default is "sendmail"
@@ -231,6 +231,11 @@ dev	= /dev/modem
 # This PC's protocol-level debugging.
 #	Default is "false"
 #debug	= true
+
+# Email address that page emails claims to be coming from.
+#	Default is unset, and will fallback to the global "page-daemon" setting
+#
+#page-daemon = someone@other.place
 
 # If for some reason you need to override the default list of modems,
 # do it here.
