@@ -1,6 +1,8 @@
 $Id$
 
 0.9.5:
+	- fixed bug where modem settings we're being passed to
+	  the modem when dialing a PC (PC defaults were being used)
 	- started to correct problems with Device::SerialPort under
 	  other OS's.
 	- move kicker section of "chat" in Modem.pm to the front,

@@ -22,6 +22,12 @@ Jerry Paul Taft
 	will be missed.
 
 
+Jon Scarbrough
+	<jscarbrough@grouparnold.com>
+	Found a bug where modem settings were not being passed through
+	correctly (PC default were set instead).
+
+
 Philip Moors
 	<PMoors@edisonmission.com>
 	Found a bug in the Modem disconnect function.  I wasn't actually
