@@ -256,7 +256,7 @@ sub doneNewFile {
 	$fname=$self->{DIR}."/$fname";
 	$newname=$self->{DIR}."/$newname";
 	if (!rename($fname,$newname)) {
-		$main::log->do('crit', "Cannot rename '$fname' -> '$newname': $!\n";
+		$main::log->do('crit', "Cannot rename '$fname' -> '$newname': $!\n");
 	}
 
 	# done with this handle

@@ -157,6 +157,12 @@ sub new {
 	my $self  = $class->SUPER::new($dev);	# this should be SerialPort
 	my $ref;
 
+	if (!defined($self)) {
+		$main::log->do('crit',"Modem '$name': could not start Device::Serial port");
+		unlink $lockfile;
+		return undef;
+	}
+
 	# save our stateful information
 	$self->{CONFIG}=$config;	# get the config info
 	$self->{NAME}  =$name;		# name of the modem
