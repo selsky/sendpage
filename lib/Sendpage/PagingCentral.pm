@@ -191,11 +191,11 @@ sub start_proto {
 
 	# Init modem
 	my $result=$modem->init(
-		$self->{CONFIG}->get("pc:$self->{NAME}\@baud"),
-		$self->{CONFIG}->get("pc:$self->{NAME}\@parity"),
-		$self->{CONFIG}->get("pc:$self->{NAME}\@data"),
-		$self->{CONFIG}->get("pc:$self->{NAME}\@stop"),
-		$self->{CONFIG}->get("pc:$self->{NAME}\@flow"));
+		$self->{CONFIG}->ifset("pc:$self->{NAME}\@baud"),
+		$self->{CONFIG}->ifset("pc:$self->{NAME}\@parity"),
+		$self->{CONFIG}->ifset("pc:$self->{NAME}\@data"),
+		$self->{CONFIG}->ifset("pc:$self->{NAME}\@stop"),
+		$self->{CONFIG}->ifset("pc:$self->{NAME}\@flow"));
 	if (!defined($result)) {
 		$main::log->do('alert',"Failed to init modem");
 		return (undef,"Could not initialize modem");

@@ -187,6 +187,38 @@ sub instance_exists {
 	return defined($hash{$name});
 }
 
+=item $var=$config->ifset($name);
+
+This call will search for the variable named $name.  If it is not found,
+it will return undef.  If the value exists, it will return the value.
+This is a way to call "get" without having a default passed through.
+
+=cut
+
+sub ifset {
+	my $self = shift;
+	my ($whole)=@_;
+
+	return ($self->exists($whole) ? $self->get($whole) : undef);
+}
+
+=item $var=$config->exists($name);
+
+This call will search for the variable named $name.  If it is not found,
+it will return false.  If the value exists, it will return true.  This is
+a way for the user to find out if they will get a "default" on a call
+to "get".
+
+=cut
+
+# return a variable or default for that variable
+sub exists {
+	my $self = shift;
+	my ($whole)=@_;
+
+	return (defined($self->{KNOWN}->{$whole}));
+}
+
 =item $var=$config->get($name);
 
 This call will search for the variable named $name.  If it is not found,
