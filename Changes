@@ -1,6 +1,8 @@
 $Id$
 
 0.9.5:
+	- started to correct problems with Device::SerialPort under
+	  other OS's.
 	- move kicker section of "chat" in Modem.pm to the front,
 	  so kickers won't be sent during the last timeout cycle.
 	- created an "answerretries" variable for the Paging Central
