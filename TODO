@@ -2,10 +2,9 @@
 
 Things that need to be done...
 
-Needed For Next Stable Release
-------------------------------
+Next
+----
 *Code
-- implement SNPP "HOLD" function
 - have PCs shutdown on signal if active, but not sending a page.
 - clean up stale/running test during BecomeDaemon
 - option to not bounce "user not found" errors (to stop domain scanning)
@@ -17,8 +16,8 @@ Needed For Next Stable Release
 - document sendpage-db
 - document DBI schema
 
-Needed For Next Next Stable Release
------------------------------------
+Next Next
+---------
 - implement a list of addresses for SNPP server to listen on (for multihomed)
 - do something so that queues that are waiting on a modem will run
   as soon as the modem is available.  How can I do this when there are
@@ -32,6 +31,7 @@ Needed For Next Next Stable Release
 Would Be Nice
 -------------
 *Code
+- implement SNPP "HOLD" function
 - add warnings when seeing {0x00} chars in modem buffers.  Possible incorrect
   comm settings 8N1 vs 7E1, etc.
 - do something about the 500 functions packed into "sendpage" instead of
@@ -47,9 +47,10 @@ Would Be Nice
 - add "include" verb to sendpage.cf for sucking in other files?  This allows
   for separate files for PCs and recip lists.
 - implement "fieldsplits" (fields cannot be split across blocks for PC)
-- handle calculating parity as described by Shaun Dawson
+- handle calculating parity as described by Shaun Dawson (is this needed
+  after the parity improvements in Device::SerialPort?)
 - TCP modems (open a socket instead of a file) by Jim Gottlieb
-- generalized the "xmit message" code to deal with whatever type of sending
+- generalize the "xmit message" code to deal with whatever type of sending
   we're doing, TAP, UCP, SNPP, etc. (from Jon Meek)
 - figure out what the cryptic message "ESC EOT hangups" meant, and fix it
 *Docs
