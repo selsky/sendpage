@@ -157,11 +157,13 @@ my %CHILDREN;	# who the childrens are
 my $SHUTDOWN;	# when to shutdown
 my $RELOAD;	# when we're reloading
 my $DEBUG;	# for debugging
+my $DEBUG_SELECT;# for debugging select loop
+my $DEBUG_SNPP;	# for debugging SNPP issues
 my %opts;	# holds the command line args hash
 
 # Global SNPP server variables
 undef $server;	# holds the SNPP server obj
-$s=IO::Select->new(); # holds our primary loop selector
+undef $s;	# holds our Select set
 
 # Global queue run variables
 my $PC;		# holds name of PC for queue runners
@@ -304,6 +306,8 @@ sub ShutdownEverything {
 sub Initialize {
 	&loadConfig();
 	$DEBUG=$config->get("debug");
+	$DEBUG_SELECT=$config->get("debug-select");
+	$DEBUG_SNPP=$config->get("debug-snpp");
 	@pcs=$config->instances("pc");
 	undef %pcs; grep($pcs{$_}=1,@pcs);
 	@modems=$config->instances("modem");
@@ -549,6 +553,9 @@ sub SpawnChildren {
 		$log->do('info',"starting Queue Manager (sendpage v$VERSION)");
 	}
 
+	# build new loop selector
+	$s=IO::Select->new();
+
 	# there was a race condition here between the fork
 	# 	 and the call to "SignalInit" where a child could
 	#	 think it was still the manager, and receive yet
@@ -662,7 +669,12 @@ sub Respawn {
 		}
 	}
 	elsif (defined($PIPES{$pid})) {
-		$log->do('debug',"SNPP connection (pid $pid) finished") if ($DEBUG);
+		$log->do('debug',"SNPP connection (pid $pid) finished") if ($DEBUG_SNPP);
+		$s->remove($PIPES{$pid}); # don't select on this handle anymore
+		if ($DEBUG_SELECT) {
+			$log->do('debug',"(select removing pipe ".fileno($PIPES{$pid}).")");
+		}
+		PipeShutdownPipe($PIPES{$pid});
 		PipeShutdownPid($pid);
 	}
 	else {
@@ -730,7 +742,7 @@ sub BecomeDaemon {
 	# close file handles.  (unless debugging)
 	close(STDIN);
 	close(STDOUT);
-	close(STDERR) unless ($DEBUG);
+	close(STDERR) unless ($DEBUG || $DEBUG_SELECT || $DEBUG_SNPP);
 
 	# Become a daemon
 	my $pid = fork;
@@ -777,7 +789,7 @@ sub initSNPP {
 	if (defined($server)) {
 		$log->do('debug',"SNPP listener running on %s:%d",
 			$server->sockhost,
-			$server->sockport) if ($DEBUG);
+			$server->sockport) if ($DEBUG_SNPP);
 	}
 	else {
 		$log->do('crit',"SNPP listener for '$host:$port' failed: $!");
@@ -791,7 +803,7 @@ sub initSNPP {
                 $way=uc($way);
                 my ($net_str,$mask_str) = split(/\//,$netmask,2);
                 $log->do('debug',"ACL loaded: '$net_str'/'$mask_str' is '$way'")
-                        if ($DEBUG);
+                        if ($DEBUG_SNPP);
 
                 my $net  = inet_aton($net_str);
                 my $mask = inet_aton($mask_str);
@@ -802,7 +814,9 @@ sub initSNPP {
 
 sub StopSNPP {
 	$log->do('debug',"SNPP listeners shutting down")
-		if ($DEBUG);
+		if ($DEBUG_SNPP);
+	$log->do('debug',"(select dropping ".fileno($server).")")
+		if ($DEBUG_SELECT);
 	$s->remove($server);
 	undef $server;
 }
@@ -810,7 +824,11 @@ sub StopSNPP {
 sub StartSNPP {
 	$log->do('info',"starting SNPP listeners");
 	initSNPP();
-	$s->add($server) if (defined($server));
+	if (defined($server)) {
+		$s->add($server);
+		$log->do('debug',"(select adding server ".fileno($server).")")
+			if ($DEBUG_SELECT);
+	}
 }
 
 sub RestartSNPP {
@@ -846,7 +864,7 @@ sub IPAllowed {
 
                 my $check_str=inet_ntoa($net_check);
 
-                if ($DEBUG) {
+                if ($DEBUG_SNPP) {
 			my $mask_str=inet_ntoa($mask);
 	                $log->do('debug',"ip: '$peer' mask: '$mask_str' ".
 				"masked: '$check_str' net: '$net_str'");
@@ -855,7 +873,7 @@ sub IPAllowed {
                 # if result is our network, we have a hit
                 if ($check_str eq $net_str) {
 			$found=1;
-                        $log->do('debug', "Matched ACL") if ($DEBUG);
+                        $log->do('debug', "Matched ACL") if ($DEBUG_SNPP);
                         if ($allow==1) {
                                 $allowed=1;
                         }
@@ -863,7 +881,7 @@ sub IPAllowed {
                         last;
                 }
         }
-	if ($DEBUG && $found == 0) {
+	if ($DEBUG_SNPP && $found == 0) {
                 $log->do('debug',"No ACL matched '$peer'");
 	}
         if ($allowed != 1) {
@@ -875,7 +893,7 @@ sub IPAllowed {
 }
 
 sub ListenForSNPP {
-	my($fh,$read,$exc,$pipe,$sigset);
+	my($fh,$read,$exc,$pipe,$sigset,$match);
 
 	StartSNPP();
 
@@ -890,13 +908,33 @@ sub ListenForSNPP {
 
 		# reset my containers
 		$read=$exc=undef;
+
+		if ($DEBUG_SELECT) {
+			grep($log->do('debug',"select set: ".fileno($_)),
+				$s->handles());
+		}
+
+		$match=0;
+		$!=0;
 		($read,undef,$exc)=IO::Select->select($s,undef,$s);
-		#$log->do('debug',"SNPP returned from select") if ($DEBUG);
+		if ($! != 0) {
+			if ($! == &EINTR()) {
+				$match=1;
+				$log->do('debug',"select loop: $! -- continuing")
+					if ($DEBUG_SELECT);
+			}
+			else {
+				$log->do('warning',"select loop failed: $!");
+			}
+		}
+		$log->do('debug',"(select finished)") if ($DEBUG_SELECT);
 
 		foreach $fh (@$read) {
 			if ($fh == $server) {
 				my $pid;
 				my $sock = $fh->accept;
+
+				$match=1;
 	
 				if (!defined($sock)) {
 					$log->do('err',"SNPP accept: $!");
@@ -904,7 +942,7 @@ sub ListenForSNPP {
 				}
 
 				$log->do('debug',"got connection from ".
-					$sock->peerhost) if ($DEBUG);
+					$sock->peerhost) if ($DEBUG_SNPP);
 
 				if (!IPAllowed($sock)) {
 					close($sock);
@@ -924,9 +962,11 @@ sub ListenForSNPP {
 					close($sock);
 
 					$s->add($pipe);
+					$log->do('debug',"(select adding pipe ".fileno($pipe).")")
+						if ($DEBUG_SELECT);
 					PipeRemember($pipe,$pid);
 	
-					# pause for a bit (no DOSing)
+					# pause for a bit (no DoSing)
 					select(undef,undef,undef,0.1);
 				}
 				elsif($pid==0) {
@@ -949,12 +989,13 @@ sub ListenForSNPP {
 
 					# we will unblock signals in
 					#  the snpp handler
-					$sock->HandleSNPP("SNPP Sendpage $VERSION",
-						$pipe, $config, $log, $DEBUG,
-						$sigset);
+					$sock->HandleSNPP(
+						"SNPP Sendpage $VERSION",
+						$pipe, $config, $log,
+						$DEBUG_SNPP, $sigset);
 					$log->do('debug',
 						"leaving SNPP client cnxn")
-						if ($DEBUG);
+						if ($DEBUG_SNPP);
 	
 					exit(0);
 						
@@ -968,11 +1009,15 @@ sub ListenForSNPP {
 				&UnblockSignals();
 			}
 			elsif (defined($pid=$CNXNS{$fh})) {
+				$match=1;
+
 				# is this pipe shutdown?
 				if ($fh->eof()) {
 					PipeShutdownPipe($fh);
 					$s->remove($fh);
-					close($pipe);
+					$log->do('debug',"(select removing pipe ".fileno($fh).")")
+						if ($DEBUG_SELECT);
+					close($fh);
 				}
 				# something is readable from a pipe
 				else {
@@ -982,23 +1027,35 @@ sub ListenForSNPP {
 				}
 			}
 			else {
+				$match=1;
+
 				# toss any straggling pipes
-				$log->do('debug',"Removing selectable stale file handle")
-					if ($DEBUG);
+				$log->do('debug',"Removing stale selectable file handle: ".fileno($fh))
+					if ($DEBUG_SELECT);
 				$s->remove($fh);
-				close($pipe);
+				close($fh);
 			}
 		}
 		foreach $fh (@$exc) {
 			if ($fh == $server) {
+				$match=1;
+
 				$log->do('err',"Whoa!  Server socket took a hit!  -- reopening it");
 				RestartSNPP();
 			}
 			else {
+				$match=1;
+
 				$log->do('warning',"SNPP connection took a hit!");
 				$s->remove($fh);
+				$log->do('debug',"(select removing server ".fileno($fh).")")
+					if ($DEBUG_SELECT);
 				close($pipe);
 			}
+		}
+
+		if ($match==0) {
+			$log->do('warning',"Select produced an unmatched file descriptor?!");
 		}
 	}
 	$log->do('info',"stopping Queue Manager and SNPP listeners (sendpage v$VERSION)");
@@ -1110,7 +1167,7 @@ sub StartQueue {
 		}
 
 		# check and see if we should shutdown (parent is init)
-		if (getppid==1) {
+		if (!$SHUTDOWN && getppid==1) {
 			$log->do('err',"Parent process died -- aborting");
 			$SHUTDOWN=1;
 		}
@@ -1188,7 +1245,7 @@ sub Reload {
 			}
 			elsif (defined($PIPES{$pid})) {
 				PipeShutdownPid($pid);
-				$log->do('debug',"SNPP connection (pid $pid) finished") if ($DEBUG);
+				$log->do('debug',"SNPP connection (pid $pid) finished") if ($DEBUG || $DEBUG_SNPP);
 				$finished--;
 			}
 			else {
@@ -1403,6 +1460,10 @@ $config->define("cc-on-error", { ARGCOUNT => 0, DEFAULT => 1 });
 $config->define("modems",   { ARGCOUNT => 2 });
 $config->define("alias-debug",    { ARGCOUNT => 0, DEFAULT => 0 });
 $config->define("debug",    { ARGCOUNT => 0,
+				DEFAULT => $opts{d} ? 1 : 0 });
+$config->define("debug-select",    { ARGCOUNT => 0,
+				DEFAULT => $opts{d} ? 1 : 0 });
+$config->define("debug-snpp",    { ARGCOUNT => 0,
 				DEFAULT => $opts{d} ? 1 : 0 });
 # should the sender be notified of failures?
 $config->define("fail-notify", { ARGCOUNT => 0, DEFAULT => 1 });

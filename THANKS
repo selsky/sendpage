@@ -26,6 +26,11 @@ Jerry Paul Taft
 	will be missed.
 
 
+Randy Emler
+	Showed me a bug in my select loop.  Turned out to be two silly
+	typos, but finding them resulted in further debugging additions.
+	Also, donated his postfix configuration documentation.
+
 Noah Meyerhans
 	<noahm@lcs.mit.edu>
 	Helped me notice a typo in sendpage configuration defaults.

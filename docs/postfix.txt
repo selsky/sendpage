@@ -1,0 +1,36 @@
+Postfix to Sendpage Email Configuration, from Randy Emler:
+
+
+Modify the /etc/postfix/transport file to include
+	<your paging hostname>		sendpage:localhost
+	
+	Example:
+	spage.yourdomain.com      sendpage:localhost
+
+Modify the /etc/postfix/master.cf file to include	
+	sendpage     unix  -       n       n       -       -       pipe
+	    flags= user=nobody argv=/usr/bin/sendmail2snpp -f $(user) $(sender)
+	
+	Just make sure the "argv=" points to the proper path for the agent.
+
+Modify the /etc/postfix/main.cf file to include
+	transport_maps = hash:/etc/postfix/transport
+
+Run: "postmap transport" to create the transport.db file
+
+Make sure your paging box accepts smtp connections from your corporate mail
+gateway box.
+
+Run: "service postfix stop", "service postfix start"
+
+Make sure recipients are setup in the sendpage.cf file like the following
+	[recip:joe_blow]
+	dest = 5551212@mypagingqueue
+		
+Try sending an email page addressed like the following
+
+	To:joe_blow@spage.yourdomain.com
+	Subject: Test Page
+	
+	Hello, I am a test page thru email using sendpage.
+

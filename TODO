@@ -27,6 +27,8 @@ Needed For Next Stable Release
 Would Be Nice
 -------------
 *Code
+- add warnings when seeing {0x00} chars in modem buffers.  Possible incorrect
+  comm settings 8N1 vs 7E1, etc.
 - do something about the 500 functions packed into "sendpage" instead of
   cleanly implemented in modules elsewhere.
 - implement email notification fall-back for recips

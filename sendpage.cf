@@ -26,9 +26,17 @@
 #############################
 # global section
 #############################
-# system-level debugging.  Default is "false"
+# queue & manager-level debugging.  Default is "false"
 #
 #debug=true
+
+# select-loop debugging.  Default is "false"
+#
+#debug-select=true
+
+# SNPP activity debugging.  Default is "false"
+#
+#debug-snpp=true
 
 # alias-expansion debugging.  Default is "false"
 #
@@ -199,7 +207,7 @@ dev	= /dev/modem
 #longdist="81"
 
 # What to look for after connecting successfully (this is a regexp)
-#	Default is "CONNECT"
+#	Default is "CONNECT.*\r"
 #dialok=0
 
 # What to look for if something goes wrong while dialing (this is a regexp)
