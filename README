@@ -21,7 +21,8 @@ Quick Start (for Linux)
 		make install
 
 	- copy 'sendpage.cf' into /etc, and edit to your needs
-	- create the user "sendpage".
+	- copy 'email2page.conf' into /etc, and edit to your needs
+	- create the user "sendpage"
 	- figure out which group ID can write to your locks directory
 	  (usually "uucp" can write in "/var/lock")
 	- figure out which group ID can write to your modem device
@@ -33,7 +34,7 @@ Quick Start (for Linux)
 		chmod og-rwx /var/spool/sendpage
 
 	- start the sendpage daemon as the root user (it will change
-	  user id to 'sendpage')
+	  user id to 'sendpage'):
 
 		sendpage -bd
 	
@@ -124,7 +125,10 @@ Now, build sendpage itself.  Right now, just do:
 	make install
 
 to install this package.  The important man page (sendpage's) is done.
-The others are mostly just overviews.  I need to finish those.
+The others are mostly just overviews.  I need to finish those.  If you
+want to put the files somewhere besides where Perl wants to put them,
+you can always create the Makefile is "perl Makefile.PL PREFIX=/usr/local"
+or where ever you want the files to be forced to go.
 
 Make sure you create a sendpage user, and identify the group who has
 write access to /var/lock, and the group who has write access to your
@@ -135,7 +139,9 @@ your modem, paging central, etc.  Turn on the debugging if you're interested.
 I'm going to eventually write a tool to convert old-style config files (and
 perhaps even qpage and beepage config files) into the new-style config file.
 Right now, this is not done.  Note that "sendpage.cf" needs to live in
-/etc, or where ever you run "sendpage -C" with.
+/etc, or where ever you run "sendpage -C" with.  Also install and edit the
+"email2page.conf" file for the email-to-page converting tool.  Documentation
+is in the conf file for that one right now.
 
 Now there is the "sendpage" daemon itself.  Run (as root) the command:
 	sendpage -bd
@@ -148,9 +154,9 @@ valid alias "recip" section in /etc/sendpage.cf, or has the form PIN@PC,
 where the PC is a valid "pc" section in /etc/sendpage.cf.  It will deliver
 directly to the named PIN.
 
-To force a queue run immediately, run (as root or sendpage) "sendpage -q".
-If you have debugging turned on, it should be flooding your syslog with
-lots of fun information while delivering the pages.
+To force a queue run immediately, run (as root) "sendpage -q".  If you have
+debugging turned on, it should be flooding your syslog with lots of fun
+information while delivering the pages.
 
 Look in the "docs" directory for various misc information files, including
 the TAP specifications, the SNPP RFC, and a list of the known paging centrals

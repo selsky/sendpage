@@ -407,7 +407,7 @@ sub NiceShutdown {
 
 	$SHUTDOWN=1;
 	if ($PC eq "") {
-		my $pc;
+		my($pc,$cnxn);
 
 		# ignore the dying children (don't think I want this...)
 		#$SIG{CHLD}=DEFAULT;
@@ -418,6 +418,9 @@ sub NiceShutdown {
 			}
 			$log->do('debug',"Signalling '$pc' ...") if ($DEBUG);
 			SendSignal('QUIT',$pc);
+		}
+		foreach $cnxn (keys %PIPES) {
+			kill 'QUIT', $cnxn;
 		}
 	}
 	else {

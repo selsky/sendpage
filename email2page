@@ -1,0 +1,138 @@
+#!/usr/local/bin/perl
+
+eval 'exec /usr/local/bin/perl  -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+
+#
+# tool designed to re-write emails into pages
+#
+# $Id$
+#
+# Copyright (C) 2000 Cornelius Cook
+# cook@cpoint.net, http://collective.cpoint.net/
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# http://www.gnu.org/copyleft/gpl.html
+
+use Getopt::Std;
+use Mail::Internet;
+use Mail::Header;
+use IO::File;
+
+my %opts;
+my $VERSION="0.1";
+
+sub Usage {
+	die "Usage: $0 [OPTIONS]
+
+version $VERSION
+
+Parses an email message based on the values of the conf file.  Reads stdin
+and produces results to stdout.
+
+-h                  you're reading it already.  :)
+-C CONF             read CONF instead of /etc/email2page.conf
+
+";
+}
+
+my $prefix="";
+my $suffix="";
+my $headerjoin="|";
+my $headbodyjoin="\n";
+my @headrules=();
+my @bodyrules=();
+
+# get our options
+if (!getopts('hC:',\%opts) || $opts{h}) {
+        Usage();
+}
+
+$opts{C}="/etc/email2page.conf" unless ($opts{C});
+
+$fh = new IO::File $opts{C}, "r";
+if (!defined($fh)) {
+	die "Cannot read '$opts{C}' file: $!\n";
+}
+$num=0;
+foreach $line (<$fh>) {
+	chomp($line);
+	$num++;
+	# skip comments and blanks
+	next if ($line =~ /^#/ || $line =~ /^\s*$/);
+
+	($cmd,$arg)=split(/:/,$line,2);
+
+	if ($cmd eq "headerjoin") {
+		$headerjoin=$arg;
+	}
+	elsif ($cmd eq "headbodyjoin") {
+		$headbodyjoin=$arg;
+	}
+	elsif ($cmd eq "header") {
+		push(@headrules,$arg);
+	}
+	elsif ($cmd eq "body") {
+		push(@bodyrules,$arg);
+	}
+	elsif ($cmd eq "prefix") {
+		$prefix=$arg;
+	}
+	elsif ($cmd eq "suffix") {
+		$suffix=$arg;
+	}
+	else {
+		warn "unknown command '$cmd' in '$opts{C}' at line $num\n";
+	}
+}
+undef $fh;
+
+# read in our email message
+my $mail=Mail::Internet->new(\*STDIN);
+my $head=$mail->head();
+my $body=$mail->body();
+@body=@$body;
+
+my @okheads=();
+
+# handle rewriting the headers
+foreach $tag ($head->tags()) {
+	INDEX:
+	foreach $index (0 .. ($head->count($tag)-1)) {
+		$text="$tag: ".$head->get($tag,$index);
+		chomp($text);
+		foreach $rule (@headrules) {
+			if (eval "\$text =~ $rule") {
+				push(@okheads,$text);
+				next INDEX;
+			}
+		}
+	}
+}
+
+# handle rewriting the body
+foreach $rule (@bodyrules) {
+	foreach $index (0 .. $#body) {
+		eval "\$body[$index] =~ $rule";
+	}
+}
+
+$result=eval $prefix;
+$result.=eval "join($headerjoin,\@okheads)";
+$result.=eval $headbodyjoin;
+$result.=join("",@body);
+$result.=eval $suffix;
+
+print $result;

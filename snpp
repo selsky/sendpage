@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 #
-# quick script for testing SNPP messaging
+# quick script for sending SNPP messages
 #
 # $Id$
 #
@@ -22,31 +22,87 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 # http://www.gnu.org/copyleft/gpl.html
 
+use Getopt::Std;
 use Net::SNPP;
+use Sys::Hostname;
 
-$snpp = Net::SNPP->new('localhost', Debug => 1 );
+my %opts;
+my $VERSION="0.1";
+
+sub Usage {
+        die "Usage: $0 [OPTIONS] pin1 [pin2 [...]]
+
+version $VERSION
+
+-h                you're reading it.  :)
+-s SERVER[:PORT]  SNPP server to use (default is 'localhost')
+-f USER           force page to be from user USER (default is current user)
+-m MESSAGE	  message to send (reads from stdin by default)
+-n                no email carbonig to 'from'
+-d                turn debug on
+
+";
+}
+
+
+# get our options
+if (!getopts('hdns:f:m:',\%opts) || $opts{h} || !@ARGV) {
+        Usage();
+}
+
+$opts{s}='localhost' unless ($opts{s});
+
+$snpp = Net::SNPP->new($opts{s}, Debug => $opts{d} );
 if (!defined($snpp)) {
-	die "Could not connect to SNPP server\n";
+	die "Could not connect to SNPP server '$opts{s}'\n";
 }
 
-my $PIN = shift @ARGV;
-my $Message = join(" ",@ARGV);
+# get the pins
+my @pins = @ARGV;
 
-if ($snpp->pager_id($PIN)) {
-	if ($snpp->content($Message)) {
-		if ($snpp->caller_id(scalar(getpwuid($<)))) {
-			$snpp->send();
-		}
-		else {
-			warn $snpp->message();
-		}
-	}
-	else {
+# get the page text
+undef $/;
+my $text = $opts{m} ? $opts{m} : <STDIN>;
+$/="\n";
+
+# who is it from?
+if (!defined($opts{f}) && !$opts{n}) {
+	$opts{f}=scalar(getpwuid($<))."\@";
+	$opts{f}.=hostname;
+}
+
+# send pins
+foreach $pin (@pins) {
+	if (!$snpp->pager_id($pin)) {
 		warn $snpp->message();
+		if ($snpp->status()==4) {
+			exit($snpp->code()-400);
+		}
 	}
 }
-else {
+
+# send 'caller id', if we need to
+if (!$opts{n}) {
+	if (!$snpp->caller_id($opts{f})) {
+		warn $snpp->message();
+		if ($snpp->status()==4) {
+			exit($snpp->code()-400);
+		}
+	}
+}
+
+# send text
+if (!$snpp->data($text)) {
 	warn $snpp->message();
+	if ($snpp->status()==4) {
+		exit($snpp->code()-400);
+	}
+}
+
+# issue the send
+if (!$snpp->send()) {
+	warn $snpp->message();
+	exit($snpp->code()%100);
 }
 
 $snpp->quit;

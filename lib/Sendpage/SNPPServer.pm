@@ -57,20 +57,29 @@ sub HandleSNPP {
         my($pin,%PINS,%QPCS,$pc,$recips,$recip,@recips,$fail,$text,$caller);
 
 	# how far are we in the process?
-	my $NEED_PIN=0;
+	my $NEED_PIN=1;
 	my $NEED_TEXT=1;
-	my $NEED_SEND=2;
 
-	my $status;
-			
+	sub shutdown {
+		$log->do('debug',"SNPP client signalled down");
+		$sock->command("221 administratively down");
+		exit(0);
+	}
+
+	# drop cnxn on signal
+	local $SIG{QUIT}=\&shutdown;
+	local $SIG{INT}=\&shutdown;
+	local $SIG{HUP}=\&shutdown;
+
 	sub reset_inputs {
 		%PINS=();
 		%QPCS=();
 		@recips=();
 		$caller=$pin=$pc=$recips=$recip=$fail=$text=undef;
 
-		# start off looking for a pin
-		$status=$NEED_PIN;
+		# start off looking for a pin & text
+		$NEED_PIN=1;
+		$NEED_TEXT=1;
 	}
 
 	reset_inputs();
@@ -114,17 +123,11 @@ sub HandleSNPP {
 				return;
 			}
 			elsif ($cmd =~ /^PAGE/) {
-				if ($status != $NEED_PIN) {
-					$sock->command("503 ERROR, Pager ID Already Entered");
-					next;
-				}
-
 				# collect pager ids here
 				my @pins=split(/\s+/,$args);
 				# validate pager ids
 			        ($fail,@recips)=main::ArrayDig(@pins);
 			        if ($fail == 0 && $#recips > -1) {
-					$sock->command("250 Pager ID Accepted: '$args'");
         				$recips=\@recips;
 
 				        # sort them into PC bins
@@ -132,26 +135,17 @@ sub HandleSNPP {
 				                # make list of PCs
 				                push(@{ $QPCS{$recip->pc()} },$recip);
 				        }
-
-					$status=$NEED_TEXT;
+					$sock->command("250 Pager ID Accepted: '$args'");
+					$NEED_PIN=0;
 				}
 				else {
 					$sock->command("550 Error, Invalid Pager ID: '$args'");
 					next;
 				}
-
-				# I don't see a need for these
-				#$sock->command("421 Too Many Errors, Goodbye");
-				#$sock->command("421 Gateway Service Unavailable");
-				#$sock->command("554 Error, failed: $!"); 
 			}
 			# includes Level 2 command "data" here
 			elsif ($cmd =~ /^(MESS|DATA)/) {
-				if ($status == $NEED_PIN) {
-					$sock->command("503 ERROR, Must use 'PAGE' first");
-					next;
-				}
-				elsif ($status == $NEED_SEND) {
+				if (!$NEED_TEXT) {
 					$sock->command("503 ERROR, Message Already Entered");
 					next;
 				}
@@ -176,33 +170,28 @@ sub HandleSNPP {
 
 				if ($text ne "") {
 					$sock->command("250 Message OK");
-					$status=$NEED_SEND;
+					$NEED_TEXT=0;
 				}
 				else {
 					$sock->command("550 ERROR, Blank Message");
 					next;
 				}
-
-				# I don't see a need for these
-				#$sock->command("421 Too Many Errors, Goodbye (terminate connection)");
-				#$sock->command("421 Gateway Service Unavailable (terminate connection)");
-				#$sock->command("503 ERROR, Message Already Entered");
-				#$sock->command("550 ERROR, Invalid Message");
-
-				#$sock->command("554 Error, failed: $!");
-
-
 			}
 			elsif ($cmd =~ /^RESE/) {
 				reset_inputs();
 				
 				$sock->command("250 RESET OK");
-
-				# I don't see a need for these
-				#$sock->command("421 Too Many Errors, Goodbye (terminate connection");
-				#$sock->command("421 Gateway Service Unavailable (terminate connection)");
 			}
 			elsif ($cmd =~ /^SEND/) {
+				if ($NEED_PIN) {
+					$sock->command("503 Error, Pager ID needed");
+					next;
+				}
+				if ($NEED_TEXT) {
+					$sock->command("503 Error, Message needed");
+					next;
+				}
+
 				my $queued=$sock->write_queued_pages($pipe,$caller,$text,$config,$log,$DEBUG,%QPCS);
 
 				if ($queued>0) {
@@ -213,12 +202,6 @@ sub HandleSNPP {
 				}
 				# reset ourselves
 				reset_inputs();
-
-				# I don't see a need for these
-				#$sock->command("421 Too Many Errors, Goodbye (terminate connection)");
-				#$sock->command("421 Gateway Service Unavailable (terminate connection)");
-				#$sock->command("503 Error, Pager ID or Message Incomplete");
-				#$sock->command("554 Message Failed [non-administrative reason]");
 			}
 			elsif ($cmd =~ /^HELP/) {
 				my $line;
@@ -231,6 +214,7 @@ sub HandleSNPP {
 "   SEND         - send the page",
 "   RESE         - reset the input",
 "   QUIT         - hang up",
+"   CALL [email] - email address this page is from",
 "   HELP         - this help"
 				) {
 					$sock->command("214 $line");
@@ -330,8 +314,7 @@ sub write_queued_pages {
                 foreach $text (@pages) {
                         if (!defined($queue->addPage(Sendpage::Page->new($recips,\$text,
                                 { 'when' => time,
-                                  'from' => ($from ne "") ? $from :
-                                        scalar(getpwuid($<))
+                                  'from' => ($from ne "") ? $from : undef
                                  })))) {
                                 $log->do('err',
                                         "cannot send this page: queue failed");

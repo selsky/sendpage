@@ -4,6 +4,7 @@ Changes
 MANIFEST
 Makefile.PL
 sendpage.cf
+email2page.conf
 docs/rfc1861.txt
 docs/design/chat-api.txt
 docs/design/API.txt
@@ -22,8 +23,9 @@ lib/Sendpage/SNPPServer.pm
 TODO
 FEATURES
 sendpage
-modemtest
 snpp
+email2page
+modemtest
 devserial-0.07-k1.patch
 devserial-0.07-k1.not-uni
 THANKS

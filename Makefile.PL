@@ -54,7 +54,7 @@ WriteMakefile(
     'VERSION_FROM' => 'sendpage', # finds $VERSION
     AUTHOR  => 'Kees Cook <cook@cpoint.net>',
     ABSTRACT_FROM => 'sendpage',
-    EXE_FILES => [qw(sendpage snpp)],
+    EXE_FILES => [qw(sendpage snpp email2page)],
     dist         => { COMPRESS => 'gzip -9f', SUFFIX => '.tar.gz', }
 );
 

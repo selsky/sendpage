@@ -5,31 +5,33 @@ Things that we need, organized roughly
 
 Needed For Stable Release
 -------------------------
-- Implement SNPP "HOLD" function
-- Implement SNPP client (fewer modules to load to send a page, no setgid crap)
-- Do something so that queues that are waiting on a modem will run
+- implement SNPP "HOLD" function
+- fully implement SNPP client (fewer modules to load to send a page, no setgid)
+- do something so that queues that are waiting on a modem will run
   as soon as the modem is available.  How can I do this when there are
   multiple modems available?  Weird multi semaphore notifications queues
   based on modems?  Gah.  Strange.
-- write a email-parsing tool for sending pages from email.
-- Need better documentation on how to install, set up, test, and run sendpage
-- Need documentation on "page-daemon" alias for errors, bounces, warnings, etc?
-- make sure sendpage.cf gets handled by Makefile.PL  etc dir?
-- implement filelocking (needs to work with NFS & windoze)
-- have lock directory writing tested
+- write an email-parsing tool for sending pages from email.
+- need better documentation on how to install, set up, test, and run sendpage
 - document how to make a "sendpage" user, and find the groups you need
+- make sure sendpage.cf gets handled by Makefile.PL  etc dir?
 - implement max-blocks-per-session for a PC
 - implement email notification fall-back
 - email paging failures to page-daemon (Errors-To: ?)
-- fix all support modules to use a hash list of parameters instead of
-  taking a KeesConf object.  This makes things more truely modular.
+- need documentation on "page-daemon" alias for errors, bounces, warnings, etc?
 - implement a better audit log for pages (queued, sent, errors, contents)
   other than just debugging output.
+- write POD for snpp tool
+- write POD for email2page tool
+- implement net/mask checking for SNPP client connections
+- does snpp tool need to generate "bounce" emails on bad pages?
+- create snpp.conf file for snpp tool to pull its defaults from
 
 
 Would Be Nice
 -------------
-- figure out an install option for forcing /usr/local
+- fix all support modules to use a hash list of parameters instead of
+  taking a KeesConf object.  This makes things more truely modular.
 - code needs more documentation
 - write more API documentation for all the modules via pod
 - write a data flow graph
@@ -44,7 +46,7 @@ Would Be Nice
 
 Stuff I Might Need Some Time Soon
 ---------------------------------
-- Implement multiple TAP protocols? (are there differences?  PG1, PG3, etc)
+- implement multiple TAP protocols? (are there differences?  PG1, PG3, etc)
   I don't think I'll ever need this due to my "pc:fields" variable.
 
 
