@@ -7,6 +7,7 @@ TODO
 FEATURES
 THANKS
 sendpage.cf
+sendpage.spec
 email2page.conf
 snpp.conf
 docs/rfc1861.txt
@@ -55,7 +56,6 @@ debian/sendpage-client.templates
 debian/sendpage-server.postrm
 debian/README.Debian
 debian/sendpage-client.postinst
-debian/po
 debian/po/POTFILES.in
 debian/po/templates.pot
 debian/po/fr.po

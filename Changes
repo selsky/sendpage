@@ -10,6 +10,8 @@ $Id$
 	  prior behavior, set "syslog-minlevel = debug".
 	- creating a "stable" version since I'll never reach 1.0.0  :)
 	- updated copyright years
+	- added debian rules
+	- added sendpage.spec
 
 0.9.14: (31May2002)
 	- oops!  I recreated an earlier bug where splits would destroy

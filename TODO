@@ -45,6 +45,10 @@ Would Be Nice
 - add "include" verb to sendpage.cf for sucking in other files?  This allows
   for separate files for PCs and recip lists.
 - implement "fieldsplits" (fields cannot be split across blocks for PC)
+- handle calculating parity as described by Shaun Dawson
+- TCP modems (open a socket instead of a file) by Jim Gottlieb
+- generalized the "xmit message" code to deal with whatever type of sending
+  we're doing, TAP, UCP, SNPP, etc. (from Jon Meek)
 *Docs
 - update API doc to reflect changes made for PageQueue, Page, and Recipient
 - more general in-code commenting & documentation
@@ -67,3 +71,23 @@ I'm Probably Never Going To Implement These Crazy Ideas
   leave out the idea of parallel tasking modems for the same PC.  That
   seems like insane overkill, but it's something that would be pretty
   cool for HIGH volume paging centers.  Some day, perhaps.
+
+
+Detailed Notes
+--------------
+Parity - Shaun Dawson
+  After a long struggle, I think I've figured out what's going on here, and
+  have fixed it.  Even though the serial port is being set to even parity, I
+  don't believe that the parity calculations are being done by the system.  I
+  believe that both the incoming and outgoing parity calculations will need to
+  be done inside sendpage.  I added a function to AND out the 8th bit in the
+  incoming byte stream, and I stopped getting garbage from any of the paging
+  terminals, but some subset of the ones I had problems with didn't see the
+  0x0D byte I sent, and so didn't return 'ID='.  This led me to conclude that
+  some of the paging terminals set to even parity just did the same thing that
+  I did, which was to AND out the parity bit (and those worked fine), but some
+  others discarded bytes with invalid parity.  Since 0x0D has an odd parity,
+  that byte was discarded, and sendpage was never able to negotiate with those
+  terminals.
+
+
