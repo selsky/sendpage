@@ -21,4 +21,5 @@ lib/Sendpage/Modem.pm
 TODO
 FEATURES
 sendpage
+devserial-0.07-k1.patch
 THANKS
