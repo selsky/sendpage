@@ -150,7 +150,31 @@ If not, and you locate them, you should email them to me, and I'll update this
 list.  There is also a searchable database of these available at the website
 below.
 
-Also, the TODO file lists a large number of things I still want to have
+Compatibility
+-------------
+
+Linux:	  This tool (and Device::SerialPort) was written and tested under
+	  Linux.  There really shouldn't be any compatibilities under linux.
+
+Solaris:  Some headers under Solaris don't behave very well, so I had
+	  to define "__sparc" explicitly in my patch to Device::SerialPort.
+	  Also, under Solaris, many of the "make test" tests for
+	  Device::SerialPort seem to hang and/or fail.  Most of these
+	  seem safe to ignore as far as using sendpage with Device::SerialPort,
+	  as the test failures seem to be with timings and/or flushes.
+	  Most of that is unreliable anyway under Linux, so sendpage has
+	  already worked around these bugs.
+
+HPUX:	  Untested so far...
+
+AIX:	  Untested so far...
+
+
+
+Misc
+----
+
+The TODO file lists a large number of things I still want to have
 working before the first "stable" release.
 
 For updates, check out the sourceforge project at:
