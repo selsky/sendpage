@@ -44,8 +44,7 @@ This module is used in sendpage(1).
 
 =head1 BUGS
 
-I need to write more docs for it, and remove the dependancies on
-Sendpage::KeesConf.
+I need to write more docs for it.
 
 =cut
 
@@ -53,7 +52,7 @@ Sendpage::KeesConf.
 # FIXME: can I have this thing detect if STDERR has already been closed and
 #	kick and scream some other way?
 
-# takes KeesConf ref
+# takes parameters "Syslog" (1 or 0), "Opts", "Facility"
 sub new {
         my $proto = shift;
         my $class = ref($proto) || $proto;
@@ -68,17 +67,18 @@ sub new {
 
 # restarts logging with config'd values
 sub reconfig {
-	my($self,$config)=@_;
+	my $self = shift;
+	my %arg = @_;
 
-	if (!defined($config)) {
+	$self->{SYSLOG} = $arg{Syslog};
+	$self->{OPTS}   = $arg{Opts};
+	$self->{FACILITY}=$arg{Facility};
+
+	if (!defined($self->{SYSLOG})) {
 		$self->{SYSLOG}=0;
 		$self->off();
 	}
 	else {
-		$self->{SYSLOG}=$config->get("syslog");
-		$self->{OPTS}=$config->get("syslog-opt");
-		$self->{FACILITY}=$config->get("syslog-facility");
-
 		$self->on() if (defined($self->{OPEN}));
 	}
 }

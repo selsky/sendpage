@@ -202,7 +202,7 @@ version $VERSION
 }
 
 # Start logging immediately
-$log=Sendpage::KeesLog->new();
+$log=Sendpage::KeesLog->new(Syslog => 0);
 
 # get our options
 if (!getopts('hvdqC:b:R:f:',\%opts) || $opts{h}) {
@@ -216,7 +216,9 @@ $config=initConfig(\%opts);
 Initialize();
 
 # Restart logging
-$log->reconfig($config);
+$log->reconfig(Syslog => $config->get("syslog"),
+		Opts  => $config->get("syslog-opt"),
+		Facility => $config->get("syslog-facility"));
 
 # Mode of operation selection
 #
@@ -700,7 +702,9 @@ sub BecomeDaemon {
 	POSIX::setsid() or die "Can't start a new session: $!";
 
 	# reconfig, and reopen syslog connection
-	$log->reconfig($config);
+	$log->reconfig(Syslog => $config->get("syslog"),
+		Opts  => $config->get("syslog-opt"),
+		Facility => $config->get("syslog-facility"));
 	$log->on();
 
 	$0="sendpage: accepting connections";
@@ -878,7 +882,9 @@ sub Reload {
 		DaemonInit();
 
 		# Restart logging
-		$log->reconfig($config);
+		$log->reconfig(Syslog => $config->get("syslog"),
+			Opts  => $config->get("syslog-opt"),
+			Facility => $config->get("syslog-facility"));
 		$log->on();
 
 		# Start up all our children
@@ -900,7 +906,29 @@ sub verifyModems {
 	my @okay;
 
 	foreach $modem (@totest) {
-		$m=Sendpage::Modem->new($config,$modem);
+		$m=Sendpage::Modem->new(Name => $modem,
+			Dev => $config->get("modem:${modem}\@dev"),
+			Lockprefix => $config->get("lockprefix"),
+			Debug => $config->get("modem:${modem}\@debug"),
+			Log => $log,
+			Baud => $config->get("modem:${modem}\@baud"),
+			Parity => $config->get("modem:${modem}\@parity"),
+			Data => $config->get("modem:${modem}\@data"),
+			Stop => $config->get("modem:${modem}\@stop"),
+			Flow => $config->get("modem:${modem}\@flow"),
+			Init => $config->get("modem:${modem}\@init"),
+			InitOK => $config->get("modem:${modem}\@initok"),
+			InitWait => $config->get("modem:${modem}\@initwait"),
+			InitRetry => $config->get("modem:${modem}\@initretries"),
+			Error => $config->get("modem:${modem}\@error"),
+			Dial => $config->get("modem:${modem}\@dial"),
+			DialOK => $config->get("modem:${modem}\@dialok"),
+			DialWait => $config->get("modem:${modem}\@dialwait"),
+			DialRetry => $config->get("modem:${modem}\@dialretries"),
+			NoCarrier => $config->get("modem:${modem}\@no-carrier"),
+			IgnoreCarrier => $config->get("modem:${name}\@ignore-carrier",1),
+			
+				);
 		if (!defined($m)) {
 			$log->do('warning',"Cannot find modem '$modem'");
 			next;

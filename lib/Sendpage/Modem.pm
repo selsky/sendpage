@@ -23,8 +23,9 @@
 
 package Sendpage::Modem;
 use POSIX;
-use Sendpage::KeesConf; # FIXME: make this a generic module for all
+#use Sendpage::KeesConf; # FIXME: make this a generic module for all
 use IO::Handle;
+use Sendpage::KeesLog;
 
 # Hey!  Duh!  I should use the OS auto-discovery system to get the right
 # serial device module here!
@@ -37,7 +38,7 @@ Sendpage::Modem.pm - extends the Device::SerialPort package
 
 =head1 SYNOPSIS
 
-    $modem=Sendpage::Modem->new($config,$name);
+    $modem=Sendpage::Modem->new($params);
     $modem->init($baud,$parity,$data,$stop,$flow,$str);
     $modem->dial($str);
     $modem->chat($send,$resend,$expect,$timeout,$retries,$dealbreaker,
@@ -65,12 +66,9 @@ my $SPEED=10;	# how much to speed up the char reader
 #	dial		- dials number (returns like "write")
 #	hangup		- hangs up modem
 
-# new vars are:
-#	CONFIG		- reference to the KeesConf variable
-
 # new modem
 #	takes:
-#		KeesConf, modem_name
+#		KeesLog, modem_name
 #
 sub new {
 	# local vars
@@ -78,20 +76,27 @@ sub new {
 
 	# get our args
 	my $proto = shift;
-	my $config = shift;
-	my $name  = shift;
+	my %arg  = @_;
 
-	$dev    = $config->get("modem:${name}\@dev");
-	$lockprefix=$config->get("lockprefix");
-	$debug  = $config->get("modem:${name}\@debug");
+	my $name  = $arg{Name};
+
+	my $dev    = $arg{Dev};
+	my $lockprefix=$arg{Lockprefix};
+	my $debug  = $arg{Debug};
+	my $log    = $arg{Log};
+	if (!defined($log)) {
+		$log = new Sendpage::KeesLog(Syslog => 0);
+	}
 
 	# sanity check our config options
 	if (!defined($lockprefix)) {
-		$main::log->do('alert',"Modem '$name' has no lockprefix defined");
+		$log->do('alert',"Modem '$name' has no lockprefix defined");
+		undef $log;
 		return undef;
 	}
 	if (!defined($dev) || $dev eq "/dev/null") {
-		$main::log->do('alert',"Modem '$name' has no device defined");
+		$log->do('alert',"Modem '$name' has no device defined");
+		undef $log;
 		return undef;
 	}
 
@@ -108,7 +113,7 @@ sub new {
 	$lockfile.=pop(@parts);
 	# $lockfile should now be in the form "/var/lock/LCK..ttyS0"
 
-	$main::log->do('debug', "Trying to get lockfile '$lockfile'") if ($debug);
+	$log->do('debug', "Trying to get lockfile '$lockfile'") if ($debug);
 
 	while (!defined(sysopen(LOCKFILE, "$lockfile",
 		O_EXCL | O_CREAT | O_RDWR, 0644))) {
@@ -133,18 +138,20 @@ sub new {
 				}
 				if ($pid==0 || $! == ESRCH) {
 					# pid does not exist, remove the lock
-					$main::log->do('debug', "Modem '$name': stale lockfile from PID $pid removed");
+					$log->do('debug', "Modem '$name': stale lockfile from PID $pid removed");
 					unlink("$lockfile");
 					next;
 				}
 			}
 			
 			# cannot touch lockfile
-			$main::log->do('warning',"Modem '$name': $dev is locked by process '$pid'");
+			$log->do('warning',"Modem '$name': $dev is locked by process '$pid'");
+			undef $log;
 			return undef;
 		}
 		else {
-			$main::log->do('alert',"Modem '$name': cannot access lockfile '$lockfile': $!");
+			$log->do('alert',"Modem '$name': cannot access lockfile '$lockfile': $!");
+			undef $log;
 			return undef;
 		}
 	}
@@ -158,17 +165,17 @@ sub new {
 	my $ref;
 
 	if (!defined($self)) {
-		$main::log->do('crit',"Modem '$name': could not start Device::Serial port");
+		$log->do('crit',"Modem '$name': could not start Device::Serial port");
 		unlink $lockfile;
+		undef $log;
 		return undef;
 	}
 
 	# save our stateful information
-	$self->{CONFIG}=$config;	# get the config info
 	$self->{NAME}  =$name;		# name of the modem
 	$self->{LOCKFILE} = $lockfile;	# where our lockfile is
 	$self->{DEBUG} = $debug;	# debug mode?
-	$self->{IGNORE_CARRIER}=$config->get("modem:${name}\@ignore-carrier",1);
+	$self->{INITDONE} = 0;		# we have not run "init"
 
 	# internal buffer for 'chat'
 	$self->{BUFFER} = "";
@@ -177,12 +184,27 @@ sub new {
 
 	# Do Device::SerialPort capability sanity checking
 	if (!$self->can_ioctl()) {
-		$main::log->do('crit',"Modem '$name' cannot do ioctl's.  Did you run h2ph?");
+		$log->do('crit',"Modem '$name' cannot do ioctl's.  Did you run h2ph?");
 		# get rid of modem
 		$self->unlock();
+		undef $log;
 		undef $self;
 	}
 
+	# grab config settings
+	my $index;
+	foreach $index (qw(Baud Parity Data Stop Flow Init InitOK InitWait InitRetry Error Dial DialOK DialWait DialRetry NoCarrier IgnoreCarrier DTRToggleTime)) {
+		if (defined($arg{$index})) {
+			$self->{$index} = $arg{$index};
+			$log->do('debug',"Modem '$name' setting '$index': '".
+				$self->{$index}."'")
+					if ($self->{DEBUG});
+		}
+	}
+	# handle stuff that MUST have a setting:
+	$self->{DTRToggleTime}=1.5 unless defined($self->{DTRToggleTime});
+
+	$self->{LOG} = $log;		# get the log object
 	return $self;
 }
 
@@ -195,87 +217,87 @@ sub init {
 	$name="Modem '$self->{NAME}'";
 
 	if (!defined($self->{LOCKFILE})) {
-		$main::log->do('crit',"init: $name not locked");
+		$self->{LOG}->do('crit',"init: $name not locked");
 		return undef;
 	}
 
 
-	$baud   = $self->{CONFIG}->get("modem:$self->{NAME}\@baud") unless ($baud);
-	$parity = $self->{CONFIG}->get("modem:$self->{NAME}\@parity") unless ($parity);
-	$data   = $self->{CONFIG}->get("modem:$self->{NAME}\@data") unless ($data);
-	$stop   = $self->{CONFIG}->get("modem:$self->{NAME}\@stop") unless ($stop);
-	$flow   = $self->{CONFIG}->get("modem:$self->{NAME}\@flow") unless ($flow);
-	$str    = $self->{CONFIG}->get("modem:$self->{NAME}\@init") unless ($str);
-	my $ok     = $self->{CONFIG}->get("modem:$self->{NAME}\@initok");
-	my $initwait=$self->{CONFIG}->get("modem:$self->{NAME}\@initwait");
-	my $initretries=$self->{CONFIG}->get("modem:$self->{NAME}\@initretries");
+	$baud   = $self->{Baud} unless ($baud);
+	$parity = $self->{Parity} unless ($parity);
+	$data   = $self->{Data} unless ($data);
+	$stop   = $self->{Stop} unless ($stop);
+	$flow   = $self->{Flow} unless ($flow);
+	$str    = $self->{Init} unless ($str);
+	my $ok     = $self->{InitOK};
+	my $initwait=$self->{InitWait};
+	my $initretries=$self->{InitRetry};
 
 	# sanity check our config options
 	if (!defined($baud)) {
-		$main::log->do('alert', "$name has no baud rate defined!");
+		$self->{LOG}->do('alert', "$name has no baud rate defined!");
 		return undef;
 	}
 	if (!defined($parity)) {
-		$main::log->do('alert', "$name has no parity defined!");
+		$self->{LOG}->do('alert', "$name has no parity defined!");
 		return undef;
 	}
 	if (!defined($data)) {
-		$main::log->do('alert', "$name has no data bits defined!");
+		$self->{LOG}->do('alert', "$name has no data bits defined!");
 		return undef;
 	}
 	if (!defined($stop)) {
-		$main::log->do('alert', "$name has no stop bits defined!");
+		$self->{LOG}->do('alert', "$name has no stop bits defined!");
 		return undef;
 	}
 	if (!defined($flow)) {
-		$main::log->do('alert', "$name has no flow control defined!");
+		$self->{LOG}->do('alert', "$name has no flow control defined!");
 		return undef;
 	}
-	if (!defined($str)) {
-		$main::log->do('alert', "$name has no init string defined!");
-		return undef;
-	}
+#	if (!defined($str)) {
+#		$self->{LOG}->do('alert', "$name has no init string defined!");
+#		return undef;
+#	}
 	
 	# pass various settings through to the serial port
 	$self->alias($self->{NAME});
 
 	my $baud_set=$self->baudrate($baud);
-	$main::log->do('debug', "baud requested: '$baud' baud set: '$baud_set'")
+	$self->{LOG}->do('debug', "baud requested: '$baud' baud set: '$baud_set'")
 		if ($self->{DEBUG});
 	if ($baud ne $baud_set) {
-		$main::log->do('alert', "$name failed to set baud rate!");
+		$self->{LOG}->do('alert', "$name failed to set baud rate!");
 		return undef;
 	}
 
 	my $parity_set=$self->parity($parity);
-	$main::log->do('debug', "parity requested: '$parity' parity set: '$parity_set'")
+	$self->{LOG}->do('debug', "parity requested: '$parity' parity set: '$parity_set'")
 		if ($self->{DEBUG});
 	if ($parity ne $parity_set) {
-		$main::log->do('alert', "$name failed to set parity!");
+		$self->{LOG}->do('alert', "$name failed to set parity!");
 		return undef;
 	}
 
 	my $data_set=$self->databits($data);
-	$main::log->do('debug', "databits requested: '$data' databits set: '$data_set'")
+	$self->{LOG}->do('debug', "databits requested: '$data' databits set: '$data_set'")
 		if ($self->{DEBUG});
 	if ($data ne $data_set) {
-		$main::log->do('alert', "$name failed to set databits!");
+		$self->{LOG}->do('alert', "$name failed to set databits!");
 		return undef;
 	}
 
 	my $stop_set=$self->stopbits($stop);
-	$main::log->do('debug', "stopbits requested: '$stop' stopbits set: '$stop_set'")
+	$self->{LOG}->do('debug', "stopbits requested: '$stop' stopbits set: '$stop_set'")
 		if ($self->{DEBUG});
 	if ($stop ne $stop_set) {
-		$main::log->do('alert', "$name failed to set stopbits!");
+		$self->{LOG}->do('alert', "$name failed to set stopbits!");
 		return undef;
 	}
 
 	my $flow_set=$self->handshake($flow);	
-	$main::log->do('debug', "flow requested: '$flow' flow set: '$flow_set'")
+	$self->{LOG}->do('debug', "flow requested: '$flow' flow set: '$flow_set'")
 		if ($self->{DEBUG});
 	if ($flow ne $flow_set) {
-		$main::log->do('alert', "$name failed to set flow control!");
+		$self->{LOG}->do('alert', "$name failed to set flow control!");
 		return undef;
 	}
 
@@ -284,18 +306,29 @@ sub init {
         $self->read_const_time(1000/$SPEED);   # delay between calls
 
 	# hang up just in case
-	$main::log->do('debug', "reseting DTR ...") if ($self->{DEBUG});
+	$self->{LOG}->do('debug', "reseting DTR ...") if ($self->{DEBUG});
 	$self->dtr_active(F);
-	select(undef,undef,undef,1.5);  # force the dtr down
+	select(undef,undef,undef,$self->{DTRToggleTime});  # force the dtr down
 	$self->dtr_active(T);
 
 	# make sure the RTS is up
-	$main::log->do('debug', "reseting RTS ...") if ($self->{DEBUG});
+	$self->{LOG}->do('debug', "reseting RTS ...") if ($self->{DEBUG});
 	$self->rts_active(T);
 
-	# send the init string through
-	return $self->chat("$str\r","$str\r",$ok,$initwait,$initretries,
-		$self->{CONFIG}->get("modem:$self->{NAME}\@error"),1);
+	my $result = undef;
+	# allow for blank inits
+	if ($str eq "") {
+		$result=1;
+	}
+	else {
+		# send the init string through
+		$result=$self->chat("$str\r","$str\r",$ok,$initwait,
+			$initretries, $self->{Error},1);
+	}
+	if (defined($result)) {
+		$self->{INITDONE}=1;
+	}
+	return $result;
 }
 
 # FIXME: implement dial retries
@@ -306,25 +339,23 @@ sub dial {
 	my $dialretries=shift;
 
 	if (!defined($self->{LOCKFILE})) {
-		$main::log->do('crit',"dial: Modem '$self->{NAME}' not locked");
+		$self->{LOG}->do('crit',"dial: Modem '$self->{NAME}' not locked");
 		return undef;
 	}
 
 
-	my $dial = $self->{CONFIG}->get("modem:$self->{NAME}\@dial");
-	$dialwait = $self->{CONFIG}->get("modem:$self->{NAME}\@dialwait")
-		if (!defined($dialwait));
-	$dialretries = $self->{CONFIG}->get("modem:$self->{NAME}\@dialretries")
-		if (!defined($dialretries));
+	my $dial = $self->{Dial};
+	$dialwait = $self->{DialWait} if (!defined($dialwait));
+	$dialretries = $self->{DialRetry} if (!defined($dialretries));
 
 	if (!defined($str) || $str eq "") {
-		$main::log->do('err',"Nothing to dial (no phone number passed)");
+		$self->{LOG}->do('err',"Nothing to dial (no phone number passed)");
 		return undef;
 	}
 
 	return $self->chat("$dial$str\r","",
-		$self->{CONFIG}->get("modem:$self->{NAME}\@dialok"),
-		$dialwait,1,$self->{CONFIG}->get("modem:$self->{NAME}\@no-carrier"),
+		$self->{DialOK},
+		$dialwait,1,$self->{NoCarrier},
 		1);
 }
 
@@ -333,7 +364,7 @@ sub safe_write {
 	my($textlen,$written);
 
 	if (!defined($self->{LOCKFILE})) {
-		$main::log->do('crit',"safe_write: Modem '$self->{NAME}' not locked");
+		$self->{LOG}->do('crit',"safe_write: Modem '$self->{NAME}' not locked");
 		return undef;
 	}
 
@@ -342,15 +373,15 @@ sub safe_write {
 	do {
 		$written=$self->write($text);
 		if (!defined($written)) {
-			$main::log->do('crit',"write totally failed");
+			$self->{LOG}->do('crit',"write totally failed");
 			return undef;
 		}
 		elsif ($written != $textlen) {
-			$main::log->do('warning',"write was incomplete!?!  retrying...");
+			$self->{LOG}->do('warning',"write was incomplete!?!  retrying...");
 			$text=substr($text,$written);
 		}
 		if ($self->{DEBUG}) {
-			$main::log->do('debug',"wrote: $written ".
+			$self->{LOG}->do('debug',"wrote: $written ".
 				$self->HexStr(substr($text,0,$written)));
 		}
 		$textlen-=$written;
@@ -368,20 +399,24 @@ sub chat {
         my ($avail,$got);
 
 	if (!defined($self->{LOCKFILE})) {
-		$main::log->do('crit',"chat: Modem '$self->{NAME}' not locked");
+		$self->{LOG}->do('crit',"chat: Modem '$self->{NAME}' not locked");
+		return undef;
+	}
+	if (!$self->{INITDONE}) {
+		$self->{LOG}->do('crit',"chat: Modem '$self->{NAME}' not initialized");
 		return undef;
 	}
 
-	$ignore_carrier=$self->{IGNORE_CARRIER}
-		unless (defined($ignore_carrier));
+	$ignore_carrier=$self->{IgnoreCarrier}
+		if (!defined($ignore_carrier));
 	$got=$self->{BUFFER};
 
 	if ($self->{DEBUG}) {
-		$main::log->do('debug',"\tto send: ".$self->HexStr($send));
-	        $main::log->do('debug',"\twant: ".$self->HexStr($expect));
-		$main::log->do('debug',"\tkicker: ".$self->HexStr($kicker));
-		$main::log->do('debug',"\ttimeout: $timeout retries: $retries");
-		$main::log->do('debug', "\thave: ".$self->HexStr($got));
+		$self->{LOG}->do('debug',"\tto send: ".$self->HexStr($send));
+	        $self->{LOG}->do('debug',"\twant: ".$self->HexStr($expect));
+		$self->{LOG}->do('debug',"\tkicker: ".$self->HexStr($kicker));
+		$self->{LOG}->do('debug',"\ttimeout: $timeout retries: $retries");
+		$self->{LOG}->do('debug', "\thave: ".$self->HexStr($got));
 	}
 
 	# useful variables:
@@ -402,7 +437,7 @@ sub chat {
 
 	# send initial text no matter what
 	if (!defined($self->safe_write($send))) {
-		$main::log->do('alert',"safe_write failed!");
+		$self->{LOG}->do('alert',"safe_write failed!");
 	}
 
 	# initial check for sucess
@@ -410,7 +445,7 @@ sub chat {
 		my $matched=$1;
 		my $upto=$`.$1;
 		$self->{BUFFER}=$';	# keep right of match
-		$main::log->do('debug',"chat success: ".$self->HexStr($matched))
+		$self->{LOG}->do('debug',"chat success: ".$self->HexStr($matched))
 			 if ($self->{DEBUG});
 		return $upto; 
 	}
@@ -418,7 +453,7 @@ sub chat {
 		my $matched=$1;
 		my $upto=$`.$1;
 		$self->{BUFFER}=$';	# keep right of match
-		$main::log->do('debug',"chat failure: ".$self->HexStr($matched))
+		$self->{LOG}->do('debug',"chat failure: ".$self->HexStr($matched))
 			 if ($self->{DEBUG});
 		return undef;
 	}
@@ -432,10 +467,10 @@ sub chat {
 
 		# send kicker (unless this is the first time through)
 		if ($kicker ne "" && $tries>0) {
-			$main::log->do('debug', "timed out, sending kicker")
+			$self->{LOG}->do('debug', "timed out, sending kicker")
 				if ($self->{DEBUG});
 			if (!defined($self->safe_write($kicker))) {
-				$main::log->do('alert',"safe_write failed!");
+				$self->{LOG}->do('alert',"safe_write failed!");
 			}
 		}
 
@@ -447,7 +482,7 @@ sub chat {
 			if (!defined($ignore_carrier)) { 
 				my $has_carrier=$self->carrier();
 				if (!$has_carrier) {
-					$main::log->do('warning',
+					$self->{LOG}->do('warning',
 						"lost carrier during chat");
 					return undef;
 				}
@@ -456,10 +491,10 @@ sub chat {
 			# try to read char
 			($cnt,$avail)=$self->read_vmin(255);
 			if ($cnt > 0) {
-				$main::log->do('debug', "$cnt seen: ".$self->HexStr($avail))
+				$self->{LOG}->do('debug', "$cnt seen: ".$self->HexStr($avail))
 					if ($self->{DEBUG});
 				$got.=$avail;
-				$main::log->do('debug', "have: ".$self->HexStr($got))
+				$self->{LOG}->do('debug', "have: ".$self->HexStr($got))
 					if ($self->{DEBUG});
 				
 				# reset our timeout
@@ -469,7 +504,7 @@ sub chat {
 				my $msg=sprintf("(timeout: %d/%d, retries: %d/%d)\n",
 					$timeleft/10,$timeout/10,
 					$tries,$retries);
-				$main::log->do('debug', $msg)
+				$self->{LOG}->do('debug', $msg)
 					if (($timeleft % $SPEED) == 0);
 			}
 
@@ -478,7 +513,7 @@ sub chat {
 				my $matched=$1;
 				my $upto=$`.$1;
 				$self->{BUFFER}=$';	# keep right of match
-				$main::log->do('debug',
+				$self->{LOG}->do('debug',
 				   "chat success: ".$self->HexStr($matched))
 					if ($self->{DEBUG});
 				return $upto; 
@@ -487,7 +522,7 @@ sub chat {
 				my $matched=$1;
 				my $upto=$`.$1;
 				$self->{BUFFER}=$';	# keep right of match
-				$main::log->do('debug',
+				$self->{LOG}->do('debug',
 				   "chat failure: ".$self->HexStr($matched))
 					 if ($self->{DEBUG});
 				return undef;
@@ -496,7 +531,7 @@ sub chat {
 	}
 
 	# failure
-	$main::log->do('debug', "chat failed") if ($self->{DEBUG});
+	$self->{LOG}->do('debug', "chat failed") if ($self->{DEBUG});
        	return undef;
 }
 
@@ -505,7 +540,7 @@ sub carrier {
 	my $self=shift;
 
 	if (!defined($self->{LOCKFILE})) {
-		$main::log->do('crit',"carrier: Modem '$self->{NAME}' not locked");
+		$self->{LOG}->do('crit',"carrier: Modem '$self->{NAME}' not locked");
 		return undef;
 	}
 
@@ -519,12 +554,12 @@ sub hangup {
 	$self=shift;
 
 	if (!defined($self->{LOCKFILE})) {
-		$main::log->do('crit',"hangup: Modem '$self->{NAME}' not locked");
+		$self->{LOG}->do('crit',"hangup: Modem '$self->{NAME}' not locked");
 		return undef;
 	}
 
 	if ($self->carrier()) {
-		$main::log->do('debug',"hanging up Modem '$self->{NAME}'")
+		$self->{LOG}->do('debug',"hanging up Modem '$self->{NAME}'")
 			if ($self->{DEBUG});
 		$self->pulse_dtr_off(500);
 	}
@@ -537,14 +572,14 @@ sub unlock {
 	my $self=shift;
 
 	if (!defined($self->{LOCKFILE})) {
-		$main::log->do('crit',"unlock: Modem '$self->{NAME}' not locked");
+		$self->{LOG}->do('crit',"unlock: Modem '$self->{NAME}' not locked");
 		return undef;
 	}
 
 	$self->hangup();
 
 	if (defined($self->{LOCKFILE})) {
-		$main::log->do('debug',"unlocking Modem '$self->{NAME}'")
+		$self->{LOG}->do('debug',"unlocking Modem '$self->{NAME}'")
 			if ($self->{DEBUG});
 		unlink($self->{LOCKFILE});
 		undef $self->{LOCKFILE};
@@ -555,7 +590,7 @@ sub unlock {
 sub DESTROY {
 	my $self = shift;
 
- 	$main::log->do('debug',"Modem '$self->{NAME}' being destroyed") if ($self->{DEBUG});
+ 	$self->{LOG}->do('debug',"Modem '$self->{NAME}' being destroyed") if ($self->{DEBUG});
 
 	$self->unlock() if (defined($self->{LOCKFILE}));
 }
@@ -566,7 +601,7 @@ sub HexDump {
 
         my $str=$self->HexStr($text);
 
-        $main::log->do('debug', "len %d: %s",length($text),$str);
+        $self->{LOG}->do('debug', "len %d: %s",length($text),$str);
 }
 
 sub HexStr {
