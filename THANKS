@@ -26,6 +26,10 @@ Jerry Paul Taft
 	will be missed.
 
 
+Karsten Hilbert
+	<karsten.hilbert@gmx.net>
+	Notified me of a subtle formatting problem in the modem lock files.
+
 Mark Frey
 	<markfrey@sympatico.ca>
 	Found a strange bug (in Perl?) where Modem.pm wasn't closing

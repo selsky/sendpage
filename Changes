@@ -3,7 +3,8 @@ $Id$
 0.9.12: (17Jul2001)
 	- changed Modem.pm to deal with vmin problems under Solaris
 	- fixed bug in email2page where bodies weren't being chopped correctly
-   - fixed Modem.pm to close the device opened by Device::SerialPort
+	- "fixed" Modem.pm to close the device opened by Device::SerialPort
+	- corrected the format of the PID printing in the lock file
 
 0.9.11: (15May2001)
 	- added "maxlines" to email2page.

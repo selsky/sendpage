@@ -26,8 +26,8 @@ use POSIX;
 use IO::Handle;
 use Sendpage::KeesLog;
 
-# Hey!  Duh!  I should use the OS auto-discovery system to get the right
-# serial device module here!
+# FIXME: Hey!  Duh!  I should use the OS auto-discovery system to get the
+# right serial device module here!
 use Device::SerialPort;
 @ISA = ("Device::SerialPort");
 
@@ -59,7 +59,7 @@ This needs more docs.
 
 
 # globals
-my $SPEED=10;	# how much to speed up the char reader
+my $SPEED=10;	# arbitrary: how much to speed up the char reader timeout
 
 # new methods here are:
 #	init		- inits modem
@@ -68,7 +68,7 @@ my $SPEED=10;	# how much to speed up the char reader
 
 # new modem
 #	takes:
-#		KeesLog, modem_name
+#		modem parameters
 #
 sub new {
 	# local vars
@@ -159,7 +159,7 @@ sub new {
 		}
 	}
 	# we have the lock file now
-	print LOCKFILE $$,"\n";
+	print LOCKFILE sprintf("%10d\n",$$);
 	close(LOCKFILE);
 
 	# handle inheritance?
@@ -629,13 +629,16 @@ sub carrier {
 sub hangup {
 	$self=shift;
 
+	$self->{LOG}->do('debug',"Modem::hangup: '$self->{NAME}'")
+		if ($self->{DEBUG});
+
 	if (!defined($self->{LOCKFILE})) {
 		$self->{LOG}->do('crit',"hangup: Modem '$self->{NAME}' not locked");
 		return undef;
 	}
 
 	if (!$self->{IgnoreCarrier} && $self->carrier()) {
-		$self->{LOG}->do('debug',"hanging up Modem '$self->{NAME}'")
+		$self->{LOG}->do('debug',"toggling DTR to hang up Modem '$self->{NAME}'")
 			if ($self->{DEBUG});
 		$self->pulse_dtr_off(500);
 	}
@@ -652,6 +655,9 @@ sub unlock {
 		return undef;
 	}
 
+	$self->{LOG}->do('debug',"Modem::unlock: '$self->{NAME}'")
+		if ($self->{DEBUG});
+
 	$self->hangup();
 
 	if (defined($self->{LOCKFILE})) {
@@ -665,13 +671,19 @@ sub unlock {
 # what happens when we get destroyed
 sub DESTROY {
 	my $self = shift;
+	my $log=$self->{LOG};
+	my $name=$self->{NAME};
 
- 	$self->{LOG}->do('debug',"Modem Object '$self->{NAME}' being destroyed") if ($self->{DEBUG});
+ 	$log->do('debug',"Modem Object '$name' being destroyed")
+		if ($self->{DEBUG});
 
 	$self->unlock() if (defined($self->{LOCKFILE}));
 
 	# Very weird: don't Perl objects destroy parents?
 	$self->close();
+
+ 	$log->do('debug',"Modem Object '$name' destroyed")
+		if ($self->{DEBUG});
 }
 
 # extra bits...

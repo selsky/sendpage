@@ -592,7 +592,7 @@ sub dropmodem {
 	}
 
 	# give up the modem
-	$self->{MODEM}->unlock();
+	#$self->{MODEM}->unlock();
 	undef $self->{MODEM};
 
 	return 1;
@@ -609,6 +609,10 @@ sub disconnect {
 		# already disconnected
 		return 1;
 	}
+
+	$main::log->do('debug',"PagingCentral '$self->{NAME}' disconnecting")
+		if ($self->{DEBUG});
+
 	#neither t nor n spec'd
 	my $result=$self->{MODEM}->chat("${EOT}${CR}","","${CR}",$T[1],$N[0]);
 	if (!defined($result)) {
@@ -628,6 +632,10 @@ sub disconnect {
 				if ($self->{DEBUG});
 			$result=1;
 		}
+
+	$main::log->do('debug',"PagingCentral '$report' reported")
+		if ($self->{DEBUG});
+
 
 		# report on failure or debug
 		$main::log->do($result!=1 ? 'crit' : 'debug',

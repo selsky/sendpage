@@ -204,6 +204,7 @@ General Options
 	-h		you're reading it.  :)
 	-d		turn debug on
 	-C FILE		use FILE as the sendpage.cf file
+	-t		test all configured modems
 
 Daemon Options
 	-bd		run in daemon mode
@@ -216,7 +217,7 @@ Daemon Options
 	-qR PC		force a queue run only for the PC paging central
 
 Page Queuing Options
-	-f USER         force page to be from user USER (default is current user)
+	-f USER         force page to be from USER (default is current user)
 	-m MESSAGE      message to send (reads from stdin by default)
 	-n              no email carboning to 'from' for this page
 
@@ -227,7 +228,7 @@ Page Queuing Options
 $log=Sendpage::KeesLog->new(Syslog => 0);
 
 # get our options
-if (!getopts('hvdqC:b:R:f:m:n:',\%opts) || $opts{h}) {
+if (!getopts('htvdqC:b:R:f:m:n:',\%opts) || $opts{h}) {
 	Usage();
 }
 
@@ -250,6 +251,10 @@ $log->reconfig(Syslog => $config->get("syslog"),
 #		- address expansion
 #		- force a queue run (optionally for only a certain PC)
 #
+if ($opts{t}) {
+	DaemonInit();
+	exit(0);
+}
 if ($opts{b}) {
 	QueryDaemons(1) if ($opts{b} eq "q");
 	SendHUP() if ($opts{b} eq "r");
