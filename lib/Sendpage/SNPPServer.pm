@@ -364,14 +364,12 @@ sub create {
  my $class = ref($proto) || $proto;
  my %arg = @_;
 
- my $sock= $class->SUPER::new(	Listen => $arg{Listen} || 5,
+ return = $class->SUPER::new(	Listen => $arg{Listen} || 5,
 				LocalAddr => $arg{Addr},
 				LocalPort => $arg{Port} || "snpp(444)",
 				Timeout => $arg{Timeout},
 				Proto => 'tcp', 
 				Reuse => 1 );
- $sock->sockopt(SO_REUSEADDR,1) if (defined($sock));
- return $sock;
 }
 
 1;
