@@ -43,9 +43,9 @@ PageQueue.pm - extends the Queue module, adding the Page module smarts
     $pqueue=Sendpage::PageQueue($config);
 
     # read waiting pages
-    while ($fh=$pqueue->getPage()) {
+    while ($fh=$pqueue->getPage($db)) {
 	# build up $page
-	@stuff=$pqueue->pullPageFromFile($fh);
+	@stuff=$pqueue->pullPageFromFile($db,$fh);
 	$page=Sendpage::Page->new(@stuff);
 
 	# do something to change $page
@@ -85,12 +85,13 @@ sub new {
 
 sub getPage {
 	my $self = shift;
+	my $db = shift;
 
 	my $handle = $self->getReadyFile();
 
 	if (defined($handle)) {
 		# read the data
-		my $page=Sendpage::Page->new($self->pullPageFromFile($handle));
+		my $page=Sendpage::Page->new($self->pullPageFromFile($db,$handle));
 
 		if ($page) {
 			$page->option('FILE',$self->file());
@@ -104,6 +105,7 @@ sub getPage {
 
 sub pullPageFromFile {
 	my $self=shift;
+	my $db  =shift;
 	my $fh  =shift;
 
 	my($line,$body,@lines,@recips,$text,%options,$recip);
@@ -151,7 +153,7 @@ sub pullPageFromFile {
 					}
 
 					
-					if (defined($recip=Sendpage::Recipient->new($self->{CONFIG},$value,\%data))) {
+					if (defined($recip=Sendpage::Recipient->new($self->{CONFIG},$db,$value,\%data))) {
 						push(@recips,$recip);
 					}
 					else {

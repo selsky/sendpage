@@ -29,7 +29,7 @@ Recipient.pm - encapsulates the data of a single recipient
 
 =head1 SYNOPSIS
 
-    $recip=Sendpage::Recipient->new($config,$name,$data);
+    $recip=Sendpage::Recipient->new($config,$db,$name,$data);
     $alias=$recip->alias();
     @dests=@{ $recip->dests() };
     @data=@{ $recip->data() };
