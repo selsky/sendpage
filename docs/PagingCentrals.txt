@@ -11,472 +11,471 @@
 # To make changes, corrections, etc, please send me some email at 
 # pc-updates@outflux.net
 # 
-
-+-----+--------------------------+--------------------------+-------------------------+--------------------+-----------------+---------------+
-| id  | vendor                   | region                   | notes                   | tap_access         | settings        | quirks        |
-+-----+--------------------------+--------------------------+-------------------------+--------------------+-----------------+---------------+
-|   1 | Skytel                   | National                 |                         | 800-759-6366       | 7e1             | ctrl=false    |
-|   2 | Skytel                   | National                 | untested                | 800-933-6384       | 7e1             |               |
-|   3 | Skytel                   | National                 | untested                | 800-679-2778       | 7e1             |               |
-|   4 | AT&T Paging              | National                 | untested                | 800-724-7784       | 7e1             |               |
-|   5 | Ameritech                | Chicago, IL              |                         | 312-514-9243       | 7e1             | shorttap=true |
-|   6 | AirTouch                 | San Diego, CA            | untested                | 858-576-1783       | 7e1             |               |
-|   7 | AT&T Paging              | San Diego, CA            | untested                | 619-893-0099       | 7e1             |               |
-|   8 | Beeper Communications    | Israel                   | untested                | 972-3-6100081      | 7e1             |               |
-|   9 | British Telecom          | UK                       | untested                | +44 (0)345 581 354 | 7e1             |               |
-|  10 | Cellcom                  | Israel                   | untested                | 972-53-446-622     | 7e1             |               |
-|  11 | Cellcom                  | Israel                   | untested                | 972-53-446-633     | 7e1             |               |
-|  12 | Hutchison Telecom        | UK                       | untested                | +44 (0)941 100400  | 7e1             |               |
-|  13 | Hutchison Telecom        | UK                       | untested,interactive    | +44 (0)973 100602  | 7e1             |               |
-|  14 | ISDN                     | Germany                  | untested                | 0 16 90            | 7e1             |               |
-|  15 | MobileNet                | Australia                | untested                | 018018767          | 7e1             |               |
-|  16 | PageOne Communications   | UK                       | untested                | +44 1523 530 300   | 7e1             |               |
-|  17 | Telecom                  | New Zealand              | Pagers,untested         | 026-4001283        | 7e1             |               |
-|  18 | Telecomi                 | New Zealand              | Digital Phones,untested | 04-3844476         | 7e1             |               |
-|  19 | A Better Beep            | Bakersfield, CA          | untested                | 805-334-7002       | 7e1             |               |
-|  20 | A Better Beep            | Fresno, CA               | untested                | 209-778-9451       | 7e1             |               |
-|  21 | A Better Beep            | San Luis Obispo, CA      | untested                | 805-542-4050       | 7e1             |               |
-|  22 | A Better Beep            | Santa Barbara, CA        | untested                | 805-730-3118       | 7e1             |               |
-|  23 | A Better Beep            | Santa Rosa, CA           | untested                | 707-523-6571       | 7e1             |               |
-|  24 | A Better Beep            | Stockton, CA             | untested                | 209-762-3094       | 7e1             |               |
-|  25 | A-Plus Communications    | Alabama                  | untested                | 800-921-6625       | 7e1             |               |
-|  26 | AT&T Alphanumeric        | Dallas, TX               | untested                | 972-934-2797       | 7e1             |               |
-|  27 | AT&T                     | National                 | untested                | 800-720-8398       | 7e1             |               |
-|  28 | AT&T PCS Text Messaging  | National                 | Cellphones,untested     | 800-841-8837       | 7e1,4800,no crc |               |
-|  29 | AT&T Paging              |                          | untested                | 801-596-9364       | 7e1             |               |
-|  30 | AT&T Wireless            |                          | untested                | 800-368-4133       | 7e1             |               |
-|  31 | AT&T Wireless            |                          | untested                | 888-299-9550       | 7e1             |               |
-|  32 | AT&T Wireless            | Seattle, WA              | untested                | 206-622-7585       | 7e1             |               |
-|  33 | AT&T Wireless            | Corpus Christi, TX       | untested                | 361-857-8231       | 7e1             |               |
-|  34 | Advanced Paging          | New Orleans, LA          | untested                | 888-723-2337       | 7e1             |               |
-|  35 | AirTouch                 |                          | untested                | 800-326-0038       | 7e1             |               |
-|  36 | AirTouch                 | CA                       | CDMA cells,untested     | 888-287-7108       | 7e1             |               |
-|  37 | AirTouch                 | Albuquerque, NM          | untested                | 505-883-1977       | 7e1             |               |
-|  38 | AirTouch                 | Atlanta, GA              | untested                | 404-873-6337       | 7e1             |               |
-|  39 | AirTouch                 | Austin, TX               | untested                | 512-873-8719       | 7e1             |               |
-|  40 | AirTouch                 | Boise, ID                | untested                | 208-869-0004       | 7e1             |               |
-|  41 | AirTouch                 | Dallas/Fort Worth, TX    | untested                | 817-265-1848       | 7e1             |               |
-|  42 | AirTouch                 | Indianapolis, IN         | untested                | 317-553-2471       | 7e1             |               |
-|  43 | AirTouch                 | Kansas City              | untested                | 800-546-7243       | 7e1             |               |
-|  44 | AirTouch                 | Michigan                 | untested                | 800-371-8800       | 7e1             |               |
-|  45 | AirTouch                 | Michigan                 | untested                | 810-539-3917       | 7e1             |               |
-|  46 | AirTouch                 | Nation-Wide              | untested                | 800-326-4724       | 7e1             |               |
-|  47 | AirTouch                 | Nation-Wide              | untested                | 800-793-4549       | 7e1             |               |
-|  48 | AirTouch                 | Nation-Wide              | untested                | 800-347-7243       | 7e1             |               |
-|  49 | AirTouch                 | Orlando, FL              | untested                | 407-645-3103       | 7e1             |               |
-|  50 | AirTouch                 | Phoenix, AZ              | untested                | 602-253-4297       | 7e1             |               |
-|  51 | AirTouch                 | Sacramento, CA           | untested                | 916-447-6053       | 7e1             |               |
-|  52 | AirTouch                 | San Deigo, CA            | untested                | 619-296-0772       | 7e1             |               |
-|  53 | AirTouch                 | San Deigo, CA            | untested                | 858-576-1783       | 7e1             |               |
-|  54 | AirTouch                 | Sunnyvale, CA            | untested                | 408-950-0572       | 7e1             |               |
-|  55 | AirTouch                 | Texas                    | untested                | 800-672-4371       | 7e1             |               |
-|  56 | AirTouch                 | Tucson, AZ               | untested                | 520-622-3122       | 7e1             |               |
-|  57 | Alert                    |                          | untested                | 702-362-1748       | 7e1             |               |
-|  58 | American Pager           |                          | untested                | 210-657-5562       | 7e1             |               |
-|  59 | American Pager           |                          | untested                | 800-660-5747       | 7e1             |               |
-|  60 | American Paging          |                          | untested                | 512-451-0777       | 7e1             |               |
-|  61 | American Paging          | Arizona                  | untested                | 602-265-5203       | 7e1             |               |
-|  62 | American Paging          | Arizona                  | untested                | 800-364-0816       | 7e1             |               |
-|  63 | American Paging          | Orlando, Florida         | untested                | 800-233-9977       | 7e1             |               |
-|  64 | American Paging          | Washington, DC           | untested                | 800-459-2033       | 7e1             |               |
-|  65 | American Paging          | Wisconsin                | untested                | 800-642-4152       | 7e1             |               |
-|  66 | Ameritech                |                          | untested                | 314-841-8410       | 7e1             |               |
-|  67 | Ameritech                |                          | untested                | 616-201-2000       | 7e1             |               |
-|  68 | Ameritech                | Cleveland, OH            | untested                | 216-670-7243       | 7e1             |               |
-|  69 | Ameritech                | Madison, Wisconsin       | untested                | 800-677-7454       | 7e1             |               |
-|  70 | Ameritech                | IL                       | untested                | 708-563-0024       | 7e1             |               |
-|  71 | Ameritech                | St. Louis, MO            | untested                | 314-973-9739       | 7e1,300         |               |
-|  72 | Ameritech                | St. Louis, MO            | untested                | 314-841-8410       | 7e1,1200        |               |
-|  73 | Answer Page              | Grants Pass, OR          | untested                | 541-471-5000       | 7e1             |               |
-|  74 | Answer Page              | Medford, OR              | untested                | 541-770-0000       | 7e1             |               |
-|  75 | Arch Communications      | Erie, PA                 | untested                | 814-864-1735       | 7e1             |               |
-|  76 | Arch Communications      | Erie, PA                 | untested                | 814-868-5576       | 7e1             |               |
-|  77 | Arch Communications      | Erie, PA                 | untested                | 800-800-2995       | 7e1             |               |
-|  78 | Arch Paging              | Boise, ID                | untested                | 800-741-2337       | 7e1             |               |
-|  79 | Arch Paging              | Charlotte, NC            | untested                | 800-741-2337       | 7e1             |               |
-|  80 | Arch Paging              | Cleveland, OH            | untested                | 216-464-3185       | 7e1             |               |
-|  81 | Arch Paging              | Cleveland, OH            | untested                | 216-591-0925       | 7e1             |               |
-|  82 | Arch Paging              | Colorado Springs, CO     | untested                | 800-490-1320       | 7e1             |               |
-|  83 | Arch Paging              | Columbia, SC             | untested                | 888-377-4231       | 7e1             |               |
-|  84 | Arch Paging              | Eugene, OR               | untested                | 541-342-5214       | 7e1             |               |
-|  85 | Arch Paging              | Greensboro, NC           | untested                | 888-377-4229       | 7e1             |               |
-|  86 | Arch Paging              | Greenville, SC           | untested                | 888-377-4230       | 7e1             |               |
-|  87 | Arch Paging              | Michigan                 | untested                | 800-613-1108       | 7e1             |               |
-|  88 | Arch Paging              | Michigan                 | untested                | 800-613-1107       | 7e1             |               |
-|  89 | Arch Paging              | Michigan                 | untested                | 800-613-5712       | 7e1             |               |
-|  90 | Arch Paging              | Portland, OR             | untested                | 503-228-7660       | 7e1             |               |
-|  91 | Arch Paging              | Raliegh, NC              | untested                | 888-377-4228       | 7e1             |               |
-|  92 | Arch Paging              | Rochester, NY            | untested                | 716-232-7324       | 7e1             |               |
-|  93 | Arch Paging              | Seattle, WA              | untested                | 800-695-6285       | 7e1             |               |
-|  94 | Arch Paging              | St. Louis, MO            | untested                | 800-294-9988       | 7e1             |               |
-|  95 | Arch Paging              | St. Louis Metro, MO      | untested                | 618-549-4685       | 7e1             |               |
-|  96 | Arch Paging              | Western Mass. area, MA   | untested                | 800-648-8233       | 7e1             |               |
-|  97 | Beep Call                |                          | untested                | 888-624-6703       | 7e1             |               |
-|  98 | Beep One                 |                          | untested                | 800-864-1160       | 7e1             |               |
-|  99 | Beep One                 | Clemson, South Carolina  | untested                | 800-864-0984       | 7e1             |               |
-| 100 | Bell Mobility            | Canada                   | untested                | 416-285-7267       | 7e1             |               |
-| 101 | Bell Mobility            | Canada                   | untested                | 514-931-0441       | 7e1             |               |
-| 102 | Beta Tele-Page           |                          | untested                | 800-409-6979       | 7e1             |               |
-| 103 | Cantel                   | Edmonton, Alberta        | untested                | 403-990-1042       | 7e1             |               |
-| 104 | Cantel                   | Edmonton, Alberta        | untested                | 800-387-8484       | 7e1             |               |
-| 105 | Cantel                   | Montreal, QC             | untested                | 514-862-0630       | 7e1             |               |
-| 106 | Cantel                   | Ottawa, ON               | untested                | 613-820-8631       | 7e1             |               |
-| 107 | Cantel                   | Sherbrook, QC            | untested                | 204-229-0141       | 7e1             |               |
-| 108 | Cantel                   | Toronto, QC              | untested                | 416-488-9494       | 7e1             |               |
-| 109 | Cantel                   | Winnipeg, MB             | untested                | 819-572-1847       | 7e1             |               |
-| 110 | CalPage                  | National                 | untested                | 800-258-9880       | 7e1             |               |
-| 111 | Cellular One PCS         | National                 | untested                | 800-477-4550       | 7e1             |               |
-| 112 | Cellular One PCS         | National                 | untested                | 888-878-7727       | 7e1             |               |
-| 113 | Cellular One             | Kansas City, KS          | untested                | 913-236-4065       | 7e1             |               |
-| 114 | ComTech                  |                          | untested                | 800-755-4585       | 7e1             |               |
-| 115 | Consolidated Comm        |                          | untested                | 800-533-3843       | 7e1             |               |
-| 116 | Cook Paging              |                          | untested                | 206-469-0000       | 7e1             |               |
-| 117 | Cook Paging              |                          | untested                | 209-279-0000       | 7e1             |               |
-| 118 | Cook Paging              |                          | untested                | 415-679-0000       | 7e1             |               |
-| 119 | Fido                     | Montreal, QC             | untested                | 514-937-9593       | 7e1             |               |
-| 120 | Fido                     | Canada                   | untested                | 888-322-3436       | 7e1             |               |
-| 121 | GTE                      |                          | untested                | 800-483-2340       | 7e1             |               |
-| 122 | LDDS Worldcom            |                          | untested                | 800-940-1010       | 7e1             |               |
-| 123 | Lehigh Valley Page       |                          | untested                | 800-873-2433       | 7e1             |               |
-| 124 | LA Cellular              | Los Angeles, CA          | untested                | 800-807-7274       | 7e1             |               |
-| 125 | MAP                      | Southern California      | untested                | 800-456-2190       | 7e1             |               |
-| 126 | MCC Paging               |                          | untested                | 800-529-8663       | 7e1             |               |
-| 127 | MCI Page                 |                          | untested                | 800-555-0909       | 7e1             |               |
-| 128 | MCI Page                 |                          | untested                | 800-487-9297       | 7e1             |               |
-| 129 | MCI WorldComm/PageMart   |                          | untested                | 800-557-8081       | 7e1             |               |
-| 130 | Maximum                  |                          | untested                | 800-589-3860       | 7e1             |               |
-| 131 | Metrocall                |                          | untested                | 800-926-7272       | 7e1             |               |
-| 132 | Metrocall                |                          | untested                | 917-895-5376       | 7e1             |               |
-| 133 | MetroCall                | VA                       | 2-way,untested          | 703-768-5400       | 7e1             |               |
-| 134 | MetroCall                | CA                       | 2-way,untested          | 213-941-0000       | 7e1             |               |
-| 135 | Metrocall                | National                 | LA Term 324,untested    | 800-418-8283       | 7e1             |               |
-| 136 | Metrocall                | National                 | Term 327,untested       | 619-331-4950       | 7e1             |               |
-| 137 | MetroCall                | Alexandria, VA           | untested                | 800-245-0004       | 7e1             |               |
-| 138 | MetroCall                | Massachusetts            | untested                | 617-362-6600       | 7e1             |               |
-| 139 | MetroCall                | New Jersey               | untested                | 800-917-1168       | 7e1             |               |
-| 140 | MetroCall                | Roanoke, VA              | untested                | 800-898-7247       | 7e1             |               |
-| 141 | MetroCall                | San Diego, CA            | untested                | 619-331-0041       | 7e1             |               |
-| 142 | MetroCall                | San Francisco, CA        | untested                | 800-971-7919       | 7e1             |               |
-| 143 | MetroCall                | Seattle, WA              | untested                | 206-622-7585       | 7e1             |               |
-| 144 | MetroCall                | Southern California      | untested                | 800-347-7243       | 7e1             |               |
-| 145 | MetroCall                | Tulsa, OK                | untested                | 918-664-8811       | 7e1             |               |
-| 146 | MetroCall                | Washington, DC           | untested                | 800-971-5088       | 7e1             |               |
-| 147 | Metrocall                | Wichita, KS              | untested                | 316-636-4110       | 7e1             |               |
-| 148 | Minncomm Paging          | Minneapolis              | untested                | 612-521-3541       | 7e1             |               |
-| 149 | Mobile Media             |                          | untested                | 800-622-5742       | 7e1             |               |
-| 150 | Mobile Media             | Florida                  | untested                | 800-872-6755       | 7e1             |               |
-| 151 | Mobile Media             | North Carolina           | untested                | 800-365-2689       | 7e1             |               |
-| 152 | Mobile Media             | Washington, DC           | untested                | 800-328-7587       | 7e1             |               |
-| 153 | MobileComm               |                          | untested                | 800-946-4644       | 7e1             |               |
-| 154 | MobileComm               |                          | untested                | 800-655-6555       | 7e1             |               |
-| 155 | MobileComm               | Alabama                  | untested                | 800-848-8436       | 7e1             |               |
-| 156 | MobileComm               | Boston                   | untested                | 800-287-0143       | 7e1             |               |
-| 157 | MobileComm               | Charleston, SC           | untested                | 800-277-1266       | 7e1             |               |
-| 158 | MobileComm               | Chicago, IL              | untested                | 847-490-0174       | 7e1             |               |
-| 159 | MobileComm               | Washington, DC           | untested                | 800-328-7587       | 7e1             |               |
-| 160 | MobileComm               | Detroit, MI              | untested                | 810-559-8191       | 7e1             |               |
-| 161 | MobileComm               | Huntsville, AL           | untested                | 800-239-7817       | 7e1             |               |
-| 162 | MobileComm               | Long Island, New York    | untested                | 800-657-2487       | 7e1             |               |
-| 163 | MobileComm               | Michigan                 | untested                | 800-837-5101       | 7e1             |               |
-| 164 | MobileComm               | Northern California      | untested                | 800-655-6555       | 7e1             |               |
-| 165 | MobileComm               | Northern California      | untested                | 916-444-6383       | 7e1             |               |
-| 166 | MobileComm               | Richmond, VA             | untested                | 804-270-2271       | 7e1             |               |
-| 167 | MobileComm               | San Luis Obispo, CA      | untested                | 805-544-1162       | 7e1             |               |
-| 168 | MobileComm               | Santa Barbara, CA        | untested                | 805-564-6049       | 7e1             |               |
-| 169 | MobileComm               | Santa Barbara, CA        | untested                | 805-564-8817       | 7e1             |               |
-| 170 | MobileComm               | Santa Maria, CA          | untested                | 805-349-1140       | 7e1             |               |
-| 171 | MobileComm               | St. Louis, MO            | untested                | 800-250-6325       | 7e1             |               |
-| 172 | MobileComm               | Texas                    | untested                | 800-435-3582       | 7e1             |               |
-| 173 | MobileComm               | Texas                    | untested                | 800-344-2270       | 7e1             |               |
-| 174 | MobileComm               | Washington / Oregon      | untested                | 800-734-0096       | 7e1             |               |
-| 175 | MobileComm BSE           | Michigan                 | untested                | 800-837-1202       | 7e1             |               |
-| 176 | MobileFone               |                          | untested                | 800-632-5742       | 7e1             |               |
-| 177 | MobileFone               | Kansas City, KS          | untested                | 816-842-6032       | 7e1             |               |
-| 178 | Nevada Bell PCS          |                          | untested                | 800-937-8941       | 7e1             |               |
-| 179 | Nextel                   | Chicago, IL              | untested                | 312-514-6683       | 7e1             |               |
-| 180 | Nextel                   |                          | untested                | 415-559-6683       | 7e1             |               |
-| 181 | Nextel                   |                          | untested                | 617-839-6683       | 7e1             |               |
-| 182 | Nextel                   | New York, NY             | untested                | 917-299-6683       | 7e1             |               |
-| 183 | Nextel                   | Indianapolis, IN         | untested                | 317-710-6683       | 7e1             |               |
-| 184 | Nextel                   | Seattle, WA              | untested                | 206-396-6683       | 7e1             |               |
-| 185 | Pacific Bell PCS         |                          | untested                | 888-600-7267       | 7e1             |               |
-| 186 | PacTel                   |                          | untested                | 800-662-5742       | 7e1             |               |
-| 187 | Page New England         |                          | untested                | 800-648-8233       | 7e1             |               |
-| 188 | Page New England         | Boston                   | untested                | 800-782-0034       | 7e1             |               |
-| 189 | Page New England         | Connecticut              | untested                | 800-844-7243       | 7e1             |               |
-| 190 | Page New England         | Maine                    | untested                | 800-639-6901       | 7e1             |               |
-| 191 | Page New England         | National                 | untested                | 800-844-8089       | 7e1             |               |
-| 192 | Page New England         | National                 | untested                | 800-543-6532       | 7e1             |               |
-| 193 | PageAmerica              |                          | untested                | 800-843-9187       | 7e1             |               |
-| 194 | PageAmerica              | Illinois                 | untested                | 800-637-0672       | 7e1             |               |
-| 195 | PageMart                 |                          | untested                | 800-864-9499       | 7e1             |               |
-| 196 | PageMart                 |                          | untested                | 800-324-4533       | 7e1             |               |
-| 197 | PageNet                  |                          | untested                | 800-353-5100       | 7e1             |               |
-| 198 | PageNet                  |                          | untested                | 800-766-9619       | 7e1             |               |
-| 199 | PageNet                  |                          | untested                | 800-854-1733       | 7e1             |               |
-| 200 | PageNet                  | Albany, NY               | untested                | 518-869-0590       | 7e1             |               |
-| 201 | PageNet                  | Albuquerque, NM          | untested                | 505-883-1203       | 7e1             |               |
-| 202 | PageNet                  | Anaheim, CA              | untested                | 714-540-9301       | 7e1             |               |
-| 203 | PageNet                  | Anaheim, CA              | untested                | 714-666-4700       | 7e1             |               |
-| 204 | PageNet                  | Anchorage, AK            | untested                | 907-522-8802       | 7e1             |               |
-| 205 | PageNet                  | Anderson, SC             | untested                | 803-964-3507       | 7e1             |               |
-| 206 | PageNet                  | Arizona                  | untested                | 800-848-7037       | 7e1             |               |
-| 207 | PageNet                  | Atascadero, CA           | untested                | 805-460-7045       | 7e1             |               |
-| 208 | PageNet                  | Atlanta, GA              | untested                | 404-390-9176       | 7e1             |               |
-| 209 | PageNet                  | Atlanta, GA              | untested                | 404-722-2000       | 7e1             |               |
-| 210 | PageNet                  | Augusta, GA              | untested                | 706-724-7133       | 7e1             |               |
-| 211 | PageNet                  | Austin, TX               | untested                | 512-476-2893       | 7e1             |               |
-| 212 | PageNet                  | Bakersfield, CA          | untested                | 805-336-4716       | 7e1             |               |
-| 213 | PageNet                  | Baltimore, MD            | untested                | 410-356-0613       | 7e1             |               |
-| 214 | PageNet                  | Barstow, CA              | untested                | 760-957-2000       | 7e1             |               |
-| 215 | PageNet                  | Beaumont, TX             | untested                | 409-724-7445       | 7e1             |               |
-| 216 | PageNet                  | Beaumont, TX             | untested                | 409-839-8200       | 7e1             |               |
-| 217 | PageNet                  | Birmingham, AL           | untested                | 205-510-2020       | 7e1             |               |
-| 218 | PageNet                  | Birmingham, AL           | untested                | 205-770-0000       | 7e1             |               |
-| 219 | PageNet                  | Boise, ID                | untested                | 208-375-2792       | 7e1             |               |
-| 220 | PageNet                  | Boston, MA               | untested                | 617-273-4535       | 7e1             |               |
-| 221 | PageNet                  | Boston, MA               | untested                | 781-273-4535       | 7e1             |               |
-| 222 | PageNet                  | Bridgeport, CT           | untested                | 203-523-9021       | 7e1             |               |
-| 223 | PageNet                  | Bridgeport, CT           | untested                | 203-380-1475       | 7e1             |               |
-| 224 | PageNet                  | Brooksville, FL          | untested                | 352-848-2850       | 7e1             |               |
-| 225 | PageNet                  | Broward, FL              | untested                | 954-402-7243       | 7e1             |               |
-| 226 | PageNet                  | Buffalo, NY              | untested                | 716-633-2568       | 7e1             |               |
-| 227 | PageNet                  | Burbank E SF Valley, CA  | untested                | 818-556-0050       | 7e1             |               |
-| 228 | PageNet                  | Burbank, CA              | untested                | 818-846-6326       | 7e1             |               |
-| 229 | PageNet                  | W SF Valley, CA          | untested                | 818-596-3000       | 7e1             |               |
-| 230 | PageNet                  | Charleston, SC           | untested                | 803-219-0000       | 7e1             |               |
-| 231 | PageNet                  | Charlotte, NC            | untested                | 704-527-2574       | 7e1             |               |
-| 232 | PageNet                  | Chicago, IL              | untested                | 630-325-7842       | 7e1             |               |
-| 233 | PageNet                  | Chicago, IL              | untested                | 708-325-7842       | 7e1             |               |
-| 234 | PageNet                  | Cincinnati, OH           | untested                | 513-408-9999       | 7e1             |               |
-| 235 | PageNet                  | Cincinnati, OH           | untested                | 513-434-9694       | 7e1             |               |
-| 236 | PageNet                  | Cincinnati, OH           | untested                | 513-772-0941       | 7e1             |               |
-| 237 | PageNet                  | Cleveland, OH            | untested                | 216-573-7933       | 7e1             |               |
-| 238 | PageNet                  | Cleveland, OH            | untested                | 440-303-7243       | 7e1             |               |
-| 239 | PageNet                  | Coco Beach, FL           | untested                | 407-639-1244       | 7e1             |               |
-| 240 | PageNet                  | Colorado Springs, CO     | untested                | 719-570-7055       | 7e1             |               |
-| 241 | PageNet                  | Colton, CA               | untested                | 909-410-6600       | 7e1             |               |
-| 242 | PageNet                  | Columbia, SC             | untested                | 803-301-0000       | 7e1             |               |
-| 243 | PageNet                  | Columbus, OH             | untested                | 614-846-4515       | 7e1             |               |
-| 244 | PageNet                  | Compton, CA              | untested                | 310-509-0001       | 7e1             |               |
-| 245 | PageNet                  | Corona, CA               | untested                | 909-270-6584       | 7e1             |               |
-| 246 | PageNet                  | Corpus Christi, TX       | untested                | 512-844-1622       | 7e1             |               |
-| 247 | PageNet                  | Dallas/Ft. Worth, TX     | untested                | 214-835-7243       | 7e1             |               |
-| 248 | PageNet                  | Dayton, OH               | untested                | 937-370-9999       | 7e1             |               |
-| 249 | PageNet                  | Daytona Beach, FL        | untested                | 904-252-2731       | 7e1             |               |
-| 250 | PageNet                  | Denver, CO               | untested                | 303-721-7595       | 7e1             |               |
-| 251 | PageNet                  | Denver, CO 1             | untested                | 719-520-1253       | 7e1             |               |
-| 252 | PageNet                  | Detroit, MI              | untested                | 248-827-7399       | 7e1             |               |
-| 253 | PageNet                  | Eastern Shore, MD        | untested                | 410-749-0286       | 7e1             |               |
-| 254 | PageNet                  | Eugene, OR               | untested                | 503-484-1369       | 7e1             |               |
-| 255 | PageNet                  | Eugene, OR               | untested                | 541-484-1369       | 7e1             |               |
-| 256 | PageNet                  | Freeport, TX             | untested                | 409-233-5524       | 7e1             |               |
-| 257 | PageNet                  | Fresno, CA               | untested                | 209-699-0001       | 7e1             |               |
-| 258 | PageNet                  | Ft. Lauderdale, FL       | untested                | 305-767-8000       | 7e1             |               |
-| 259 | PageNet                  | Ft. Myers, FL            | untested                | 941-339-5299       | 7e1             |               |
-| 260 | PageNet                  | Gainesville, FL          | untested                | 352-376-8251       | 7e1             |               |
-| 261 | PageNet                  | Galveston, TX            | untested                | 409-942-1042       | 7e1             |               |
-| 262 | PageNet                  | Gardena, CA              | untested                | 310-298-2995       | 7e1             |               |
-| 263 | PageNet                  | Greensboro, NC           | untested                | 336-321-3000       | 7e1             |               |
-| 264 | PageNet                  | Greensboro, NC           | untested                | 910-855-7599       | 7e1             |               |
-| 265 | PageNet                  | Greenville, SC           | untested                | 803-217-0000       | 7e1             |               |
-| 266 | PageNet                  | Greenville, SC           | untested                | 864-216-0000       | 7e1             |               |
-| 267 | PageNet                  | Greenville, SC           | untested                | 864-217-0000       | 7e1             |               |
-| 268 | PageNet                  | Greenville, SC           | untested                | 864-964-3500       | 7e1             |               |
-| 269 | PageNet                  | Hartford, CT             | untested                | 860-948-2000       | 7e1             |               |
-| 270 | PageNet                  | Hayward, CA              | untested                | 510-920-1100       | 7e1             |               |
-| 271 | PageNet                  | Hemet, CA                | untested                | 909-617-0000       | 7e1             |               |
-| 272 | PageNet                  | Houston, TX              | untested                | 281-480-9814       | 7e1             |               |
-| 273 | PageNet                  | Houston, TX              | untested                | 713-781-8152       | 7e1             |               |
-| 274 | PageNet                  | Houston, TX              | untested                | 713-781-8163       | 7e1             |               |
-| 275 | PageNet                  | Huntsville, AL           | untested                | 205-860-0000       | 7e1             |               |
-| 276 | PageNet                  | Indiana                  | untested                | 800-838-6138       | 7e1             |               |
-| 277 | PageNet                  | Indianapolis, IN         | untested                | 317-575-6138       | 7e1             |               |
-| 278 | PageNet                  | Irvine, CA               | untested                | 714-451-7144       | 7e1             |               |
-| 279 | PageNet                  | Jacksonville, FL         | untested                | 904-363-2103       | 7e1             |               |
-| 280 | PageNet                  | Jacksonville, FL         | untested                | 904-519-9102       | 7e1             |               |
-| 281 | PageNet                  | Kansas City, KS          | untested                | 913-408-7243       | 7e1             |               |
-| 282 | PageNet                  | Kansas City, MO          | untested                | 800-500-6630       | 7e1             |               |
-| 283 | PageNet                  | Knoxville, TN            | untested                | 423-301-9998       | 7e1             |               |
-| 284 | PageNet                  | Knoxville, TN            | untested                | 423-301-9999       | 7e1             |               |
-| 285 | PageNet                  | Knoxville, TN            | untested                | 615-303-9999       | 7e1             |               |
-| 286 | PageNet                  | Las Vegas, NV            | untested                | 702-661-7243       | 7e1             |               |
-| 287 | PageNet                  | Las Vegas, NV            | untested                | 702-732-1957       | 7e1             |               |
-| 288 | PageNet                  | Lexington, KY            | untested                | 606-532-9999       | 7e1             |               |
-| 289 | PageNet                  | Long Beach, CA           | untested                | 310-327-5450       | 7e1             |               |
-| 290 | PageNet                  | Long Island, NY          | untested                | 516-745-0055       | 7e1             |               |
-| 291 | PageNet                  | Los Alamitos, CA         | untested                | 562-744-6300       | 7e1             |               |
-| 292 | PageNet                  | Los Angeles, CA          | untested                | 213-303-9372       | 7e1             |               |
-| 293 | PageNet                  | Los Angeles, CA          | untested                | 213-750-0450       | 7e1             |               |
-| 294 | PageNet                  | Louisiana                | untested                | 800-762-2348       | 7e1             |               |
-| 295 | PageNet                  | Louisville, KY           | untested                | 502-581-8799       | 7e1             |               |
-| 296 | PageNet                  | Macon, GA                | untested                | 912-743-7647       | 7e1             |               |
-| 297 | PageNet                  | Madison, WI              | untested                | 608-682-1116       | 7e1             |               |
-| 298 | PageNet                  | Maplegrove, CA           | untested                | 818-850-6773       | 7e1             |               |
-| 299 | PageNet                  | Massachusetts            | untested                | 401-861-8130       | 7e1             |               |
-| 300 | PageNet                  | Memphis, TN              | untested                | 901-769-9998       | 7e1             |               |
-| 301 | PageNet                  | Memphis, TN              | untested                | 901-769-9999       | 7e1             |               |
-| 302 | PageNet                  | Merced, CA               | untested                | 209-724-7002       | 7e1             |               |
-| 303 | PageNet                  | Miami, FL                | untested                | 305-264-6133       | 7e1             |               |
-| 304 | PageNet                  | Miami, FL                | untested                | 305-287-7243       | 7e1             |               |
-| 305 | PageNet                  | Michigan                 | untested                | 800-955-7243       | 7e1             |               |
-| 306 | PageNet                  | Michigan                 | untested                | 810-827-7399       | 7e1             |               |
-| 307 | PageNet                  | Milwaukee, WI            | untested                | 414-230-1116       | 7e1             |               |
-| 308 | PageNet                  | Minneapolis, MN          | untested                | 612-942-8176       | 7e1             |               |
-| 309 | PageNet                  | Mobile, AL               | untested                | 334-568-0000       | 7e1             |               |
-| 310 | PageNet                  | Modesto, CA              | untested                | 209-527-9101       | 7e1             |               |
-| 311 | PageNet                  | Montreal, Quebec, Canada | untested                | 514-736-8008       | 7e1             |               |
-| 312 | PageNet                  | N&S Carolina 800         | untested                | 800-766-9731       | 7e1             |               |
-| 313 | PageNet                  | NAD Accounts             | untested                | 800-807-0616       | 7e1             |               |
-| 314 | PageNet                  | NYC Brooklyn, NY         | untested                | 718-355-2840       | 7e1             |               |
-| 315 | PageNet                  | NYC Manhattan, NY        | untested                | 718-355-2820       | 7e1             |               |
-| 316 | PageNet                  | Nashville, TN            | untested                | 615-303-9998       | 7e1             |               |
-| 317 | PageNet                  | Nashville, TN            | untested                | 615-303-9999       | 7e1             |               |
-| 318 | PageNet                  | Nationwide 800           | untested                | 800-720-8398       | 7e1             |               |
-| 319 | PageNet                  | Nationwide 888           | untested                | 888-720-8398       | 7e1             |               |
-| 320 | PageNet                  | Nationwide SP            | untested                | 888-589-8600       | 7e1             |               |
-| 321 | PageNet                  | Green Bay, WI            | untested                | 920-440-1116       | 7e1             |               |
-| 322 | PageNet                  | New Hampshire, NH        | untested                | 603-497-8467       | 7e1             |               |
-| 323 | PageNet                  | New Jersey               | untested                | 800-437-0528       | 7e1             |               |
-| 324 | PageNet                  | New Jersey               | untested                | 908-686-9053       | 7e1             |               |
-| 325 | PageNet                  | New Jersey, NJ           | untested                | 201-878-7243       | 7e1             |               |
-| 326 | PageNet                  | New Jersey, NJ           | untested                | 908-983-7243       | 7e1             |               |
-| 327 | PageNet                  | New Orleans, LA          | untested                | 504-835-6124       | 7e1             |               |
-| 328 | PageNet                  | New Port Richey, FL      | untested                | 813-843-5299       | 7e1             |               |
-| 329 | PageNet                  | New York                 | untested                | 917-252-2000       | 7e1             |               |
-| 330 | PageNet                  | Newburgh, NY             | untested                | 914-438-0000       | 7e1             |               |
-| 331 | PageNet                  | Santa Clarita Valley, CA | untested                | 805-287-3000       | 7e1             |               |
-| 332 | PageNet                  | Norfolk, VA              | untested                | 757-366-1044       | 7e1             |               |
-| 333 | PageNet                  | Norfolk, VA              | untested                | 804-366-5349       | 7e1             |               |
-| 334 | PageNet                  | North Carolina           | untested                | 800-685-4399       | 7e1             |               |
-| 335 | PageNet                  | Northern Virginia, VA    | untested                | 703-442-7606       | 7e1             |               |
-| 336 | PageNet                  | Norwalk, CA              | untested                | 562-707-1000       | 7e1             |               |
-| 337 | PageNet                  | Oakland, CA              | untested                | 510-319-2436       | 7e1             |               |
-| 338 | PageNet                  | Oakland, CA              | untested                | 510-638-3526       | 7e1             |               |
-| 339 | PageNet                  | Oklahoma, OK             | untested                | 405-980-7243       | 7e1             |               |
-| 340 | PageNet                  | Ontario/Claremont, CA    | untested                | 909-448-2100       | 7e1             |               |
-| 341 | PageNet                  | Orlando, FL              | untested                | 407-974-7099       | 7e1             |               |
-| 342 | PageNet                  | Orlando, FL 1            | untested                | 407-839-0712       | 7e1             |               |
-| 343 | PageNet                  | Palm Springs, CA         | untested                | 760-833-1234       | 7e1             |               |
-| 344 | PageNet                  | Palmdale/Lancaster, CA   | untested                | 805-540-1005       | 7e1             |               |
-| 345 | PageNet                  | Philadelphia, PA         | untested                | 610-834-1572       | 7e1             |               |
-| 346 | PageNet                  | Philadelphia, PA         | untested                | 800-437-0529       | 7e1             |               |
-| 347 | PageNet                  | Phoenix, AZ              | untested                | 602-591-6000       | 7e1             |               |
-| 348 | PageNet                  | Pittsburgh, PA           | untested                | 412-788-2878       | 7e1             |               |
-| 349 | PageNet                  | Portland, OR             | untested                | 503-232-3787       | 7e1             |               |
-| 350 | PageNet                  | Providence, RI           | untested                | 401-647-5457       | 7e1             |               |
-| 351 | PageNet                  | Raleigh, NC              | untested                | 919-505-0000       | 7e1             |               |
-| 352 | PageNet                  | Reno, NV                 | untested                | 702-329-4506       | 7e1             |               |
-| 353 | PageNet                  | Richmond, VA             | untested                | 804-278-7844       | 7e1             |               |
-| 354 | PageNet                  | Rochester, NY            | untested                | 716-306-0000       | 7e1             |               |
-| 355 | PageNet                  | Sacramento, CA           | untested                | 209-473-7506       | 7e1             |               |
-| 356 | PageNet                  | Sacramento, CA           | untested                | 916-981-2000       | 7e1             |               |
-| 357 | PageNet                  | Sacramento, CA 1         | untested                | 916-929-7686       | 7e1             |               |
-| 358 | PageNet                  | Saddleback, CA           | untested                | 714-227-0014       | 7e1             |               |
-| 359 | PageNet                  | Salem, OR                | untested                | 503-391-4439       | 7e1             |               |
-| 360 | PageNet                  | Salt Lake City, UT       | untested                | 801-919-0008       | 7e1             |               |
-| 361 | PageNet                  | San Antonio, TX          | untested                | 210-342-8831       | 7e1             |               |
-| 362 | PageNet                  | San Carlos, CA           | untested                | 415-572-1411       | 7e1             |               |
-| 363 | PageNet                  | San Diego, CA            | untested                | 619-232-8425       | 7e1             |               |
-| 364 | PageNet                  | San Diego, CA            | untested                | 619-918-8808       | 7e1             |               |
-| 365 | PageNet                  | San Fernando, CA         | untested                | 818-328-0020       | 7e1             |               |
-| 366 | PageNet                  | San Francisco, CA        | untested                | 415-207-0057       | 7e1             |               |
-| 367 | PageNet                  | San Gabriel Valley, CA   | untested                | 818-292-3012       | 7e1             |               |
-| 368 | PageNet                  | San Jose, CA             | untested                | 408-428-9729       | 7e1             |               |
-| 369 | PageNet                  | San Jose, CA             | untested                | 408-798-7201       | 7e1             |               |
-| 370 | PageNet                  | San Luis Obispo, CA      | untested                | 805-782-2416       | 7e1             |               |
-| 371 | PageNet                  | San Mateo, CA            | untested                | 650-371-0040       | 7e1             |               |
-| 372 | PageNet                  | Santa Barbara, CA        | untested                | 805-887-1684       | 7e1             |               |
-| 373 | PageNet                  | Santa Maria, CA          | untested                | 805-349-3025       | 7e1             |               |
-| 374 | PageNet                  | Santa Monica, CA         | untested                | 310-239-5116       | 7e1             |               |
-| 375 | PageNet                  | Santa Rosa, CA           | untested                | 707-316-0002       | 7e1             |               |
-| 376 | PageNet                  | Sarasota, FL             | untested                | 941-569-7299       | 7e1             |               |
-| 377 | PageNet                  | Seattle                  | untested                | 800-795-4563       | 7e1             |               |
-| 378 | PageNet                  | Seattle, WA              | untested                | 206-747-9674       | 7e1             |               |
-| 379 | PageNet                  | Seattle, WA              | untested                | 425-747-1401       | 7e1             |               |
-| 380 | PageNet                  | South New Jersey, NJ     | untested                | 800-437-0529       | 7e1             |               |
-| 381 | PageNet                  | Spokane, WA              | untested                | 509-490-0000       | 7e1             |               |
-| 382 | PageNet                  | Springfield, MA          | untested                | 413-290-0101       | 7e1             |               |
-| 383 | PageNet                  | St. Augustine, FL        | untested                | 904-823-1600       | 7e1             |               |
-| 384 | PageNet                  | St. Louis, MO            | untested                | 314-984-8710       | 7e1             |               |
-| 385 | PageNet                  | Stockton, CA             | untested                | 209-889-4100       | 7e1             |               |
-| 386 | PageNet                  | Syracuse, NY             | untested                | 315-449-2502       | 7e1             |               |
-| 387 | PageNet                  | Tacoma, WA               | untested                | 253-572-4019       | 7e1             |               |
-| 388 | PageNet                  | Tallahassee, FL          | untested                | 850-224-4492       | 7e1             |               |
-| 389 | PageNet                  | Tampa, FL                | untested                | 813-219-7299       | 7e1             |               |
-| 390 | PageNet                  | Temecula, CA             | untested                | 909-507-1234       | 7e1             |               |
-| 391 | PageNet                  | Simi Valley, CA          | untested                | 805-494-5818       | 7e1             |               |
-| 392 | PageNet                  | Tucson, AZ               | untested                | 520-930-7243       | 7e1             |               |
-| 393 | PageNet                  | Ventura/Oxnard, CA       | untested                | 805-671-0143       | 7e1             |               |
-| 394 | PageNet                  | Victorville, CA          | untested                | 619-955-9099       | 7e1             |               |
-| 395 | PageNet                  | Visalia, CA              | untested                | 209-741-5506       | 7e1             |               |
-| 396 | PageNet                  | Washington, DC           | untested                | 703-442-7606       | 7e1             |               |
-| 397 | PageNet                  | Washington, DC 1         | untested                | 301-474-4657       | 7e1             |               |
-| 398 | PageNet                  | West Palm Beach, FL      | untested                | 561-551-7243       | 7e1             |               |
-| 399 | PageNet                  | Westchester, NY          | untested                | 914-284-0000       | 7e1             |               |
-| 400 | PageNet                  | Westchester, NY          | untested                | 914-347-3136       | 7e1             |               |
-| 401 | PageNet                  | Wisconsin                | untested                | 800-471-3408       | 7e1             |               |
-| 402 | PageNet                  | Youngstown/Warren, OH    | untested                | 330-380-7243       | 7e1             |               |
-| 403 | Pagers Plus              |                          | untested                | 800-257-2307       | 7e1             |               |
-| 404 | Paging Plus              |                          | untested                | 800-848-6122       | 7e1             |               |
-| 405 | PageUSA                  | California               | untested                | 925-803-1180       | 7e1             |               |
-| 406 | Paging, Inc.             |                          | untested                | 800-888-8757       | 7e1             |               |
-| 407 | Phoenix Paging           |                          | untested                | 602-929-0500       | 7e1             |               |
-| 408 | Porta-Phone              |                          | untested                | 800-443-8931       | 7e1             |               |
-| 409 | PrimeCo Messaging        |                          | untested                | 800-659-7514       | 7e1             |               |
-| 410 | ProNet                   | Tallahassee, FL          | untested                | 800-723-9036       | 7e1             |               |
-| 411 | ProNet                   | Texas                    | untested                | 800-374-3801       | 7e1             |               |
-| 412 | ProNet                   | WI                       | untested                | 800-366-1936       | 7e1             |               |
-| 413 | RAMPage                  |                          | untested                | 800-718-1448       | 7e1             |               |
-| 414 | Radiofone                | New Orleans, LA          | untested                | 800-431-2731       | 7e1             |               |
-| 415 | Range                    | MI Upper Peninsula       | untested                | 906-222-1000       | 7e1             |               |
-| 416 | Seiko Message watch      |                          | untested                | 213-613-0224       | 7e1             |               |
-| 417 | Seiko Message watch      | Portland                 | untested                | 503-243-3019       | 7e1             |               |
-| 418 | Seiko Message watch      | Seattle                  | untested                | 360-621-0830       | 7e1             |               |
-| 419 | Shaw Paging              | Montreal, Canada         | untested                | 514-336-2290       | 7e1             |               |
-| 420 | SkyTel                   |                          | untested                | 707-759-6366       | 7e1             |               |
-| 421 | SkyTel                   |                          | untested                | 800-258-9880       | 7e1             |               |
-| 422 | SkyTel ASCII             |                          | untested                | 800-759-9673       | 7e1             |               |
-| 423 | SkyTel                   |                          | untested                | 800-759-6366       | 7e1             |               |
-| 424 | SkyTel 2-Way             |                          | untested                | 800-679-2778       | 7e1             |               |
-| 425 | SkyTel                   | Salt Lake City, UT       | untested                | 801-488-6473       | 7e1             |               |
-| 426 | Southwestern Bell        |                          | untested                | 800-469-5351       | 7e1             |               |
-| 427 | Sprint PCS               |                          | untested                | 888-656-1727       | 7e1             |               |
-| 428 | Sprint Paging            |                          | untested                | 800-785-5629       | 7e1             |               |
-| 429 | Sprint Spectrum          |                          | untested                | 800-272-6505       | 7e1             |               |
-| 430 | SuperCom                 | MI Upper Peninsula       | untested                | 906-777-8880       | 7e1             |               |
-| 431 | TNI Paging               |                          | untested                | 800-666-3282       | 7e1             |               |
-| 432 | TSR Wireless             | Long Island, NY          | untested                | 516-426-4110       | 7e1             |               |
-| 433 | TSR Wireless             | Northern VA              | untested                | 703-331-2808       | 7e1             |               |
-| 434 | TSR Wireless             | Phoenix, AZ              | untested                | 602-216-1000       | 7e1             |               |
-| 435 | Telus                    | Calgary, AB              | untested                | 403-247-2635       | 7e1             |               |
-| 436 | Telus                    | Edmonton, AB             | untested                | 780-916-8118       | 7e1             |               |
-| 437 | Telus                    | Toll Free                | untested                | 888-442-0454       | 7e1             |               |
-| 438 | Touch Tel Paging         |                          | untested                | 510-748-2097       | 7e1             |               |
-| 439 | Tri-State                | New England              | untested                | 617-668-0003       | 7e1             |               |
-| 440 | US West                  |                          | untested                | 520-327-8944       | 7e1             |               |
-| 441 | US West                  |                          | untested                | 888-823-3434       | 7e1             |               |
-| 442 | US West AdvancedPCS      |                          | untested                | 888-823-8234       | 7e1             |               |
-| 443 | USA Mobile               |                          | untested                | 513-563-5067       | 7e1             |               |
-| 444 | USA Mobile               |                          | untested                | 800-589-9776       | 7e1             |               |
-| 445 | USA Mobile               |                          | untested                | 800-840-0075       | 7e1             |               |
-| 446 | USA Mobile               | Akron, Ohio              | untested                | 800-688-9259       | 7e1             |               |
-| 447 | USA Mobile               | Alabama                  | untested                | 800-239-7749       | 7e1             |               |
-| 448 | USA Mobile               | East Kentucky            | untested                | 800-944-1233       | 7e1             |               |
-| 449 | USA Mobile               | Findley, Ohio            | untested                | 800-686-1090       | 7e1             |               |
-| 450 | USA Mobile               | Fort Wayne, Indiana      | untested                | 800-491-2090       | 7e1             |               |
-| 451 | USA Mobile               | Ohio                     | untested                | 800-686-9900       | 7e1             |               |
-| 452 | Voice Stream             |                          | untested                | 800-937-8941       | 7e1             |               |
-| 453 | VPS Paging               |                          | untested                | 605-338-7794       | 7e1             |               |
-| 454 | Weblink Wireles/PageMart |                          | 2 way,untested          | 800-557-8081       | 7e1             |               |
-| 455 | Westlink                 | Minneapolis / St. Paul   | untested                | 800-793-6280       | 7e1             |               |
-| 456 | Westlink Paging          |                          | untested                | 602-231-9447       | 7e1             |               |
-| 457 | Westlink Paging          |                          | untested                | 800-231-7886       | 7e1             |               |
-| 458 | Westlink Paging          |                          | untested                | 801-483-1081       | 7e1             |               |
-| 459 | Bell South Wireless RIM  | National                 | not fully tested        | 800-868-2835       | 7e1             |               |
-| 460 | Cantel                   | Canada                   | untested                | 604-685-3612       | 7e1             |               |
-| 461 | USA Mobile               | Illinois                 | untested                | 800-666-0038       | 7e1             |               |
-| 462 | Breaking News Network    |                          | untested                | 201-947-9049       | 7e1             |               |
-| 463 | PageNet                  | northeast US             | untested                | 917-973-7000       | 7e1             |               |
-+-----+--------------------------+--------------------------+-------------------------+--------------------+-----------------+---------------+
-
+# Generated from http://sendpage.org/pc.php
+# 
+# SELECT PC.id, V.descriptor vendor, R.descriptor region, PC.phone,
+#        F.descriptor format, S.descriptor speed, PC.quirks, PC.notes
+# FROM PagingCentral PC
+#      LEFT JOIN Vendor V ON PC.vendor _id=V.id
+#      LEFT JOIN Region R ON PC.region_id=R.id
+#      LEFT JOIN Format F ON PC.format _id=F.id
+#      LEFT JOIN Speed S ON PC.speed_id=S.id;
+#
++-----+--------------------------+-------------------------------+---------------------+------------+------------+----------------------------------------------------------+----------------------------------------------+
+| id  | vendor                   | region                        | phone               | format     | speed      | quirks                                                   | notes                                        |
++-----+--------------------------+-------------------------------+---------------------+------------+------------+----------------------------------------------------------+----------------------------------------------+
+|   1 | Skytel                   | USA, Nationwide               | 800-759-6366        | 7e1        | max        | ctrl=false                                               |                                              |
+|   2 | Skytel                   | USA, Nationwide               | 800-933-6384        | 7e1        | max        |                                                          | untested                                     |
+|   3 | Skytel                   | USA, Nationwide               | 800-679-2778        | 7e1        | max        |                                                          | untested                                     |
+|   4 | AT&T Paging              | USA, Nationwide               | 800-724-7784        | 7e1        | max        |                                                          | untested                                     |
+|   5 | Ameritech                | USA, IL, Chicago              | 312-514-9243        | 7e1        | max        | shorttap=true                                            |                                              |
+|   6 | AirTouch                 | USA, CA, San Diego            | 858-576-1783        | 7e1        | max        |                                                          | untested                                     |
+|   7 | AT&T Paging              | USA, CA, San Diego            | 619-893-0099        | 7e1        | max        |                                                          | untested                                     |
+|   8 | Beeper Communications    | Israel                        | 972-3-6100081       | 7e1        | max        |                                                          | untested                                     |
+|   9 | British Telecom          | UK                            | +44 (0)345 581 354  | 7e1        | max        |                                                          | untested                                     |
+|  10 | Cellcom                  | Israel                        | 972-53-446-622      | 7e1        | max        |                                                          | untested                                     |
+|  11 | Cellcom                  | Israel                        | 972-53-446-633      | 7e1        | max        |                                                          | untested                                     |
+|  12 | Hutchison Telecom        | UK                            | +44 (0)941 100400   | 7e1        | max        |                                                          | untested                                     |
+|  13 | Hutchison Telecom        | UK                            | +44 (0)973 100602   | 7e1        | max        |                                                          | untested,interactive                         |
+|  14 | ISDN                     | Germany                       | 0 16 90             | 7e1        | max        |                                                          | untested                                     |
+|  15 | Telstra                  | Australia                     | 018018767           | 7e1        | max        |                                                          | untested                                     |
+|  16 | PageOne Communications   | UK                            | +44 1523 530 300    | 7e1        | max        |                                                          | untested                                     |
+|  17 | Telecom                  | New Zealand                   | 026-4001283         | 7e1        | max        |                                                          | Pagers,untested                              |
+|  18 | Telecomi                 | New Zealand                   | 04-3844476          | 7e1        | max        |                                                          | Digital Phones,untested                      |
+|  19 | A Better Beep            | USA, CA, Bakersfield          | 805-334-7002        | 7e1        | max        |                                                          | untested                                     |
+|  20 | A Better Beep            | USA, CA, Fresno               | 209-778-9451        | 7e1        | max        |                                                          | untested                                     |
+|  21 | A Better Beep            | USA, CA, San Luis Obispo      | 805-542-4050        | 7e1        | max        |                                                          | untested                                     |
+|  22 | A Better Beep            | USA, CA, Santa Barbara        | 805-730-3118        | 7e1        | max        |                                                          | untested                                     |
+|  23 | A Better Beep            | USA, CA, Santa Rosa           | 707-523-6571        | 7e1        | max        |                                                          | untested                                     |
+|  24 | A Better Beep            | USA, CA, Stockton             | 209-762-3094        | 7e1        | max        |                                                          | untested                                     |
+|  25 | A-Plus Communications    | USA, AL                       | 800-921-6625        | 7e1        | max        |                                                          | untested                                     |
+|  26 | AT&T Alphanumeric        | USA, TX, Dallas               | 972-934-2797        | 7e1        | max        |                                                          | untested                                     |
+|  28 | AT&T PCS Text Messaging  | USA, Nationwide               | 800-841-8837        | 7e1        | max        |                                                          | Cellphones,untested                          |
+|  29 | AT&T Paging              | Unknown                       | 801-596-9364        | 7e1        | max        |                                                          | untested                                     |
+|  30 | AT&T Wireless            | Unknown                       | 800-368-4133        | 7e1        | max        |                                                          | untested                                     |
+|  31 | AT&T Wireless            | Unknown                       | 888-299-9550        | 7e1        | max        |                                                          | untested                                     |
+|  32 | AT&T Wireless            | USA, WA, Seattle              | 206-622-7585        | 7e1        | max        |                                                          | untested                                     |
+|  33 | AT&T Wireless            | USA, TX, Corpus Christi       | 361-857-8231        | 7e1        | max        |                                                          | untested                                     |
+|  34 | Advanced Paging          | USA, LA, New Orleans          | 888-723-2337        | 7e1        | max        |                                                          | untested                                     |
+|  35 | AirTouch                 | Unknown                       | 800-326-0038        | 7e1        | max        |                                                          | untested                                     |
+|  36 | AirTouch                 | USA, CA                       | 888-287-7108        | 7e1        | max        |                                                          | CDMA cells,untested                          |
+|  37 | AirTouch                 | USA, NM, Albuquerque          | 505-883-1977        | 7e1        | max        |                                                          | untested                                     |
+|  38 | AirTouch                 | USA, GA, Atlanta              | 404-873-6337        | 7e1        | max        |                                                          | untested                                     |
+|  39 | AirTouch                 | USA, TX, Austin               | 512-873-8719        | 7e1        | max        |                                                          | untested                                     |
+|  40 | AirTouch                 | USA, ID, Boise                | 208-869-0004        | 7e1        | max        |                                                          | untested                                     |
+|  41 | AirTouch                 | USA, TX, Dallas/Fort Worth    | 817-265-1848        | 7e1        | max        |                                                          | untested                                     |
+|  42 | AirTouch                 | USA, IN, Indianapolis         | 317-553-2471        | 7e1        | max        |                                                          | untested                                     |
+|  43 | AirTouch                 | USA, KS, Kansas City          | 800-546-7243        | 7e1        | max        |                                                          | untested                                     |
+|  44 | AirTouch                 | USA, MI                       | 800-371-8800        | 7e1        | max        |                                                          | untested                                     |
+|  45 | AirTouch                 | USA, MI                       | 810-539-3917        | 7e1        | max        |                                                          | untested                                     |
+|  46 | AirTouch                 | USA, Nationwide               | 800-326-4724        | 7e1        | max        |                                                          | untested                                     |
+|  47 | AirTouch                 | USA, Nationwide               | 800-793-4549        | 7e1        | max        |                                                          | untested                                     |
+|  48 | AirTouch                 | USA, Nationwide               | 800-347-7243        | 7e1        | max        |                                                          | untested                                     |
+|  49 | AirTouch                 | USA, FL, Orlando              | 407-645-3103        | 7e1        | max        |                                                          | untested                                     |
+|  50 | AirTouch                 | USA, AZ, Phoenix              | 602-253-4297        | 7e1        | max        |                                                          | untested                                     |
+|  51 | AirTouch                 | USA, CA, Sacramento           | 916-447-6053        | 7e1        | max        |                                                          | untested                                     |
+|  52 | AirTouch                 | USA, CA, San Deigo            | 619-296-0772        | 7e1        | max        |                                                          | untested                                     |
+|  54 | AirTouch                 | USA, CA, Sunnyvale            | 408-950-0572        | 7e1        | max        |                                                          | untested                                     |
+|  55 | AirTouch                 | USA, TX                       | 800-672-4371        | 7e1        | max        |                                                          | untested                                     |
+|  56 | AirTouch                 | USA, AZ, Tucson               | 520-622-3122        | 7e1        | max        |                                                          | untested                                     |
+|  57 | Alert                    | Unknown                       | 702-362-1748        | 7e1        | max        |                                                          | untested                                     |
+|  58 | American Pager           | Unknown                       | 210-657-5562        | 7e1        | max        |                                                          | untested                                     |
+|  59 | American Pager           | Unknown                       | 800-660-5747        | 7e1        | max        |                                                          | untested                                     |
+|  60 | American Paging          | Unknown                       | 512-451-0777        | 7e1        | max        |                                                          | untested                                     |
+|  61 | American Paging          | USA, AZ                       | 602-265-5203        | 7e1        | max        |                                                          | untested                                     |
+|  62 | American Paging          | USA, AZ                       | 800-364-0816        | 7e1        | max        |                                                          | untested                                     |
+|  63 | American Paging          | USA, FL, Orlando              | 800-233-9977        | 7e1        | max        |                                                          | untested                                     |
+|  64 | American Paging          | USA, Washington DC            | 800-459-2033        | 7e1        | max        |                                                          | untested                                     |
+|  65 | American Paging          | USA, WI                       | 800-642-4152        | 7e1        | max        |                                                          | untested                                     |
+|  67 | Ameritech                | Unknown                       | 616-201-2000        | 7e1        | max        |                                                          | untested                                     |
+|  68 | Ameritech                | USA, OH, Cleveland            | 216-670-7243        | 7e1        | max        |                                                          | untested                                     |
+|  69 | Ameritech                | USA, WI, Madison              | 800-677-7454        | 7e1        | max        |                                                          | untested                                     |
+|  70 | Ameritech                | USA, IL                       | 708-563-0024        | 7e1        | max        |                                                          | untested                                     |
+|  71 | Ameritech                | USA, MO, St. Louis            | 314-973-9739        | 7e1        | 300        |                                                          | untested                                     |
+|  72 | Ameritech                | USA, MO, St. Louis            | 314-841-8410        | 7e1        | 1200       |                                                          | untested                                     |
+|  73 | Answer Page              | USA, OR, Grants Pass          | 541-471-5000        | 7e1        | max        |                                                          | untested                                     |
+|  74 | Answer Page              | USA, OR, Medford              | 541-770-0000        | 7e1        | max        |                                                          | untested                                     |
+|  75 | Arch Communications      | USA, PA, Erie                 | 814-864-1735        | 7e1        | max        |                                                          | untested                                     |
+|  76 | Arch Communications      | USA, PA, Erie                 | 814-868-5576        | 7e1        | max        |                                                          | untested                                     |
+|  77 | Arch Communications      | USA, PA, Erie                 | 800-800-2995        | 7e1        | max        |                                                          | untested                                     |
+|  79 | Arch Paging              | USA, Nationwide               | 800-741-2337        | 7e1        | max        |                                                          | untested                                     |
+|  80 | Arch Paging              | USA, OH, Cleveland            | 216-464-3185        | 7e1        | max        |                                                          | untested                                     |
+|  81 | Arch Paging              | USA, OH, Cleveland            | 216-591-0925        | 7e1        | max        |                                                          | untested                                     |
+|  82 | Arch Paging              | USA, CO, Colorado Springs     | 800-490-1320        | 7e1        | max        |                                                          | untested                                     |
+|  83 | Arch Paging              | USA, SC, Columbia             | 888-377-4231        | 7e1        | max        |                                                          | untested                                     |
+|  84 | Arch Paging              | USA, OR, Eugene               | 541-342-5214        | 7e1        | max        |                                                          | untested                                     |
+|  85 | Arch Paging              | USA, NC, Greensboro           | 888-377-4229        | 7e1        | max        |                                                          | untested                                     |
+|  86 | Arch Paging              | USA, SC, Greenville           | 888-377-4230        | 7e1        | max        |                                                          | untested                                     |
+|  87 | Arch Paging              | USA, MI                       | 800-613-1108        | 7e1        | max        |                                                          | untested                                     |
+|  88 | Arch Paging              | USA, MI                       | 800-613-1107        | 7e1        | max        |                                                          | untested                                     |
+|  89 | Arch Paging              | USA, MI                       | 800-613-5712        | 7e1        | max        |                                                          | untested                                     |
+|  90 | Arch Paging              | USA, OR, Portland             | 503-228-7660        | 7e1        | max        |                                                          | untested                                     |
+|  91 | Arch Paging              | USA, NC, Raliegh              | 888-377-4228        | 7e1        | max        |                                                          | untested                                     |
+|  92 | Arch Paging              | USA, NY, Rochester            | 716-232-7324        | 7e1        | max        |                                                          | untested                                     |
+|  93 | Arch Paging              | USA, WA, Seattle              | 800-695-6285        | 7e1        | max        |                                                          | untested                                     |
+|  94 | Arch Paging              | USA, MO, St. Louis            | 800-294-9988        | 7e1        | max        |                                                          | untested                                     |
+|  95 | Arch Paging              | USA, MO, St. Louis Metro      | 618-549-4685        | 7e1        | max        |                                                          | untested                                     |
+|  96 | Arch Paging              | USA, MA, Western Mass. area   | 800-648-8233        | 7e1        | max        |                                                          | untested                                     |
+|  97 | Beep Call                | Unknown                       | 888-624-6703        | 7e1        | max        |                                                          | untested                                     |
+| 472 | PageUSA                  | USA, CA, Sacramento           | 0352402             | 7e1        | max        | 1200                                                     |                                              |
+| 475 | Cingular                 | Unknown                       |                     | 208-9875   | max        |                                                          |                                              |
+| 100 | Bell Mobility            | Canada, Toronto               | 416-285-7267        | 7e1        | max        |                                                          | untested                                     |
+| 101 | Bell Mobility            | Canada, Toronto               | 514-931-0441        | 7e1        | max        |                                                          | untested                                     |
+| 102 | Beta Tele-Page           | Unknown                       | 800-409-6979        | 7e1        | max        |                                                          | untested                                     |
+| 103 | Cantel                   | Canada, Alberta, Edmonton     | 403-990-1042        | 7e1        | max        |                                                          | untested                                     |
+| 104 | Cantel                   | Canada, Alberta, Edmonton     | 800-387-8484        | 7e1        | max        |                                                          | untested                                     |
+| 105 | Cantel                   | USA, QC, Montreal             | 514-862-0630        | 7e1        | max        |                                                          | untested                                     |
+| 106 | Cantel                   | USA, ON, Ottawa               | 613-820-8631        | 7e1        | max        |                                                          | untested                                     |
+| 108 | Cantel                   | Canada, Toronto               | 416-488-9494        | 7e1        | max        |                                                          | untested                                     |
+| 109 | Cantel                   | USA, MB, Winnipeg             | 819-572-1847        | 7e1        | max        |                                                          | untested                                     |
+| 111 | Cellular One PCS         | USA, Nationwide               | 800-477-4550        | 7e1        | max        |                                                          | untested                                     |
+| 112 | Cellular One PCS         | USA, Nationwide               | 888-878-7727        | 7e1        | max        |                                                          | untested                                     |
+| 113 | Cellular One             | USA, KS, Kansas City          | 913-236-4065        | 7e1        | max        |                                                          | untested                                     |
+| 114 | ComTech                  | Unknown                       | 800-755-4585        | 7e1        | max        |                                                          | untested                                     |
+| 115 | Consolidated Comm        | Unknown                       | 800-533-3843        | 7e1        | max        |                                                          | untested                                     |
+| 116 | Cook Paging              | Unknown                       | 206-469-0000        | 7e1        | max        |                                                          | untested                                     |
+| 117 | Cook Paging              | Unknown                       | 209-279-0000        | 7e1        | max        |                                                          | untested                                     |
+| 118 | Cook Paging              | Unknown                       | 415-679-0000        | 7e1        | max        |                                                          | untested                                     |
+| 119 | Fido                     | Canada, Quebec, Montreal      | 514-937-9593        | 7e1        | max        |                                                          | untested                                     |
+| 120 | Fido                     | Canada                        | 888-322-3436        | 7e1        | max        |                                                          | untested                                     |
+| 121 | GTE                      | Unknown                       | 800-483-2340        | 7e1        | max        |                                                          | untested                                     |
+| 122 | LDDS Worldcom            | Unknown                       | 800-940-1010        | 7e1        | max        |                                                          | untested                                     |
+| 123 | Lehigh Valley Page       | Unknown                       | 800-873-2433        | 7e1        | max        |                                                          | untested                                     |
+| 124 | LA Cellular              | USA, CA, Los Angeles          | 800-807-7274        | 7e1        | max        |                                                          | untested                                     |
+| 125 | MAP                      | USA, CA, Southern             | 800-456-2190        | 7e1        | max        |                                                          | untested                                     |
+| 126 | MCC Paging               | Unknown                       | 800-529-8663        | 7e1        | max        |                                                          | untested                                     |
+| 127 | MCI Page                 | Unknown                       | 800-555-0909        | 7e1        | max        |                                                          | untested                                     |
+| 128 | MCI Page                 | Unknown                       | 800-487-9297        | 7e1        | max        |                                                          | untested                                     |
+| 130 | Maximum                  | Unknown                       | 800-589-3860        | 7e1        | max        |                                                          | untested                                     |
+| 131 | Metrocall                | Unknown                       | 800-926-7272        | 7e1        | max        |                                                          | untested                                     |
+| 132 | Metrocall                | Unknown                       | 917-895-5376        | 7e1        | max        |                                                          | untested                                     |
+| 133 | Metrocall                | USA, VA                       | 703-768-5400        | 7e1        | max        |                                                          | 2-way,untested                               |
+| 134 | Metrocall                | USA, CA                       | 213-941-0000        | 7e1        | max        |                                                          | 2-way,untested                               |
+| 135 | Metrocall                | USA, Nationwide               | 800-418-8283        | 7e1        | max        |                                                          | LA Term 324,untested                         |
+| 136 | Metrocall                | USA, Nationwide               | 619-331-4950        | 7e1        | max        |                                                          | Term 327,untested                            |
+| 137 | Metrocall                | USA, VA, Alexandria           | 800-245-0004        | 7e1        | max        |                                                          | untested                                     |
+| 138 | Metrocall                | USA, MA                       | 617-362-6600        | 7e1        | max        |                                                          | untested                                     |
+| 139 | Metrocall                | USA, NJ                       | 800-917-1168        | 7e1        | max        |                                                          | untested                                     |
+| 140 | Metrocall                | USA, VA, Roanoke              | 800-898-7247        | 7e1        | max        |                                                          | untested                                     |
+| 141 | Metrocall                | USA, CA, San Diego            | 619-331-0041        | 7e1        | max        |                                                          | untested                                     |
+| 142 | Metrocall                | USA, CA, San Francisco        | 800-971-7919        | 7e1        | max        |                                                          | untested                                     |
+| 145 | Metrocall                | USA, OK, Tulsa                | 918-664-8811        | 7e1        | max        |                                                          | untested                                     |
+| 146 | Metrocall                | USA, Washington DC            | 800-971-5088        | 7e1        | max        |                                                          | untested                                     |
+| 147 | Metrocall                | USA, KS, Wichita              | 316-636-4110        | 7e1        | max        |                                                          | untested                                     |
+| 148 | Minncomm Paging          | USA, MN, Minneapolis          | 763-521-3541        | 7e1        | max        |                                                          | tested                                       |
+| 149 | Mobile Media             | Unknown                       | 800-622-5742        | 7e1        | max        |                                                          | untested                                     |
+| 150 | Mobile Media             | USA, FL                       | 800-872-6755        | 7e1        | max        |                                                          | untested                                     |
+| 151 | Mobile Media             | USA, NC                       | 800-365-2689        | 7e1        | max        |                                                          | untested                                     |
+| 153 | MobileComm               | Unknown                       | 800-946-4644        | 7e1        | max        |                                                          | untested                                     |
+| 155 | MobileComm               | USA, AL                       | 800-848-8436        | 7e1        | max        |                                                          | untested                                     |
+| 156 | MobileComm               | USA, MA, Boston               | 800-287-0143        | 7e1        | max        |                                                          | untested                                     |
+| 157 | MobileComm               | USA, SC, Charleston           | 800-277-1266        | 7e1        | max        |                                                          | untested                                     |
+| 158 | MobileComm               | USA, IL, Chicago              | 847-490-0174        | 7e1        | max        |                                                          | untested                                     |
+| 159 | MobileComm               | USA, Washington DC            | 800-328-7587        | 7e1        | max        |                                                          | untested                                     |
+| 160 | MobileComm               | USA, MI, Detroit              | 810-559-8191        | 7e1        | max        |                                                          | untested                                     |
+| 161 | MobileComm               | USA, AL, Huntsville           | 800-239-7817        | 7e1        | max        |                                                          | untested                                     |
+| 162 | MobileComm               | USA, NY, Long Island          | 800-657-2487        | 7e1        | max        |                                                          | untested                                     |
+| 163 | MobileComm               | USA, MI                       | 800-837-5101        | 7e1        | max        |                                                          | untested                                     |
+| 164 | MobileComm               | USA, CA, Northern             | 800-655-6555        | 7e1        | max        |                                                          | untested                                     |
+| 165 | MobileComm               | USA, CA, Northern             | 916-444-6383        | 7e1        | max        |                                                          | untested                                     |
+| 166 | MobileComm               | USA, VA, Richmond             | 804-270-2271        | 7e1        | max        |                                                          | untested                                     |
+| 167 | MobileComm               | USA, CA, San Luis Obispo      | 805-544-1162        | 7e1        | max        |                                                          | untested                                     |
+| 168 | MobileComm               | USA, CA, Santa Barbara        | 805-564-6049        | 7e1        | max        |                                                          | untested                                     |
+| 169 | MobileComm               | USA, CA, Santa Barbara        | 805-564-8817        | 7e1        | max        |                                                          | untested                                     |
+| 170 | MobileComm               | USA, CA, Santa Maria          | 805-349-1140        | 7e1        | max        |                                                          | untested                                     |
+| 171 | MobileComm               | USA, MO, St. Louis            | 800-250-6325        | 7e1        | max        |                                                          | untested                                     |
+| 172 | MobileComm               | USA, TX                       | 800-435-3582        | 7e1        | max        |                                                          | untested                                     |
+| 173 | MobileComm               | USA, TX                       | 800-344-2270        | 7e1        | max        |                                                          | untested                                     |
+| 174 | MobileComm               | USA, WA/OR                    | 800-734-0096        | 7e1        | max        |                                                          | untested                                     |
+| 175 | MobileComm BSE           | USA, MI                       | 800-837-1202        | 7e1        | max        |                                                          | untested                                     |
+| 176 | MobileFone               | Unknown                       | 800-632-5742        | 7e1        | max        |                                                          | tested                                       |
+| 177 | MobileFone               | USA, KS, Kansas City          | 816-842-6032        | 7e1        | max        |                                                          | tested                                       |
+| 179 | Nextel                   | USA, IL, Chicago              | 312-514-6683        | 7e1        | max        |                                                          | untested                                     |
+| 180 | Nextel                   | Unknown                       | 415-559-6683        | 7e1        | max        |                                                          | untested                                     |
+| 181 | Nextel                   | Unknown                       | 617-839-6683        | 7e1        | max        |                                                          | untested                                     |
+| 182 | Nextel                   | USA, NY, New York             | 917-299-6683        | 7e1        | max        |                                                          | untested                                     |
+| 183 | Nextel                   | USA, IN, Indianapolis         | 317-710-6683        | 7e1        | max        |                                                          | untested                                     |
+| 184 | Nextel                   | USA, WA, Seattle              | 206-396-6683        | 7e1        | max        |                                                          | untested                                     |
+| 185 | Pacific Bell PCS         | Unknown                       | 888-600-7267        | 7e1        | max        |                                                          | untested                                     |
+| 186 | PacTel                   | Unknown                       | 800-662-5742        | 7e1        | max        |                                                          | untested                                     |
+| 188 | Page New England         | USA, MA, Boston               | 800-782-0034        | 7e1        | max        |                                                          | untested                                     |
+| 189 | Page New England         | USA, CT                       | 800-844-7243        | 7e1        | max        |                                                          | untested                                     |
+| 190 | Page New England         | USA, ME                       | 800-639-6901        | 7e1        | max        |                                                          | untested                                     |
+| 191 | Page New England         | USA, Nationwide               | 800-844-8089        | 7e1        | max        |                                                          | untested                                     |
+| 192 | Page New England         | USA, Nationwide               | 800-543-6532        | 7e1        | max        |                                                          | untested                                     |
+| 193 | PageAmerica              | Unknown                       | 800-843-9187        | 7e1        | max        |                                                          | untested                                     |
+| 194 | PageAmerica              | USA, IL                       | 800-637-0672        | 7e1        | max        |                                                          | untested                                     |
+| 195 | PageMart                 | Unknown                       | 800-864-9499        | 7e1        | max        |                                                          | untested                                     |
+| 196 | PageMart                 | Unknown                       | 800-324-4533        | 7e1        | max        |                                                          | untested                                     |
+| 197 | PageNet                  | Unknown                       | 800-353-5100        | 7e1        | max        |                                                          | untested                                     |
+| 198 | PageNet                  | Unknown                       | 800-766-9619        | 7e1        | max        |                                                          | untested                                     |
+| 199 | PageNet                  | Unknown                       | 800-854-1733        | 7e1        | max        |                                                          | untested                                     |
+| 200 | PageNet                  | USA, NY, Albany               | 518-869-0590        | 7e1        | max        |                                                          | untested                                     |
+| 201 | PageNet                  | USA, NM, Albuquerque          | 505-883-1203        | 7e1        | max        |                                                          | untested                                     |
+| 202 | PageNet                  | USA, CA, Anaheim              | 714-540-9301        | 7e1        | max        |                                                          | untested                                     |
+| 203 | PageNet                  | USA, CA, Anaheim              | 714-666-4700        | 7e1        | max        |                                                          | untested                                     |
+| 204 | PageNet                  | USA, AK, Anchorage            | 907-522-8802        | 7e1        | max        |                                                          | untested                                     |
+| 205 | PageNet                  | USA, SC, Anderson             | 803-964-3507        | 7e1        | max        |                                                          | untested                                     |
+| 206 | PageNet                  | USA, AZ                       | 800-848-7037        | 7e1        | max        |                                                          | untested                                     |
+| 207 | PageNet                  | USA, CA, Atascadero           | 805-460-7045        | 7e1        | max        |                                                          | untested                                     |
+| 208 | PageNet                  | USA, GA, Atlanta              | 404-390-9176        | 7e1        | max        |                                                          | untested                                     |
+| 209 | PageNet                  | USA, GA, Atlanta              | 404-722-2000        | 7e1        | max        |                                                          | untested                                     |
+| 210 | PageNet                  | USA, GA, Augusta              | 706-724-7133        | 7e1        | max        |                                                          | untested                                     |
+| 211 | PageNet                  | USA, TX, Austin               | 512-476-2893        | 7e1        | max        |                                                          | untested                                     |
+| 212 | PageNet                  | USA, CA, Bakersfield          | 805-336-4716        | 7e1        | max        |                                                          | untested                                     |
+| 213 | PageNet                  | USA, MD, Baltimore            | 410-356-0613        | 7e1        | max        |                                                          | untested                                     |
+| 214 | PageNet                  | USA, CA, Barstow              | 760-957-2000        | 7e1        | max        |                                                          | untested                                     |
+| 215 | PageNet                  | USA, TX, Beaumont             | 409-724-7445        | 7e1        | max        |                                                          | untested                                     |
+| 216 | Southwestern Bell        | USA, TX, Beaumont             | 409-832-1696        | 208-9875   | max        |                                                          | untested                                     |
+| 217 | PageNet                  | USA, AL, Birmingham           | 205-510-2020        | 7e1        | max        |                                                          | untested                                     |
+| 218 | PageNet                  | USA, AL, Birmingham           | 205-770-0000        | 7e1        | max        |                                                          | untested                                     |
+| 219 | PageNet                  | USA, ID, Boise                | 208-375-2792        | 7e1        | max        |                                                          | untested                                     |
+| 220 | PageNet                  | USA, MA, Boston               | 617-273-4535        | 7e1        | max        |                                                          | untested                                     |
+| 221 | PageNet                  | USA, MA, Boston               | 781-273-4535        | 7e1        | max        |                                                          | untested                                     |
+| 222 | PageNet                  | USA, CT, Bridgeport           | 203-523-9021        | 7e1        | max        |                                                          | untested                                     |
+| 223 | PageNet                  | USA, CT, Bridgeport           | 203-380-1475        | 7e1        | max        |                                                          | untested                                     |
+| 224 | PageNet                  | USA, FL, Brooksville          | 352-848-2850        | 7e1        | max        |                                                          | untested                                     |
+| 225 | PageNet                  | USA, FL, Broward              | 954-402-7243        | 7e1        | max        |                                                          | untested                                     |
+| 226 | PageNet                  | USA, NY, Buffalo              | 716-633-2568        | 7e1        | max        |                                                          | untested                                     |
+| 227 | PageNet                  | USA, CA, Burbank E SF Valley  | 818-556-0050        | 7e1        | max        |                                                          | untested                                     |
+| 228 | PageNet                  | USA, CA, Burbank              | 818-846-6326        | 7e1        | max        |                                                          | untested                                     |
+| 229 | PageNet                  | USA, CA, W SF Valley          | 818-596-3000        | 7e1        | max        |                                                          | untested                                     |
+| 230 | PageNet                  | USA, SC, Charleston           | 803-219-0000        | 7e1        | max        |                                                          | untested                                     |
+| 231 | PageNet                  | USA, NC, Charlotte            | 704-527-2574        | 7e1        | max        |                                                          | untested                                     |
+| 232 | PageNet                  | USA, IL, Chicago              | 630-325-7842        | 7e1        | max        |                                                          | untested                                     |
+| 233 | PageNet                  | USA, IL, Chicago              | 708-325-7842        | 7e1        | max        |                                                          | untested                                     |
+| 234 | PageNet                  | USA, OH, Cincinnati           | 513-408-9999        | 7e1        | max        |                                                          | untested                                     |
+| 235 | PageNet                  | USA, OH, Cincinnati           | 513-434-9694        | 7e1        | max        |                                                          | untested                                     |
+| 236 | PageNet                  | USA, OH, Cincinnati           | 513-772-0941        | 7e1        | max        |                                                          | untested                                     |
+| 237 | PageNet                  | USA, OH, Cleveland            | 216-573-7933        | 7e1        | max        |                                                          | untested                                     |
+| 238 | PageNet                  | USA, OH, Cleveland            | 440-303-7243        | 7e1        | max        |                                                          | untested                                     |
+| 239 | PageNet                  | USA, FL, Coco Beach           | 407-639-1244        | 7e1        | max        |                                                          | untested                                     |
+| 240 | PageNet                  | USA, CO, Colorado Springs     | 719-570-7055        | 7e1        | max        |                                                          | untested                                     |
+| 241 | PageNet                  | USA, CA, Colton               | 909-410-6600        | 7e1        | max        |                                                          | untested                                     |
+| 242 | PageNet                  | USA, SC, Columbia             | 803-301-0000        | 7e1        | max        |                                                          | untested                                     |
+| 243 | PageNet                  | USA, OH, Columbus             | 614-846-4515        | 7e1        | max        |                                                          | untested                                     |
+| 244 | PageNet                  | USA, CA, Compton              | 310-509-0001        | 7e1        | max        |                                                          | untested                                     |
+| 245 | PageNet                  | USA, CA, Corona               | 909-270-6584        | 7e1        | max        |                                                          | untested                                     |
+| 246 | PageNet                  | USA, TX, Corpus Christi       | 512-844-1622        | 7e1        | max        |                                                          | untested                                     |
+| 247 | PageNet                  | USA, TX, Dallas/Ft. Worth     | 214-835-7243        | 7e1        | max        |                                                          | untested                                     |
+| 248 | PageNet                  | USA, OH, Dayton               | 937-370-9999        | 7e1        | max        |                                                          | untested                                     |
+| 249 | PageNet                  | USA, FL, Daytona Beach        | 904-252-2731        | 7e1        | max        |                                                          | untested                                     |
+| 250 | PageNet                  | USA, CO, Denver               | 303-721-7595        | 7e1        | max        |                                                          | untested                                     |
+| 251 | PageNet                  | USA, CO, Denver               | 719-520-1253        | 7e1        | max        |                                                          | untested                                     |
+| 252 | PageNet                  | USA, MI, Detroit              | 248-827-7399        | 7e1        | max        |                                                          | untested                                     |
+| 253 | PageNet                  | USA, MD, Eastern Shore        | 410-749-0286        | 7e1        | max        |                                                          | untested                                     |
+| 254 | PageNet                  | USA, OR, Eugene               | 503-484-1369        | 7e1        | max        |                                                          | untested                                     |
+| 255 | PageNet                  | USA, OR, Eugene               | 541-484-1369        | 7e1        | max        |                                                          | untested                                     |
+| 256 | PageNet                  | USA, TX, Freeport             | 409-233-5524        | 7e1        | max        |                                                          | untested                                     |
+| 257 | PageNet                  | USA, CA, Fresno               | 209-699-0001        | 7e1        | max        |                                                          | untested                                     |
+| 258 | PageNet                  | USA, FL, Ft. Lauderdale       | 305-767-8000        | 7e1        | max        |                                                          | untested                                     |
+| 259 | PageNet                  | USA, FL, Ft. Myers            | 941-339-5299        | 7e1        | max        |                                                          | untested                                     |
+| 260 | PageNet                  | USA, FL, Gainesville          | 352-376-8251        | 7e1        | max        |                                                          | untested                                     |
+| 261 | PageNet                  | USA, TX, Galveston            | 409-942-1042        | 7e1        | max        |                                                          | untested                                     |
+| 262 | PageNet                  | USA, CA, Gardena              | 310-298-2995        | 7e1        | max        |                                                          | untested                                     |
+| 263 | PageNet                  | USA, NC, Greensboro           | 336-321-3000        | 7e1        | max        |                                                          | untested                                     |
+| 264 | PageNet                  | USA, NC, Greensboro           | 910-855-7599        | 7e1        | max        |                                                          | untested                                     |
+| 265 | PageNet                  | USA, SC, Greenville           | 803-217-0000        | 7e1        | max        |                                                          | untested                                     |
+| 266 | PageNet                  | USA, SC, Greenville           | 864-216-0000        | 7e1        | max        |                                                          | untested                                     |
+| 267 | PageNet                  | USA, SC, Greenville           | 864-217-0000        | 7e1        | max        |                                                          | untested                                     |
+| 268 | PageNet                  | USA, SC, Greenville           | 864-964-3500        | 7e1        | max        |                                                          | untested                                     |
+| 269 | PageNet                  | USA, CT, Hartford             | 860-948-2000        | 7e1        | max        |                                                          | untested                                     |
+| 270 | PageNet                  | USA, CA, Hayward              | 510-920-1100        | 7e1        | max        |                                                          | untested                                     |
+| 271 | PageNet                  | USA, CA, Hemet                | 909-617-0000        | 7e1        | max        |                                                          | untested                                     |
+| 272 | PageNet                  | USA, TX, Houston              | 281-480-9814        | 7e1        | max        |                                                          | untested                                     |
+| 273 | PageNet                  | USA, TX, Houston              | 713-781-8152        | 7e1        | max        |                                                          | untested                                     |
+| 274 | PageNet                  | USA, TX, Houston              | 713-781-8163        | 7e1        | max        |                                                          | untested                                     |
+| 275 | PageNet                  | USA, AL, Huntsville           | 205-860-0000        | 7e1        | max        |                                                          | untested                                     |
+| 276 | PageNet                  | USA, IN                       | 800-838-6138        | 7e1        | max        |                                                          | untested                                     |
+| 277 | PageNet                  | USA, IN, Indianapolis         | 317-575-6138        | 7e1        | max        |                                                          | untested                                     |
+| 278 | PageNet                  | USA, CA, Irvine               | 714-451-7144        | 7e1        | max        |                                                          | untested                                     |
+| 279 | PageNet                  | USA, FL, Jacksonville         | 904-363-2103        | 7e1        | max        |                                                          | untested                                     |
+| 280 | PageNet                  | USA, FL, Jacksonville         | 904-519-9102        | 7e1        | max        |                                                          | untested                                     |
+| 281 | PageNet                  | USA, KS, Kansas City          | 913-408-7243        | 7e1        | max        |                                                          | untested                                     |
+| 282 | PageNet                  | USA, MO, Kansas City          | 800-500-6630        | 7e1        | max        |                                                          | untested                                     |
+| 283 | PageNet                  | USA, TN, Knoxville            | 423-301-9998        | 7e1        | max        |                                                          | untested                                     |
+| 284 | PageNet                  | USA, TN, Knoxville            | 423-301-9999        | 7e1        | max        |                                                          | untested                                     |
+| 286 | PageNet                  | USA, NV, Las Vegas            | 702-661-7243        | 7e1        | max        |                                                          | untested                                     |
+| 287 | PageNet                  | USA, NV, Las Vegas            | 702-732-1957        | 7e1        | max        |                                                          | untested                                     |
+| 288 | PageNet                  | USA, KY, Lexington            | 606-532-9999        | 7e1        | max        |                                                          | untested                                     |
+| 289 | PageNet                  | USA, CA, Long Beach           | 310-327-5450        | 7e1        | max        |                                                          | untested                                     |
+| 290 | PageNet                  | USA, NY, Long Island          | 516-745-0055        | 7e1        | max        |                                                          | untested                                     |
+| 291 | PageNet                  | USA, CA, Los Alamitos         | 562-744-6300        | 7e1        | max        |                                                          | untested                                     |
+| 292 | PageNet                  | USA, CA, Los Angeles          | 213-303-9372        | 7e1        | max        |                                                          | untested                                     |
+| 293 | PageNet                  | USA, CA, Los Angeles          | 213-750-0450        | 7e1        | max        |                                                          | untested                                     |
+| 294 | PageNet                  | USA, LA                       | 800-762-2348        | 7e1        | max        |                                                          | untested                                     |
+| 295 | PageNet                  | USA, KY, Louisville           | 502-581-8799        | 7e1        | max        |                                                          | untested                                     |
+| 296 | PageNet                  | USA, GA, Macon                | 912-743-7647        | 7e1        | max        |                                                          | untested                                     |
+| 297 | PageNet                  | USA, WI, Madison              | 608-682-1116        | 7e1        | max        |                                                          | untested                                     |
+| 298 | PageNet                  | USA, CA, Maplegrove           | 818-850-6773        | 7e1        | max        |                                                          | untested                                     |
+| 299 | PageNet                  | USA, MA                       | 401-861-8130        | 7e1        | max        |                                                          | untested                                     |
+| 300 | PageNet                  | USA, TN, Memphis              | 901-769-9998        | 7e1        | max        |                                                          | untested                                     |
+| 301 | PageNet                  | USA, TN, Memphis              | 901-769-9999        | 7e1        | max        |                                                          | untested                                     |
+| 302 | PageNet                  | USA, CA, Merced               | 209-724-7002        | 7e1        | max        |                                                          | untested                                     |
+| 303 | PageNet                  | USA, FL, Miami                | 305-264-6133        | 7e1        | max        |                                                          | untested                                     |
+| 304 | PageNet                  | USA, FL, Miami                | 305-287-7243        | 7e1        | max        |                                                          | untested                                     |
+| 305 | PageNet                  | USA, MI                       | 800-955-7243        | 7e1        | max        |                                                          | untested                                     |
+| 306 | PageNet                  | USA, MI                       | 810-827-7399        | 7e1        | max        |                                                          | untested                                     |
+| 307 | PageNet                  | USA, WI, Milwaukee            | 414-230-1116        | 7e1        | max        |                                                          | untested                                     |
+| 308 | PageNet                  | USA, MN, Minneapolis          | 612-942-8176        | 7e1        | max        |                                                          | untested                                     |
+| 309 | PageNet                  | USA, AL, Mobile               | 334-568-0000        | 7e1        | max        |                                                          | untested                                     |
+| 310 | PageNet                  | USA, CA, Modesto              | 209-527-9101        | 7e1        | max        |                                                          | untested                                     |
+| 311 | PageNet                  | Canada, Quebec, Montreal      | 514-736-8008        | 7e1        | max        |                                                          | untested                                     |
+| 312 | PageNet                  | USA, NC/SC                    | 800-766-9731        | 7e1        | max        |                                                          | untested                                     |
+| 313 | PageNet                  | USA, Nationwide               | 800-807-0616        | 7e1        | max        |                                                          | untested                                     |
+| 314 | PageNet                  | USA, NY, NYC Brooklyn         | 718-355-2840        | 7e1        | max        |                                                          | untested                                     |
+| 315 | PageNet                  | USA, NY, NYC Manhattan        | 718-355-2820        | 7e1        | max        |                                                          | untested                                     |
+| 316 | PageNet                  | USA, TN, Nashville            | 615-303-9998        | 7e1        | max        |                                                          | untested                                     |
+| 317 | PageNet                  | USA, TN, Nashville            | 615-303-9999        | 7e1        | max        |                                                          | untested                                     |
+| 318 | PageNet                  | USA, Nationwide               | 800-720-8398        | 7e1        | max        |                                                          | untested                                     |
+| 319 | PageNet                  | USA, Nationwide               | 888-720-8398        | 7e1        | max        |                                                          | untested                                     |
+| 320 | PageNet                  | USA, Nationwide               | 888-589-8600        | 7e1        | max        |                                                          | untested                                     |
+| 321 | PageNet                  | USA, WI, Green Bay            | 920-440-1116        | 7e1        | max        |                                                          | untested                                     |
+| 322 | PageNet                  | USA, NH, New Hampshire        | 603-497-8467        | 7e1        | max        |                                                          | untested                                     |
+| 323 | PageNet                  | USA, NJ                       | 800-437-0528        | 7e1        | max        |                                                          | untested                                     |
+| 324 | PageNet                  | USA, NJ                       | 908-686-9053        | 7e1        | max        |                                                          | untested                                     |
+| 325 | PageNet                  | USA, NJ, New Jersey           | 201-878-7243        | 7e1        | max        |                                                          | untested                                     |
+| 326 | PageNet                  | USA, NJ, New Jersey           | 908-983-7243        | 7e1        | max        |                                                          | untested                                     |
+| 327 | PageNet                  | USA, LA, New Orleans          | 504-835-6124        | 7e1        | max        |                                                          | untested                                     |
+| 328 | PageNet                  | USA, FL, New Port Richey      | 813-843-5299        | 7e1        | max        |                                                          | untested                                     |
+| 329 | PageNet                  | USA, NY                       | 917-252-2000        | 7e1        | max        |                                                          | untested                                     |
+| 330 | PageNet                  | USA, NY, Newburgh             | 914-438-0000        | 7e1        | max        |                                                          | untested                                     |
+| 331 | PageNet                  | USA, CA, Santa Clarita Valley | 805-287-3000        | 7e1        | max        |                                                          | untested                                     |
+| 332 | PageNet                  | USA, VA, Norfolk              | 757-366-1044        | 7e1        | max        |                                                          | untested                                     |
+| 333 | PageNet                  | USA, VA, Norfolk              | 804-366-5349        | 7e1        | max        |                                                          | untested                                     |
+| 334 | PageNet                  | USA, NC                       | 800-685-4399        | 7e1        | max        |                                                          | untested                                     |
+| 336 | PageNet                  | USA, CA, Norwalk              | 562-707-1000        | 7e1        | max        |                                                          | untested                                     |
+| 337 | PageNet                  | USA, CA, Oakland              | 510-319-2436        | 7e1        | max        |                                                          | untested                                     |
+| 338 | PageNet                  | USA, CA, Oakland              | 510-638-3526        | 7e1        | max        |                                                          | untested                                     |
+| 339 | PageNet                  | USA, OK, Oklahoma             | 405-980-7243        | 7e1        | max        |                                                          | untested                                     |
+| 340 | PageNet                  | USA, CA, Ontario/Claremont    | 909-448-2100        | 7e1        | max        |                                                          | untested                                     |
+| 341 | PageNet                  | USA, FL, Orlando              | 407-974-7099        | 7e1        | max        |                                                          | untested                                     |
+| 342 | PageNet                  | USA, FL, Orlando              | 407-839-0712        | 7e1        | max        |                                                          | untested                                     |
+| 343 | PageNet                  | USA, CA, Palm Springs         | 760-833-1234        | 7e1        | max        |                                                          | untested                                     |
+| 344 | PageNet                  | USA, CA, Palmdale/Lancaster   | 805-540-1005        | 7e1        | max        |                                                          | untested                                     |
+| 345 | PageNet                  | USA, PA, Philadelphia         | 610-834-1572        | 7e1        | max        |                                                          | untested                                     |
+| 346 | PageNet                  | USA, PA, Philadelphia         | 800-437-0529        | 7e1        | max        |                                                          | untested                                     |
+| 347 | PageNet                  | USA, AZ, Phoenix              | 602-591-6000        | 7e1        | max        |                                                          | untested                                     |
+| 348 | PageNet                  | USA, PA, Pittsburgh           | 412-788-2878        | 7e1        | max        |                                                          | untested                                     |
+| 349 | PageNet                  | USA, OR, Portland             | 503-232-3787        | 7e1        | max        |                                                          | untested                                     |
+| 350 | PageNet                  | USA, RI, Providence           | 401-647-5457        | 7e1        | max        |                                                          | untested                                     |
+| 351 | PageNet                  | USA, NC, Raleigh              | 919-505-0000        | 7e1        | max        |                                                          | untested                                     |
+| 352 | PageNet                  | USA, NV, Reno                 | 702-329-4506        | 7e1        | max        |                                                          | untested                                     |
+| 353 | PageNet                  | USA, VA, Richmond             | 804-278-7844        | 7e1        | max        |                                                          | untested                                     |
+| 354 | PageNet                  | USA, NY, Rochester            | 716-306-0000        | 7e1        | max        |                                                          | untested                                     |
+| 355 | PageNet                  | USA, CA, Sacramento           | 209-473-7506        | 7e1        | max        |                                                          | untested                                     |
+| 356 | PageNet                  | USA, CA, Sacramento           | 916-981-2000        | 7e1        | max        |                                                          | untested                                     |
+| 357 | PageNet                  | USA, CA, Sacramento           | 916-929-7686        | 7e1        | max        |                                                          | untested                                     |
+| 358 | PageNet                  | USA, CA, Saddleback           | 714-227-0014        | 7e1        | max        |                                                          | untested                                     |
+| 359 | PageNet                  | USA, OR, Salem                | 503-391-4439        | 7e1        | max        |                                                          | untested                                     |
+| 360 | PageNet                  | USA, UT, Salt Lake City       | 801-919-0008        | 7e1        | max        |                                                          | untested                                     |
+| 361 | PageNet                  | USA, TX, San Antonio          | 210-342-8831        | 7e1        | max        |                                                          | untested                                     |
+| 362 | PageNet                  | USA, CA, San Carlos           | 415-572-1411        | 7e1        | max        |                                                          | untested                                     |
+| 363 | PageNet                  | USA, CA, San Diego            | 619-232-8425        | 7e1        | max        |                                                          | untested                                     |
+| 364 | PageNet                  | USA, CA, San Diego            | 619-918-8808        | 7e1        | max        |                                                          | untested                                     |
+| 365 | PageNet                  | USA, CA, San Fernando         | 818-328-0020        | 7e1        | max        |                                                          | untested                                     |
+| 366 | PageNet                  | USA, CA, San Francisco        | 415-207-0057        | 7e1        | max        |                                                          | untested                                     |
+| 367 | PageNet                  | USA, CA, San Gabriel Valley   | 818-292-3012        | 7e1        | max        |                                                          | untested                                     |
+| 368 | PageNet                  | USA, CA, San Jose             | 408-428-9729        | 7e1        | max        |                                                          | untested                                     |
+| 369 | PageNet                  | USA, CA, San Jose             | 408-798-7201        | 7e1        | max        |                                                          | untested                                     |
+| 370 | PageNet                  | USA, CA, San Luis Obispo      | 805-782-2416        | 7e1        | max        |                                                          | untested                                     |
+| 371 | PageNet                  | USA, CA, San Mateo            | 650-371-0040        | 7e1        | max        |                                                          | untested                                     |
+| 372 | PageNet                  | USA, CA, Santa Barbara        | 805-887-1684        | 7e1        | max        |                                                          | untested                                     |
+| 373 | PageNet                  | USA, CA, Santa Maria          | 805-349-3025        | 7e1        | max        |                                                          | untested                                     |
+| 374 | PageNet                  | USA, CA, Santa Monica         | 310-239-5116        | 7e1        | max        |                                                          | untested                                     |
+| 375 | PageNet                  | USA, CA, Santa Rosa           | 707-316-0002        | 7e1        | max        |                                                          | untested                                     |
+| 376 | PageNet                  | USA, FL, Sarasota             | 941-569-7299        | 7e1        | max        |                                                          | untested                                     |
+| 377 | PageNet                  | USA, WA, Seattle              | 800-795-4563        | 7e1        | max        |                                                          | untested                                     |
+| 378 | PageNet                  | USA, WA, Seattle              | 206-747-9674        | 7e1        | max        |                                                          | untested                                     |
+| 379 | PageNet                  | USA, WA, Seattle              | 425-747-1401        | 7e1        | max        |                                                          | untested                                     |
+| 381 | PageNet                  | USA, WA, Spokane              | 509-490-0000        | 7e1        | max        |                                                          | untested                                     |
+| 382 | PageNet                  | USA, MA, Springfield          | 413-290-0101        | 7e1        | max        |                                                          | untested                                     |
+| 383 | PageNet                  | USA, FL, St. Augustine        | 904-823-1600        | 7e1        | max        |                                                          | untested                                     |
+| 384 | PageNet                  | USA, MO, St. Louis            | 314-984-8710        | 7e1        | max        |                                                          | untested                                     |
+| 385 | PageNet                  | USA, CA, Stockton             | 209-889-4100        | 7e1        | max        |                                                          | untested                                     |
+| 386 | PageNet                  | USA, NY, Syracuse             | 315-449-2502        | 7e1        | max        |                                                          | untested                                     |
+| 387 | PageNet                  | USA, WA, Tacoma               | 253-572-4019        | 7e1        | max        |                                                          | untested                                     |
+| 388 | PageNet                  | USA, FL, Tallahassee          | 850-224-4492        | 7e1        | max        |                                                          | untested                                     |
+| 389 | PageNet                  | USA, FL, Tampa                | 813-219-7299        | 7e1        | max        |                                                          | untested                                     |
+| 390 | PageNet                  | USA, CA, Temecula             | 909-507-1234        | 7e1        | max        |                                                          | untested                                     |
+| 391 | PageNet                  | USA, CA, Simi Valley          | 805-494-5818        | 7e1        | max        |                                                          | untested                                     |
+| 392 | PageNet                  | USA, AZ, Tucson               | 520-930-7243        | 7e1        | max        |                                                          | untested                                     |
+| 393 | PageNet                  | USA, CA, Ventura/Oxnard       | 805-671-0143        | 7e1        | max        |                                                          | untested                                     |
+| 394 | PageNet                  | USA, CA, Victorville          | 619-955-9099        | 7e1        | max        |                                                          | untested                                     |
+| 395 | PageNet                  | USA, CA, Visalia              | 209-741-5506        | 7e1        | max        |                                                          | untested                                     |
+| 396 | PageNet                  | USA, Washington DC            | 703-442-7606        | 7e1        | max        |                                                          | untested                                     |
+| 397 | PageNet                  | USA, Washington DC            | 301-474-4657        | 7e1        | max        |                                                          | untested                                     |
+| 398 | PageNet                  | USA, FL, West Palm Beach      | 561-551-7243        | 7e1        | max        |                                                          | untested                                     |
+| 399 | PageNet                  | USA, NY, Westchester          | 914-284-0000        | 7e1        | max        |                                                          | untested                                     |
+| 400 | PageNet                  | USA, NY, Westchester          | 914-347-3136        | 7e1        | max        |                                                          | untested                                     |
+| 401 | PageNet                  | USA, WI                       | 800-471-3408        | 7e1        | max        |                                                          | untested                                     |
+| 402 | PageNet                  | USA, OH, Youngstown/Warren    | 330-380-7243        | 7e1        | max        |                                                          | untested                                     |
+| 403 | Pagers Plus              | Unknown                       | 800-257-2307        | 7e1        | max        |                                                          | untested                                     |
+| 404 | Paging Plus              | Unknown                       | 800-848-6122        | 7e1        | max        |                                                          | untested                                     |
+| 405 | PageUSA                  | USA, CA                       | 925-803-1180        | 7e1        | max        |                                                          | untested                                     |
+| 406 | Paging, Inc.             | Unknown                       | 800-888-8757        | 7e1        | max        |                                                          | untested                                     |
+| 407 | Phoenix Paging           | Unknown                       | 602-929-0500        | 7e1        | max        |                                                          | untested                                     |
+| 408 | Porta-Phone              | Unknown                       | 800-443-8931        | 7e1        | max        |                                                          | untested                                     |
+| 409 | PrimeCo Messaging        | Unknown                       | 800-659-7514        | 7e1        | max        |                                                          | untested                                     |
+| 410 | ProNet                   | USA, FL, Tallahassee          | 800-723-9036        | 7e1        | max        |                                                          | untested                                     |
+| 411 | ProNet                   | USA, TX                       | 800-374-3801        | 7e1        | max        |                                                          | untested                                     |
+| 412 | ProNet                   | USA, WI                       | 800-366-1936        | 7e1        | max        |                                                          | untested                                     |
+| 413 | RAMPage                  | Unknown                       | 800-718-1448        | 7e1        | max        |                                                          | untested                                     |
+| 414 | Radiofone                | USA, LA, New Orleans          | 800-431-2731        | 7e1        | max        |                                                          | untested                                     |
+| 415 | Range                    | USA, MI, Upper Peninsula      | 906-222-1000        | 7e1        | max        |                                                          | untested                                     |
+| 416 | Seiko Message watch      | Unknown                       | 213-613-0224        | 7e1        | max        |                                                          | untested                                     |
+| 417 | Seiko Message watch      | USA, OR, Portland             | 503-243-3019        | 7e1        | max        |                                                          | untested                                     |
+| 418 | Seiko Message watch      | USA, WA, Seattle              | 360-621-0830        | 7e1        | max        |                                                          | untested                                     |
+| 419 | Shaw Paging              | Canada, Quebec, Montreal      | 514-336-2290        | 7e1        | max        |                                                          | untested                                     |
+| 476 | Cingular                 | USA, CA, San Jose             | 8312030032          | 208-9875   | max        |                                                          |                                              |
+| 421 | Skytel                   | USA, Nationwide               | 800-258-9880        | 7e1        | max        |                                                          | untested                                     |
+| 422 | SkyTel ASCII             | Unknown                       | 800-759-9673        | 7e1        | max        |                                                          | untested                                     |
+| 425 | Skytel                   | USA, UT, Salt Lake City       | 801-488-6473        | 7e1        | max        |                                                          | untested                                     |
+| 427 | Sprint PCS               | USA, Nationwide               | 888-656-1727        | 7e1        | max        |                                                          | tested                                       |
+| 428 | Sprint Paging            | Unknown                       | 800-785-5629        | 7e1        | max        |                                                          | untested                                     |
+| 429 | Sprint Spectrum          | Unknown                       | 800-272-6505        | 7e1        | max        |                                                          | untested                                     |
+| 430 | SuperCom                 | USA, MI, Upper Peninsula      | 906-777-8880        | 7e1        | max        |                                                          | untested                                     |
+| 431 | TNI Paging               | Unknown                       | 800-666-3282        | 7e1        | max        |                                                          | untested                                     |
+| 432 | TSR Wireless             | USA, NY, Long Island          | 516-426-4110        | 7e1        | max        |                                                          | untested                                     |
+| 433 | TSR Wireless             | USA, VA Northern              | 703-331-2808        | 7e1        | max        |                                                          | untested                                     |
+| 434 | TSR Wireless             | USA, AZ, Phoenix              | 602-216-1000        | 7e1        | max        |                                                          | untested                                     |
+| 435 | Telus                    | Canada, AB, Calgary           | 403-247-2635        | 7e1        | max        |                                                          | untested                                     |
+| 436 | Telus                    | Canada, AB, Edmonton          | 780-916-8118        | 7e1        | max        |                                                          | untested                                     |
+| 437 | Telus                    | USA, Nationwide               | 888-442-0454        | 7e1        | max        |                                                          | untested                                     |
+| 438 | Touch Tel Paging         | Unknown                       | 510-748-2097        | 7e1        | max        |                                                          | untested                                     |
+| 439 | Tri-State                | USA, New England              | 617-668-0003        | 7e1        | max        |                                                          | untested                                     |
+| 440 | US West                  | Unknown                       | 520-327-8944        | 7e1        | max        |                                                          | untested                                     |
+| 441 | US West                  | Unknown                       | 888-823-3434        | 7e1        | max        |                                                          | untested                                     |
+| 442 | US West AdvancedPCS      | Unknown                       | 888-823-8234        | 7e1        | max        |                                                          | untested                                     |
+| 443 | USA Mobile               | Unknown                       | 513-563-5067        | 7e1        | max        |                                                          | untested                                     |
+| 444 | USA Mobile               | Unknown                       | 800-589-9776        | 7e1        | max        |                                                          | untested                                     |
+| 445 | USA Mobile               | Unknown                       | 800-840-0075        | 7e1        | max        |                                                          | untested                                     |
+| 446 | USA Mobile               | USA, OH, Akron                | 800-688-9259        | 7e1        | max        |                                                          | untested                                     |
+| 447 | USA Mobile               | USA, AL                       | 800-239-7749        | 7e1        | max        |                                                          | untested                                     |
+| 448 | USA Mobile               | USA, KY, Eastern              | 800-944-1233        | 7e1        | max        |                                                          | untested                                     |
+| 449 | USA Mobile               | USA, OH, Findley              | 800-686-1090        | 7e1        | max        |                                                          | untested                                     |
+| 450 | USA Mobile               | USA, IN, Fort Wayne           | 800-491-2090        | 7e1        | max        |                                                          | untested                                     |
+| 451 | USA Mobile               | USA, OH                       | 800-686-9900        | 7e1        | max        |                                                          | untested                                     |
+| 452 | Voice Stream             | Unknown                       | 800-937-8941        | 7e1        | max        |                                                          | PINs require a leading '1', e.g. 18085551212 |
+| 453 | VPS Paging               | Unknown                       | 605-338-7794        | 7e1        | max        |                                                          | untested                                     |
+| 454 | Weblink Wireles/PageMart | Unknown                       | 800-557-8081        | 7e1        | max        |                                                          | 2 way,untested                               |
+| 455 | Westlink                 | USA, MN, Minneapolis          | 800-793-6280        | 7e1        | max        |                                                          | untested                                     |
+| 456 | Westlink Paging          | Unknown                       | 602-231-9447        | 7e1        | max        |                                                          | untested                                     |
+| 457 | Westlink Paging          | Unknown                       | 800-231-7886        | 7e1        | max        |                                                          | untested                                     |
+| 458 | Westlink Paging          | Unknown                       | 801-483-1081        | 7e1        | max        |                                                          | untested                                     |
+| 459 | Bell South Wireless RIM  | USA, Nationwide               | 800-868-2835        | 7e1        | max        |                                                          | not fully tested                             |
+| 460 | Cantel                   | Canada                        | 604-685-3612        | 7e1        | max        |                                                          | untested                                     |
+| 461 | USA Mobile               | USA, IL                       | 800-666-0038        | 7e1        | max        |                                                          | untested                                     |
+| 462 | Breaking News Network    | Unknown                       | 201-947-9049        | 7e1        | max        |                                                          | untested                                     |
+| 463 | PageNet                  | USA, Northeastern             | 917-973-7000        | 7e1        | max        |                                                          | untested                                     |
+| 464 | Vodafone                 | Australia                     | 0414100200          | 8n1        | 4800       |                                                          | untested                                     |
+| 465 | Verizon                  | USA, Nationwide               | 866-823-0501        | 7e1        | max        |                                                          |                                              |
+| 466 | Cingular                 | USA, Nationwide               | 800-469-5351        | 7e1        | max        |                                                          |                                              |
+| 467 | Nextel                   | USA, KS, Kansas City          | 913-927-6683        | 7e1        | max        |                                                          |                                              |
+| 468 | TeleBeep Wireless        | USA, NY                       | 402-644-2400        | 7e1        | 300        |                                                          | Pagers only?                                 |
+| 469 | Verizon                  | USA, MI, Grand Rapids         | 616-478-7243        | 7e1        | 1200       |                                                          | untested (baud may be max)                   |
+| 470 | Sky Comm USA, INC        | USA, FL                       | 352-401-9471 ext 21 | 7e1        | max        |                                                          | Pagers Only                                  |
+| 473 | Bell Mobility            | Canada, Ontario, Ottawa       | +1 613 744 4822     | 7e1        | 1200       | ID= may not appear right away, don't give up too quickly | TAP                                          |
+| 474 | PageNet                  | Canada, Ontario, Ottawa       | +1 613 722 0337     | 7e1        | 1200       |                                                          |                                              |
++-----+--------------------------+-------------------------------+---------------------+------------+------------+----------------------------------------------------------+----------------------------------------------+
+453 rows in set (0.00 sec)
