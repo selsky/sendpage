@@ -241,7 +241,7 @@ sub start_proto {
                         DialRetry => $config->get("modem:${name}\@dialretries"),
                         NoCarrier => $config->get("modem:${name}\@no-carrier"),
 			DTRToggleTime => $config->get("modem:${name}\@dtrtime"),
-                        IgnoreCarrier => $config->get("modem:${name}\@ignore-carrier",1),
+                        CarrierDetect => $config->get("modem:${name}\@carrier-detect",1),
                         AreaCode => $config->get("modem:${name}\@areacode",1),
                         LongDist => $config->get("modem:${name}\@longdist"),
                         DialOut =>  $config->get("modem:${name}\@dialout")
@@ -424,6 +424,9 @@ sub deliver {
 	my($self,$page)=@_;
 	my($rc, $report);
 	my($to,$cc,$extra,$attempts);
+	my($queuedir);
+
+	$queuedir=$self->{CONFIG}->get("queuedir");
 
 	for ($page->reset(), $page->next();
 	     defined($recip=$page->recip());
@@ -507,7 +510,7 @@ sub deliver {
 
 			# external commands...
 			if (defined($self->{CompletionCmd})) {
-				open(CMD,"|$self->{CompletionCmd} 1 $paged");
+				open(CMD,"|$self->{CompletionCmd} 1 $paged $queuedir/$pc/$file");
 				print CMD $page->text();
 				close(CMD);
 			}
@@ -574,7 +577,7 @@ sub deliver {
 
 			# external commands...
 			if (defined($self->{CompletionCmd})) {
-				open(CMD,"|$self->{CompletionCmd} 0 $paged");
+				open(CMD,"|$self->{CompletionCmd} 0 $paged $queuedir/$pc/$file");
 				print CMD $page->text();
 				close(CMD);
 			}

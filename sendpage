@@ -1398,7 +1398,7 @@ sub verifyModems {
 			DialRetry => $config->get("modem:${modem}\@dialretries"),
 			NoCarrier => $config->get("modem:${modem}\@no-carrier"),
 			DTRToggleTime => $config->get("modem:${modem}\@dtrtime"),
-			IgnoreCarrier => $config->get("modem:${modem}\@ignore-carrier",1),
+			CarrierDetect => $config->get("modem:${modem}\@carrier-detect",1),
 			AreaCode => $config->get("modem:${modem}\@areacode",1),
 			LongDist => $config->get("modem:${modem}\@longdist"),
 			DialOut =>  $config->get("modem:${modem}\@dialout")
@@ -1595,7 +1595,7 @@ $config->define("modem:parity", { DEFAULT => "even" });
 $config->define("modem:stop",   { DEFAULT => 1 });
 $config->define("modem:flow",   { DEFAULT => "rts" });
 $config->define("modem:dev",    { DEFAULT => "/dev/null" });
-$config->define("modem:ignore-carrier", { ARGCOUNT=> 0, UNSET => 1 });
+$config->define("modem:carrier-detect", { DEFAULT => "on" });
 # time to force DTR down during reset (0 = don't do it at all)
 $config->define("modem:dtrtime", { DEFAULT => 0.5 });
 $config->define("modem:init",   { DEFAULT => "ATZ" });

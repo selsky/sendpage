@@ -42,7 +42,7 @@ Sendpage::Modem.pm - extends the Device::SerialPort package
     $modem->ready($functionname);
     $modem->dial($areacode,$phonenumber,$timeout);
     $modem->chat($send,$resend,$expect,$timeout,$retries,$dealbreaker,
-    	$ignore_carrier);
+    	$carrier);
     $modem->hangup();
 
     $str=Sendpage::Modem->HexStr("tab:\t cr:\r");
@@ -173,14 +173,14 @@ sub new {
 	my $ref;
 
 	if (!defined($self)) {
-		$log->do('crit',"Modem '$name': could not start Device::Serial port");
+		$log->do('crit',"Modem '$name': could not start Device::Serial port: $!");
 		unlink $lockfile;
 		undef $log;
 		return undef;
 	}
 
 	# save our stateful information
-	$self->{NAME}  =$name;		# name of the modem
+	$self->{MYNAME}  =$name;	# name of the modem
 	$self->{LOCKFILE} = $lockfile;	# where our lockfile is
 	$self->{DEBUG} = $debug;	# debug mode?
 	$self->{INITDONE} = 0;		# we have not run "init"
@@ -201,7 +201,7 @@ sub new {
 
 	# grab config settings
 	my $index;
-	foreach $index (qw(Baud Parity Data Stop Flow Init InitOK InitWait InitRetry Error Dial DialOK DialWait DialRetry NoCarrier IgnoreCarrier DTRToggleTime AreaCode LongDist DialOut)) {
+	foreach $index (qw(Baud Parity Data Stop Flow Init InitOK InitWait InitRetry Error Dial DialOK DialWait DialRetry NoCarrier CarrierDetect DTRToggleTime AreaCode LongDist DialOut)) {
 		if (defined($arg{$index})) {
 			$self->{$index} = $arg{$index};
 			$log->do('debug',"Modem '$name' setting '$index': '".
@@ -220,7 +220,7 @@ sub new {
 sub init {
 	my $self = shift;
 	my($baud,$parity,$data,$stop,$flow,$str) = @_;
-	$name="Modem '$self->{NAME}'";
+	$name="Modem '$self->{MYNAME}'";
 
 	if (!defined($self->{LOCKFILE})) {
 		$self->{LOG}->do('crit',"init: $name not locked");
@@ -265,7 +265,7 @@ sub init {
 #	}
 	
 	# pass various settings through to the serial port
-	$self->alias($self->{NAME});
+	$self->alias($self->{MYNAME});
 
 	my $baud_set=$self->baudrate($baud);
 	$self->{LOG}->do('debug', "baud requested: '$baud' baud set: '$baud_set'")
@@ -340,7 +340,7 @@ sub init {
 		# send the init string through
 		$self->{INITDONE}=1; # frame this to let chat work
 		$result=$self->chat("$str\r","$str\r",$ok,$initwait,
-			$initretries, $self->{Error},1);
+			$initretries, $self->{Error},"off");
 		$self->{INITDONE}=0; # disable again
 	}
 	if (defined($result)) {
@@ -354,11 +354,11 @@ sub ready {
 	my $func=shift;
 
 	if (!defined($self->{LOCKFILE})) {
-		$self->{LOG}->do('crit',"$func: Modem '$self->{NAME}' not locked");
+		$self->{LOG}->do('crit',"$func: Modem '$self->{MYNAME}' not locked");
 		return undef;
 	}
 	if (!$self->{INITDONE}) {
-		$self->{LOG}->do('crit',"$func: Modem '$self->{NAME}' not initialized");
+		$self->{LOG}->do('crit',"$func: Modem '$self->{MYNAME}' not initialized");
 		return undef;
 	}
 	return 1;
@@ -427,7 +427,7 @@ sub dial {
 
 	return $self->chat($modem_dial.$modem_dialout.$actual_num."\r","",
 				$self->{DialOK},$dialwait,1,
-				$self->{NoCarrier},1);
+				$self->{NoCarrier},"off");
 }
 
 sub safe_write {
@@ -435,7 +435,7 @@ sub safe_write {
 	my($textlen,$written);
 
 	if (!defined($self->{LOCKFILE})) {
-		$self->{LOG}->do('crit',"safe_write: Modem '$self->{NAME}' not locked");
+		$self->{LOG}->do('crit',"safe_write: Modem '$self->{MYNAME}' not locked");
 		return undef;
 	}
 
@@ -471,18 +471,18 @@ sub safe_write {
 #	timeout:time in seconds to wait for the "expect"ed text
 #	retries:how many times to send the kicker and restart the timeout
 #	dealbreaker:a regexp that indicates total failure (NO CARRIER, etc)
-#	ignore_carrier:should the carrier detect signal on the modem
-#			be ignored during this chat?
+#	carrier:should the carrier detect signal on the modem
+#		be ignored during this chat, or use DSR? ("on","off", "dsr")
 sub chat {
 	my $self = shift;
         my ($send,$kicker,$expect,$timeout,$retries,$dealbreaker,
-		$ignore_carrier)=@_;
+		$carrier)=@_;
         my ($avail,$got);
 
 	return undef unless $self->ready("chat");
 
-	$ignore_carrier=$self->{IgnoreCarrier}
-		if (!defined($ignore_carrier));
+	$carrier=$self->{CarrierDetect}
+		if (!defined($carrier));
 	$got=$self->{BUFFER};
 
 	if ($self->{DEBUG}) {
@@ -558,15 +558,13 @@ sub chat {
 		for ($timeleft=0; $timeleft<$timeout; $timeleft++) {
 
 			# do carrier check
-			if (!defined($ignore_carrier)) { 
-				my $has_carrier=$self->carrier();
-				if (!$has_carrier) {
-					$self->{LOG}->do('warning',
-						"lost carrier during chat");
-					# modem no longer valid
-					$self->{INITDONE}=0;
-					return undef;
-				}
+			my $has_carrier=$self->carrier($carrier);
+			if (!$has_carrier) {
+				$self->{LOG}->do('warning',
+					"lost carrier during chat");
+				# modem no longer valid
+				$self->{INITDONE}=0;
+				return undef;
 			}
 
 			# try to read char
@@ -619,31 +617,42 @@ sub chat {
 # what is the state of the carrier bit?
 sub carrier {
 	my $self=shift;
+	my $way=shift; # "on", "off", or "dsr"
 
 	if (!defined($self->{LOCKFILE})) {
-		$self->{LOG}->do('crit',"carrier: Modem '$self->{NAME}' not locked");
+		$self->{LOG}->do('crit',"carrier: Modem '$self->{MYNAME}' not locked");
 		return undef;
 	}
 
-	my $ModemStatus = $self->modemlines;
-	return (($ModemStatus & $self->MS_RLSD_ON) == $self->MS_RLSD_ON);
+	return 1 if ($way =~ /off/i);
+
+	if ($way =~ /on/i)
+	{
+		my $ModemStatus = $self->modemlines;
+		return (($ModemStatus & $self->MS_RLSD_ON) == $self->MS_RLSD_ON);
+	}
+	if ($way =~ /dsr/i)
+	{
+		my $ModemStatus = $self->modemlines;
+		return (($ModemStatus & $self->MS_DSR_ON) == $self->MS_DSR_ON);
+	}
+	$self->{LOG}->do('crit',"carrier: Modem '$self->{MYNAME}' unknown carrier check '$way'");
+	return undef;
 }
 
 
 # drop the carrier if it's there
 sub hangup {
-	$self=shift;
-
-	$self->{LOG}->do('debug',"Modem::hangup: '$self->{NAME}'")
-		if ($self->{DEBUG});
+	my $self=shift;
 
 	if (!defined($self->{LOCKFILE})) {
-		$self->{LOG}->do('crit',"hangup: Modem '$self->{NAME}' not locked");
+		$self->{LOG}->do('crit',"hangup: Modem '$self->{MYNAME}' not locked");
 		return undef;
 	}
 
-	if (!$self->{IgnoreCarrier} && $self->carrier()) {
-		$self->{LOG}->do('debug',"toggling DTR to hang up Modem '$self->{NAME}'")
+	if ($self->{CarrierDetect}!~/off/i &&
+	    $self->carrier($self->{CarrierDetect})) {
+		$self->{LOG}->do('debug',"toggling DTR to hang up Modem '$self->{MYNAME}'")
 			if ($self->{DEBUG});
 		$self->pulse_dtr_off(500);
 	}
@@ -656,17 +665,14 @@ sub unlock {
 	my $self=shift;
 
 	if (!defined($self->{LOCKFILE})) {
-		$self->{LOG}->do('crit',"unlock: Modem '$self->{NAME}' not locked");
+		$self->{LOG}->do('crit',"unlock: Modem '$self->{MYNAME}' not locked");
 		return undef;
 	}
-
-	$self->{LOG}->do('debug',"Modem::unlock: '$self->{NAME}'")
-		if ($self->{DEBUG});
 
 	$self->hangup();
 
 	if (defined($self->{LOCKFILE})) {
-		$self->{LOG}->do('debug',"unlocking Modem '$self->{NAME}'")
+		$self->{LOG}->do('debug',"unlocking Modem '$self->{MYNAME}'")
 			if ($self->{DEBUG});
 		unlink($self->{LOCKFILE});
 		undef $self->{LOCKFILE};
@@ -676,18 +682,22 @@ sub unlock {
 # what happens when we get destroyed
 sub DESTROY {
 	my $self = shift;
-	my $log=$self->{LOG};
-	my $name=$self->{NAME};
 
- 	$log->do('debug',"Modem Object '$name' being destroyed")
+	# since I call "close", a weird double-destroy happens, need these
+	# for final logging
+	#my $log=$self->{LOG};
+	#my $name=$self->{MYNAME};
+	#my $debug=$selft->{DEBUG};
+
+ 	$self->{LOG}->do('debug',"Modem Object '$self->{MYNAME}' being destroyed")
 		if ($self->{DEBUG});
 
 	$self->unlock() if (defined($self->{LOCKFILE}));
 
-	# Very weird: don't Perl objects destroy parents?
-	$self->close();
+	# call parent destructor
+	$self->SUPER::DESTROY;
 
- 	$log->do('debug',"Modem Object '$name' destroyed")
+ 	$self->{LOG}->do('debug',"Modem Object '$self->{MYNAME}' destroyed")
 		if ($self->{DEBUG});
 }
 

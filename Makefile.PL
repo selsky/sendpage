@@ -34,7 +34,7 @@ if (!chk_version(Net::SNPP => 1.10)) {
     $fail=1;
 }
 
-if (!chk_version(Device::SerialPort => 0.11) &&
+if (!chk_version(Device::SerialPort => 0.12) &&
     !chk_version(Win32::SerialPort => 0.07)) {
     warn  "\n"
 	. "'Device::SerialPort' version 0.09 or better or\n"

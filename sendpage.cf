@@ -233,9 +233,10 @@ dev	= /dev/modem
 #	Default is "3"
 #dialretries=1
 
-# Should the status of "carrier detect" be ignored?
-#	Default is "false"
-#ignore-carrier=true
+# How should "carrier detection" be done?  "on", "off", "dsr"
+# "DSR" can be used when a cable or OS doesn't correctly provide CD
+#	Default is "on"
+#carrier-detect=dsr
 
 # How many seconds should the DTR be held down during initialization?
 #	Default is "0.5"
@@ -246,7 +247,7 @@ dev	= /dev/modem
 ## might look like:
 ##
 #[modem:direct]
-#ignore-carrier=true
+#carrier-detect=off
 #dtrtime=0
 #init=""
 #initok=""

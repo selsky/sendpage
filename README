@@ -278,7 +278,7 @@ Solaris:  Some headers under Solaris don't behave very well, so I had
 
 	  So, since I have zs serial ports on my Sun, I added the line:
 
-		set set zs:default_dtrlow = 0
+		set zs:default_dtrlow = 0
 
 	  so I could toggle the DTR rapidly.
 
