@@ -1,5 +1,5 @@
-#LyX 1.2 created this file. For more info see http://www.lyx.org/
-\lyxformat 220
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
 \textclass book
 \language english
 \inputencoding auto
@@ -28,7 +28,11 @@
 
 Using Sendpage
 \newline 
-(the Sendpage Manual)
+(the 
+\emph on 
+unfinished
+\emph default 
+ Sendpage Manual)
 \layout Author
 
 Kees Cook
@@ -159,26 +163,26 @@ To properly examine debugging information to help you troubleshoot problems
  capture all that sendpage sends to it.
  Sendpage uses the 
 \family typewriter 
-local6
+daemon
 \family default 
  syslog facility by default, and a variety of syslog levels from 
 \family typewriter 
-debug
+info
 \family default 
  through 
 \family typewriter 
 alert
 \family default 
 .
- With a stock syslog configuration, it is likely that everything below 
+ If you want to change the syslog facility, the following example uses 
 \family typewriter 
-info
+local6
 \family default 
- will not be recorded, so you may need to edit your 
+ with a minimum level of 
 \family typewriter 
-/etc/syslog.conf
+debug
 \family default 
- file.
+:
 \layout Subsubsection
 
 Same file or separate files
@@ -1617,15 +1621,7 @@ dev = /dev/ttyS0
 
 
 \family typewriter 
-dialout = 
-\begin_inset Quotes eld
-\end_inset 
-
-9,
-\begin_inset Quotes erd
-\end_inset 
-
-
+dialout = 9,
 \layout Quotation
 
 
@@ -1734,7 +1730,15 @@ modemtest
 \layout Standard
 
 Since modems (and serial ports) can be a real pain to get running correctly,
- there is a tool included in the sendpage package directory called 
+ there is a tool included in the sendpage package 
+\begin_inset Quotes eld
+\end_inset 
+
+examples
+\begin_inset Quotes erd
+\end_inset 
+
+ directory called 
 \family typewriter 
 modemtest
 \family default 
