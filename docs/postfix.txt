@@ -1,4 +1,5 @@
-Postfix to Sendpage Email Configuration, from Randy Emler:
+Postfix to Sendpage Email Configuration, from Randy Emler with additions
+by Chris Hubbell:
 
 
 Modify the /etc/postfix/transport file to include
@@ -15,6 +16,9 @@ Modify the /etc/postfix/master.cf file to include
 
 Modify the /etc/postfix/main.cf file to include
 	transport_maps = hash:/etc/postfix/transport
+
+Uncomment "local_recipient_maps" in main.cf:
+	local_recipient_maps =
 
 Run: "postmap transport" to create the transport.db file
 
