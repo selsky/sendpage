@@ -1,5 +1,5 @@
 #
-# KeesLog.pm implements a logging subsystem
+# KeesLog.pm implements a logging subsystem involving syslog and/or stderr
 #
 # $Id$
 #
