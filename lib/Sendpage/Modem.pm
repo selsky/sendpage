@@ -237,21 +237,54 @@ sub init {
 	}
 	
 	# pass various settings through to the serial port
-	# FIXME: I should probably test if these are available or successful?
 	$self->alias($self->{NAME});
-	$self->baudrate($baud);
-	$self->parity($parity);
-	$self->databits($data);
-	$self->stopbits($stop);
-	$self->handshake($flow);	
+
+	my $baud_set=$self->baudrate($baud);
+	$main::log->do('debug', "baud requested: '$baud' baud set: '$baud_set'")
+		if ($self->{DEBUG});
+	if ($baud ne $baud_set) {
+		$main::log->do('alert', "$name failed to set baud rate!");
+		return undef;
+	}
+
+	my $parity_set=$self->parity($parity);
+	$main::log->do('debug', "parity requested: '$parity' parity set: '$parity_set'")
+		if ($self->{DEBUG});
+	if ($parity ne $parity_set) {
+		$main::log->do('alert', "$name failed to set parity!");
+		return undef;
+	}
+
+	my $databits_set=$self->databits($data);
+	$main::log->do('debug', "databits requested: '$databits' databits set: '$databits_set'")
+		if ($self->{DEBUG});
+	if ($databits ne $databits_set) {
+		$main::log->do('alert', "$name failed to set databits!");
+		return undef;
+	}
+
+	my $stopbits_set=$self->stopbits($stop);
+	$main::log->do('debug', "stopbits requested: '$stopbits' stopbits set: '$stopbits_set'")
+		if ($self->{DEBUG});
+	if ($stopbits ne $stopbits_set) {
+		$main::log->do('alert', "$name failed to set stopbits!");
+		return undef;
+	}
+
+	my $flow_set=$self->handshake($flow);	
+	$main::log->do('debug', "flow requested: '$flow' flow set: '$flow_set'")
+		if ($self->{DEBUG});
+	if ($flow ne $flow_set) {
+		$main::log->do('alert', "$name failed to set flow control!");
+		return undef;
+	}
 
 	# set a char timeout for modem commands
-	$self->read_char_time(0);          # avg time between read char
+	$self->read_char_time(10);          # avg time between read char
         $self->read_const_time(1000/$SPEED);   # delay between calls
 
 	# hang up just in case
 	$main::log->do('debug', "reseting DTR ...") if ($self->{DEBUG});
-	#$self->pulse_dtr_off(500);
 	$self->dtr_active(F);
 	select(undef,undef,undef,1.5);  # force the dtr down
 	$self->dtr_active(T);
