@@ -255,18 +255,18 @@ sub init {
 		return undef;
 	}
 
-	my $databits_set=$self->databits($data);
-	$main::log->do('debug', "databits requested: '$databits' databits set: '$databits_set'")
+	my $data_set=$self->databits($data);
+	$main::log->do('debug', "databits requested: '$data' databits set: '$data_set'")
 		if ($self->{DEBUG});
-	if ($databits ne $databits_set) {
+	if ($data ne $data_set) {
 		$main::log->do('alert', "$name failed to set databits!");
 		return undef;
 	}
 
-	my $stopbits_set=$self->stopbits($stop);
-	$main::log->do('debug', "stopbits requested: '$stopbits' stopbits set: '$stopbits_set'")
+	my $stop_set=$self->stopbits($stop);
+	$main::log->do('debug', "stopbits requested: '$stop' stopbits set: '$stop_set'")
 		if ($self->{DEBUG});
-	if ($stopbits ne $stopbits_set) {
+	if ($stop ne $stop_set) {
 		$main::log->do('alert', "$name failed to set stopbits!");
 		return undef;
 	}
@@ -280,7 +280,7 @@ sub init {
 	}
 
 	# set a char timeout for modem commands
-	$self->read_char_time(10);          # avg time between read char
+	$self->read_char_time(1);          # avg time between read char
         $self->read_const_time(1000/$SPEED);   # delay between calls
 
 	# hang up just in case
@@ -456,7 +456,7 @@ sub chat {
 			# try to read char
 			($cnt,$avail)=$self->read(255);
 			if ($cnt > 0) {
-				$main::log->do('debug', "saw: ".$self->HexStr($avail))
+				$main::log->do('debug', "$cnt seen: ".$self->HexStr($avail))
 					if ($self->{DEBUG});
 				$got.=$avail;
 				$main::log->do('debug', "have: ".$self->HexStr($got))
