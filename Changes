@@ -23,6 +23,9 @@ $Id$
 	- fixed bug in SNPPServer.pm during unexpected loss of socket
 	- implemented "/etc/snpp.conf" file for snpp defaults
 	- fixed bug with "esc=true" for PagingCentral.pm
+	- added "disabled" notice to the "-bq" output
+	- added proper signal handlers
+	- fixed bug with hanging SNPP clients during a HUP
 
 0.9.8: (30Jan2001)
 	- further updates to Device::SerialPort and associated documentation

@@ -248,12 +248,18 @@ Usage();
 
 sub QueryDaemons {
 	my($display)=@_;
-	my(@check,$pc,$pid,$state,$running);
+	my(@check,$pc,$pid,$state,$running,$disabled);
 
 	undef $running;
 	@check=@pcs;
 	unshift(@check,"");
 	foreach $pc (@check) {
+		if ($pc ne "" && $config->get("pc:$pc\@enabled")==0) {
+			$disabled=1;
+		}
+		else {
+			$disabled=0;
+		}
 		$pid=PidOf($pc,1);
 		if ($pid==0) {
 			$state="Not running";
@@ -269,8 +275,9 @@ sub QueryDaemons {
 				$running=1;
 			}
 		}
-		printf("%-6d %20s : %s\n",$pid,
-			($pc eq "") ? 'Queue Manager' : $pc, $state)
+		printf("%-6d %20s : %s%s\n",$pid,
+			($pc eq "") ? 'Queue Manager' : $pc, $state,
+			$disabled ? " (disabled)" : "")
 				if ($display);
 	}
 
@@ -498,10 +505,36 @@ sub DaemonInit {
 	$log->do('alert',"no functioning modems!") if (!defined($modems[0]));
 }
 
+sub BlockSignals {
+	# define the signals to block
+	my $sigset = POSIX::SigSet->new(SIGINT,  SIGTERM, SIGQUIT, 
+					SIGCHLD, SIGUSR1, SIGHUP,
+					SIGPIPE);
+
+	# start blocking signals
+	unless (defined sigprocmask(SIG_BLOCK, $sigset)) {
+		$log->do('alert',"Could not block signals!");
+	}
+
+	return $sigset;
+}
+
+sub UnblockSignals {
+	# define the signals to block
+	my $sigset = POSIX::SigSet->new(SIGINT,  SIGTERM, SIGQUIT, 
+					SIGCHLD, SIGUSR1, SIGHUP,
+					SIGPIPE);
+
+	# stop blocking signals
+	unless (defined sigprocmask(SIG_UNBLOCK, $sigset)) {
+		$log->do('alert',"Could not unblock signals!");
+	}
+}
+
 # start one or all the children
 sub SpawnChildren {
 	my($which)=@_;
-	
+
 	my($pid,$pc,@which);
 
 	if (defined($which)) {
@@ -515,17 +548,19 @@ sub SpawnChildren {
 		$log->do('info',"starting Queue Manager (sendpage v$VERSION)");
 	}
 
+	# there was a race condition here between the fork
+	# 	 and the call to "SignalInit" where a child could
+	#	 think it was still the manager, and receive yet
+	#	 another signal, and act on it.   Now we block signals.
+
+	# start blocking signals
+	&BlockSignals();
+
 	# spawn PCs
 	foreach $pc (@which) {
 		if ($config->get("pc:$pc\@enabled")==0) {
 			next;
 		}
-
-		# FIXME: there is a race condition here between the fork
-		# 	 and the call to "SignalInit" where a child could
-		#	 think it was still the manager, and receive yet
-		#	 another signal, and act on it.  I'd like to pause
-		#	 signal handling here, mabye.
 
 		$pid=fork();
 		if ($pid<0) {
@@ -542,13 +577,23 @@ sub SpawnChildren {
 		}
 		else {
 			# child
+			
+			# set up
 			&SignalInit();
 			&DropPrivs();
+
+			# stop blocking signals
+			&UnblockSignals($sigset);
+
 			&StartQueue($pc);	
-			$log->do('crit',"PC '$pc' died!  Whoops, that can't happen!");
+			$log->do('crit',"PC '$pc' died!  Whoops, that can't ".
+				"happen!");
 			exit(1);
 		}
 	}
+
+	# stop blocking signals
+	&UnblockSignals($sigset);
 }
 
 sub DropPrivs {
@@ -759,7 +804,7 @@ sub RestartSNPP {
 }
 
 sub ListenForSNPP {
-	my($fh,$read,$exc,$pipe);
+	my($fh,$read,$exc,$pipe,$sigset);
 
 	StartSNPP();
 
@@ -791,6 +836,8 @@ sub ListenForSNPP {
 					$sock->peerhost) if ($DEBUG);
 
 				$pipe = new IO::Pipe;
+
+				$sigset=&BlockSignals();
 			
 				if(($pid = fork())>0) {
 					# Parent
@@ -808,13 +855,18 @@ sub ListenForSNPP {
 					$pipe->writer();
 					$pipe->autoflush(1);
 		
+					# set up identity
+					$PC="SNPP client";
 					$0="sendpage: SNPP client: ".
 						$sock->peerhost;
 					&SignalInit();
 					&DropPrivs();
-	
+
+					# we will unblock signals in
+					#  the snpp handler
 					$sock->HandleSNPP("SNPP Sendpage $VERSION",
-						$pipe, $config, $log, $DEBUG);
+						$pipe, $config, $log, $DEBUG,
+						$sigset);
 					$log->do('debug',
 						"leaving SNPP client cnxn")
 						if ($DEBUG);
@@ -827,6 +879,8 @@ sub ListenForSNPP {
 					# error on fork
 					close($sock);
 				}
+
+				&UnblockSignals();
 			}
 			elsif (defined($pid=$CNXNS{$fh})) {
 				# is this pipe shutdown?
@@ -1001,6 +1055,9 @@ sub Reload {
 
 		$RELOAD=1;
 
+		my $finished=0;
+
+		# shutdown the PCs
 		foreach $pc (@pcs) {
 			if ($config->get("pc:$pc\@enabled")==0) {
 				next;
@@ -1008,14 +1065,21 @@ sub Reload {
 			$log->do('debug', "Signalling '$pc' ...") if ($DEBUG);
 			SendSignal('QUIT',$pc);
 		}
+		# shut down all the SNPP clients too
+		foreach $pc (keys %PIPES) {
+			$log->do('debug',"Signalling SNPP client '$pc' ...")
+				if ($DEBUG);
+			SendSignal('QUIT',$pc);
+			$finished++;
+		}
 
 		# Note:
 		# can't do "DaemonInit" until everyone is dead because we
 		# need to re-init (to validate) all the modems.
 
 		my @keys=keys %OLD;
-		# how many children do we need to kill?
-		my $finished=$#keys+1;
+		# how many PC children do we need to kill?
+		$finished+=$#keys+1;
 
 		undef $!;
 		$log->do('debug', "Waiting for PCs to die off...") if ($DEBUG);
@@ -1033,13 +1097,18 @@ sub Reload {
 			elsif ($pid==0) {
 				sleep(60); # wait for children to die
 			}
-			elsif (!defined($OLD{$pid})) {
-				$log->do('warning',"Strange, I got an unknown child PID: '$pid'");
-			}
-			else {
+			elsif (defined($OLD{$pid})) {
 				$log->do('debug', "Letting old PC '$OLD{$pid}' rest in peace") if ($DEBUG);
 				$finished--;
-			}	
+			}
+			elsif (defined($PIPES{$pid})) {
+				PipeShutdownPid($pid);
+				$log->do('debug',"SNPP connection (pid $pid) finished") if ($DEBUG);
+				$finished--;
+			}
+			else {
+				$log->do('warning',"Strange, I got an unknown child PID: '$pid'");
+			}
 		}
 
 		$log->do('debug', "Reinitializing...") if ($DEBUG);

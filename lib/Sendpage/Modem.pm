@@ -116,7 +116,7 @@ sub new {
 	$lockfile.=pop(@parts);
 	# $lockfile should now be in the form "/var/lock/LCK..ttyS0"
 
-	$log->do('debug', "Trying to get lockfile '$lockfile'") if ($debug);
+	$log->do('debug', "Locking with '$lockfile' ...") if ($debug);
 
 	while (!defined(sysopen(LOCKFILE, "$lockfile",
 		O_EXCL | O_CREAT | O_RDWR, 0644))) {
@@ -148,7 +148,7 @@ sub new {
 			}
 			
 			# cannot touch lockfile
-			$log->do('warning',"Modem '$name': $dev is locked by process '$pid'");
+			$log->do('warning',"Modem '$name': '$dev' is locked by process '$pid'");
 			undef $log;
 			return undef;
 		}

@@ -34,7 +34,7 @@ use IO::Socket;
 use Net::Cmd;
 use Sendpage::PagingCentral;
 use Sendpage::PageQueue;
-use POSIX qw(strftime);
+use POSIX;
 
 @ISA = qw(Net::Cmd IO::Socket::INET);
 @EXPORT = (@Net::Cmd::EXPORT);
@@ -52,6 +52,7 @@ sub HandleSNPP {
 	my $config = shift;
 	my $log = shift;
 	my $DEBUG = shift;
+	my $sigset = shift; # for unblocking the signal handlers
 
         my($pin,@PINS,$pc,$recips,$recip,@recips,$fail,$text,$caller,$peer);
 
@@ -66,9 +67,14 @@ sub HandleSNPP {
 	}
 
 	# drop cnxn on signal
-	local $SIG{QUIT}=\&shutdown;
-	local $SIG{INT}=\&shutdown;
-	local $SIG{HUP}=\&shutdown;
+	$SIG{QUIT}=\&shutdown;
+	$SIG{INT}=\&shutdown;
+	$SIG{HUP}=\&shutdown;
+
+	# unblock signal handlers
+        unless (defined sigprocmask(SIG_UNBLOCK, $sigset)) {
+                $log->do('alert',"Could not unblock signals!");
+        }
 
 	sub reset_inputs {
 		@PINS=();
@@ -358,12 +364,14 @@ sub create {
  my $class = ref($proto) || $proto;
  my %arg = @_;
 
- return $class->SUPER::new(	Listen => $arg{Listen} || 5,
+ my $sock= $class->SUPER::new(	Listen => $arg{Listen} || 5,
 				LocalAddr => $arg{Addr},
 				LocalPort => $arg{Port} || "snpp(444)",
 				Timeout => $arg{Timeout},
 				Proto => 'tcp', 
 				Reuse => 1 );
+ $sock->sockopt(SO_REUSEADDR,1) if (defined($sock));
+ return $sock;
 }
 
 1;
