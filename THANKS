@@ -33,7 +33,8 @@ Karsten Hilbert
 Mark Frey
 	<markfrey@sympatico.ca>
 	Found a strange bug (in Perl?) where Modem.pm wasn't closing
-	the device on a DESTROY.
+	the device on a DESTROY.  Also found where lockfiles made by minicom
+	weren't be handled correctly, and found a bug with the -f option.
 
 Steve Szabo
 	<steves@fundserv.com>

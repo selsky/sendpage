@@ -195,6 +195,7 @@ use Sendpage::SNPPServer;
 use Socket;
 use IO::Select;
 use IO::Pipe;
+use Sys::Hostname;
 
 sub Usage {
 	die "Usage: $0 [OPTIONS] [alias ...]
@@ -290,7 +291,7 @@ else {
 	# who is it from?
 	if (!defined($opts{f}) && !$opts{n}) {
 		$opts{f}=scalar(getpwuid($<))."\@";
-		$opts{f}.=hostname;
+		$opts{f}.=hostname();
 	}
 
 	if (!defined($msg)) {

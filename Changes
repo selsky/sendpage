@@ -2,6 +2,8 @@ $Id$
 
 0.9.13:
 	- added parameters and code for completion command execution
+	- fixed lock-file parsing to handle minicom's strange format.
+	- wasn't including Sys::Hostname.  whoops!
 
 0.9.12: (17Jul2001)
 	- changed Modem.pm to deal with vmin problems under Solaris
