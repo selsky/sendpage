@@ -802,6 +802,9 @@ sub StartQueue {
 						$queue->fileToss();
 					}
 				}
+				else {
+					$queue->fileDone();
+				}
 			}
 		}
 

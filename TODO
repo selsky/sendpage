@@ -24,15 +24,19 @@ Needed For Stable Release
 - document how to make a "sendpage" user, and which group it needs to be in
 - implement max-blocks-per-session for a PC
 - implement email notification fall-back
-- email paging failures to page-daemon
+- email paging failures to page-daemon (Errors-To: ?)
 - figure out an install option for forcing /usr/local
 - verify that "direct" connections work
+- fix all support modules to use a hash list of parameters instead of
+  taking a KeesConf object.  This makes things more truely modular.
+- implement a better audit log for pages (queued, sent, errors, contents)
+  other than just debugging output.
 
 
 Would Be Nice
 -------------
 - code needs more documentation
-- make *useful* API documentation for all the modules via pod
+- write more API documentation for all the modules via pod
 - update API doc to reflect changes made for PageQueue, Page, and Recipient
 - spit out short GPL note somewhere?
 - Write up an example CGI script for sending pages

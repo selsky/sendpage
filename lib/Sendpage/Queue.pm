@@ -99,8 +99,8 @@ sub ready {
 	my $self = shift;
 
 	if ($self->{OPEN}) {
-		$main::log->do('alert', "Cannot check queue '".$self->{DIR}."' with open file (".$self->{FILES}[0].")!");
-		return -2;
+		$main::log->do('alert', "File '".$self->{FILES}[0]."' still open while checking queue '".$self->{DIR}."' -- restarting queue!");
+		#return -2;
 	}
 
 	opendir(DIRHANDLE,$self->{DIR})
