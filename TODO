@@ -3,12 +3,13 @@
 Things that need to be done...
 
 
-Needed For Fist Stable Release
+Needed For First Stable Release
 -------------------------
 *Code
 - implement SNPP "HOLD" function
 - have PCs shutdown on signal if active, but not sending a page.
 - clean up stale/running test during BecomeDaemon
+- option to not bounce "user not found" errors (to stop domain scanning)
 *Docs
 - finish sendpage-manual
 - add info about "snpp-acl"
