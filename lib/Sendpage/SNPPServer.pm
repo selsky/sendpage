@@ -306,6 +306,7 @@ sub write_queued_pages {
 			next;
                 }
 
+		my $pagetext;
                 my @pages;
                 @pages=();
 
@@ -315,7 +316,7 @@ sub write_queued_pages {
 			$log->do('debug',"Splitting due to PC '$pc' maxchar ".
 				"limit: ".$pagingcentral->maxchars())
 				if ($DEBUG);
-                        my($newtext,$i);
+                        my($newtext,$i,$splittext);
                         my $maxsplits=$pagingcentral->maxsplits();
                         my $format=length($maxsplits);
                         my $availlen=$pagingcentral->maxchars()-($format * 2)-2;
@@ -324,25 +325,26 @@ sub write_queued_pages {
                         # never send more than $maxsplits pages from one text
                         $chunks=$maxsplits if ($chunks>$maxsplits);
 
+			$splittext=$text;
                         for ($i=0; $i<$chunks; $i++) {
                                 $newtext=sprintf("%0${format}d/%0${format}d:",
                                                 $i+1,$chunks);
-                                $newtext.=substr($text,0,$availlen);
-                                $text=substr($text,$availlen);
+                                $newtext.=substr($splittext,0,$availlen);
+                                $splittext=substr($splittext,$availlen);
 
                                 push(@pages,$newtext);
                         }
-                        if ($text ne "") {
-				$log->do('warning',"threw away %d extra chars at the end of a page with more than %d splits",length($text),$chunks);
+                        if ($splittext ne "") {
+				$log->do('warning',"threw away %d extra chars at the end of a page with more than %d splits",length($splittext),$chunks);
                         }
                 }
                 else {
                         push(@pages,$text);
                 }
 
-                foreach $text (@pages) {
+                foreach $pagetext (@pages) {
 			my $file;
-                        if (!defined($file=$queue->addPage(Sendpage::Page->new($recips,\$text,
+                        if (!defined($file=$queue->addPage(Sendpage::Page->new($recips,\$pagetext,
                                 { 'when' => time,
                                   'from' => ($from ne "") ? $from : undef
                                  })))) {
@@ -363,7 +365,7 @@ sub write_queued_pages {
 				# log our enqueuement (new word?)
 				$log->do('info',
 "$pc/$file: state=Queued, to=".join(",",@tolist).", from=$repfrom($client), ".
-"size=".length($text));
+"size=".length($pagetext));
 			}
                 }
 		print $pipe "$pc\n" if (defined($pipe));
