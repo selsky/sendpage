@@ -40,7 +40,6 @@ use POSIX;
 @EXPORT = (@Net::Cmd::EXPORT);
 
 
-
 # FIXME: implement a input-alarm handler that will disconnect after 1 minute
 #	 of inactivity:
 #		421 Timeout, Goodbye
@@ -271,8 +270,18 @@ sub write_queued_pages {
 	my ($self,$pipe,$from,$text,$config,$log,$DEBUG,@PINS)=@_;
 	my ($pc,$recips,%QPCS,$fail,@recips,$recip,$repfrom);
 
+
 	my $queued=0;
-	my $client=$self->peerhost;
+	my $client;
+
+	if ($self eq "Sendpage::SNPPServer") {
+		# generic call without real connection
+		$client="localhost";
+	}
+	else {
+		$client=$self->peerhost;
+	}
+		
 
 	($fail,@recips)=main::ArrayDig(@PINS);
 	if ($fail == 0 && $#recips > -1) {
@@ -356,7 +365,7 @@ sub write_queued_pages {
 "size=".length($text));
 			}
                 }
-		print $pipe "$pc\n";
+		print $pipe "$pc\n" if (defined($pipe));
         }
 	umask($mask);
 

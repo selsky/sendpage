@@ -69,6 +69,13 @@ Quick Start (for Linux)
 
 		snpp -d -f me@yourdomain.org -m 'hi there!' yourPIN@yourPC
 
+	- if you want to write pages directly to the paging queue instead of
+	  using SNPP, you can use "sendpage" itself, but you must be root:
+
+		sendpage -f me@place.org -m 'hello again!' yourPIN@yourPC
+
+	  the sendpage daemon must be running for this to actually be delivered.
+
 	
 
 Long Version

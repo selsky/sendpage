@@ -89,6 +89,18 @@ Display a summary of all the available command line options.
 
 Turn on debugging (like "debug=true" in /etc/sendpage.cf)
 
+=item -f USER
+
+Show that the sent page is coming from USER.  Default is the current user.
+
+=item -m MESSAGE
+
+Send the given MESSAGE instead of reading text from stdin.
+
+=item -n
+
+Do not notify the 'from' user about the status of the page.
+
 =back
 
 =head1 DESCRIPTION
@@ -148,7 +160,7 @@ Sendpage::Page(3), Sendpage::Recipient(3), Sendpage::Queue(3)
 require 5.005;
 
 # Global variables;
-$VERSION="0.9.10"; # our version!
+$VERSION="0.9.11"; # our version!
 my $config;	# holds the configuration object
 undef $log;	# holds logging object
 
@@ -188,17 +200,25 @@ sub Usage {
 	die "Usage: $0 [OPTIONS] [alias ...]
 version $VERSION
 
--h		you're reading it.  :)
--bd		run in daemon mode
--bp		display the queues
--bv		verify addresses
--bs		shutdown server
--br		have server reload configurations
--bq		query state of daemons
--q		force a queue run
--qR PC		force a queue run only for the PC paging central
--C FILE		use FILE as the sendpage.cf file
--d		turn debug on
+General Options
+	-h		you're reading it.  :)
+	-d		turn debug on
+	-C FILE		use FILE as the sendpage.cf file
+
+Daemon Options
+	-bd		run in daemon mode
+	-bp		display the queues
+	-bv		verify addresses
+	-bs		shutdown server
+	-br		have server reload configurations
+	-bq		query state of daemons
+	-q		force a queue run
+	-qR PC		force a queue run only for the PC paging central
+
+Page Queuing Options
+	-f USER         force page to be from user USER (default is current user)
+	-m MESSAGE      message to send (reads from stdin by default)
+	-n              no email carboning to 'from' for this page
 
 ";
 }
@@ -207,7 +227,7 @@ version $VERSION
 $log=Sendpage::KeesLog->new(Syslog => 0);
 
 # get our options
-if (!getopts('hvdqC:b:R:',\%opts) || $opts{h}) {
+if (!getopts('hvdqC:b:R:f:m:n:',\%opts) || $opts{h}) {
 	Usage();
 }
 
@@ -237,7 +257,9 @@ if ($opts{b}) {
 	BecomeDaemon() if ($opts{b} eq "d");
 	DisplayQueue() if ($opts{b} eq "p");
 	VerifyAddress(@ARGV) if ($opts{b} eq "v");
-	die "Unknown run mode: '$opts{b}'.  Try '$0 -h' for help.\n";
+
+	warn "Unknown run mode: '$opts{b}'\n";
+	Usage();
 }
 if ($opts{q}) {
 	my $ret=SendSignal('USR1',$opts{R} ? $opts{R} : "");
@@ -247,7 +269,42 @@ if ($opts{q}) {
 	exit;
 }
 
-Usage();
+
+die "Must be root to write pages directly to queue.  Please use 'snpp' instead.\n"
+	if (!VerifyIdentities());
+DropPrivs();
+
+if (!@ARGV) {
+	Usage();
+}
+else {
+	my $msg=$opts{m};
+
+	# it's time to write a file directly to the queue
+
+	# who is it from?
+	if (!defined($opts{f}) && !$opts{n}) {
+		$opts{f}=scalar(getpwuid($<))."\@";
+		$opts{f}.=hostname;
+	}
+
+	if (!defined($msg)) {
+		my $line;
+		while ($line=<STDIN>) {
+			$msg.=$line;
+		}
+	}
+
+	# generate errors to the stderr
+	ArrayDig(@ARGV);
+
+	# turn on syslog for queue logging
+	$log->on();
+
+	# try to write the pages
+	exit Sendpage::SNPPServer->write_queued_pages(undef,$opts{f},$msg,
+			$config,$log,$DEBUG,@ARGV);
+}
 
 sub QueryDaemons {
 	my($display)=@_;
@@ -513,8 +570,7 @@ sub DaemonInit {
 sub BlockSignals {
 	# define the signals to block
 	my $sigset = POSIX::SigSet->new(SIGINT,  SIGTERM, SIGQUIT, 
-					SIGCHLD, SIGUSR1, SIGHUP,
-					SIGPIPE);
+					SIGUSR1, SIGHUP, SIGPIPE);
 
 	# start blocking signals
 	unless (defined sigprocmask(SIG_BLOCK, $sigset)) {
@@ -527,8 +583,7 @@ sub BlockSignals {
 sub UnblockSignals {
 	# define the signals to block
 	my $sigset = POSIX::SigSet->new(SIGINT,  SIGTERM, SIGQUIT, 
-					SIGCHLD, SIGUSR1, SIGHUP,
-					SIGPIPE);
+					SIGUSR1, SIGHUP, SIGPIPE);
 
 	# stop blocking signals
 	unless (defined sigprocmask(SIG_UNBLOCK, $sigset)) {
@@ -540,7 +595,7 @@ sub UnblockSignals {
 sub SpawnChildren {
 	my($which)=@_;
 
-	my($pid,$pc,@which);
+	my($pid,$pc,@which,$sigset);
 
 	if (defined($which)) {
 		undef @which;
@@ -561,14 +616,14 @@ sub SpawnChildren {
 	#	 think it was still the manager, and receive yet
 	#	 another signal, and act on it.   Now we block signals.
 
-	# start blocking signals
-	&BlockSignals();
-
 	# spawn PCs
 	foreach $pc (@which) {
 		if ($config->get("pc:$pc\@enabled")==0) {
 			next;
 		}
+
+		# start blocking signals
+		$sigset=&BlockSignals();
 
 		$pid=fork();
 		if ($pid<0) {
@@ -588,7 +643,7 @@ sub SpawnChildren {
 			
 			# set up
 			&SignalInit();
-			&DropPrivs();
+			&DropPrivs(1);
 
 			# stop blocking signals
 			&UnblockSignals($sigset);
@@ -598,29 +653,37 @@ sub SpawnChildren {
 				"happen!");
 			exit(1);
 		}
-	}
 
-	# stop blocking signals
-	&UnblockSignals($sigset);
+		# stop blocking signals
+		&UnblockSignals($sigset);
+	}
 }
 
+# should they get serial port rights?
 sub DropPrivs {
+	my ($serial)=@_;
+
+	my $grouplist="nobody";
+
 	if (!defined($setUID)) {
 		$log->do('crit',"Effective User ID unknown -- aborting!");
 		exit(1);
 	}
-	if (!defined($lockGID)) {
-		$log->do('crit',"Effective Group ID for locking unknown -- aborting!");
-		exit(1);
-	}
-	if (!defined($ttyGID)) {
-		$log->do('crit',"Effective Group ID for tty read/write unknown -- aborting!");
-		exit(1);
+	if (defined($serial)) {
+		if (!defined($lockGID)) {
+			$log->do('crit',"Effective Group ID for locking unknown -- aborting!");
+			exit(1);
+		}
+		if (!defined($ttyGID)) {
+			$log->do('crit',"Effective Group ID for tty read/write unknown -- aborting!");
+			exit(1);
+		}
+		$grouplist="$lockGID $ttyGID";
 	}
 
-	$(=$)="$lockGID $ttyGID";
-	if ($( != "$lockGID $ttyGID") {
-		$log->do('crit',"Could not setgids: $! -- aborting!");
+	$(=$)=$grouplist;
+	if ($( != $grouplist) {
+		$log->do('crit',"Could not setgid to '$grouplist': $! -- aborting!");
 	}
 
 	$<=$>=$setUID;
@@ -630,12 +693,15 @@ sub DropPrivs {
 }
 
 sub Respawn {
+        my($undef,$forwarded) = @_;
 	my($pid,$pc,$now);
 
-	# don't perform the wait here: want to get it in the reload events
-	return if ($RELOAD==1);
-
-	$pid=wait;
+	if ($forwarded) {
+		$pid=$forwarded;
+	}
+	else {
+		$pid=wait;
+	}
 
 	# quit out if we're done (wait will sleep)
 	return if ($SHUTDOWN==1);
@@ -685,12 +751,47 @@ sub Respawn {
 
 sub SignalInit {
 	# set up signal handlers for children
-	$SIG{'CHLD'}='IGNORE';
+	#$SIG{'CHLD'}='IGNORE';
 	$SIG{'HUP'}='IGNORE';
 	$SIG{'USR1'}='IGNORE';
 	$SIG{'PIPE'} = 'IGNORE';
 	$SIG{'INT'}=$SIG{'QUIT'}=\&NiceShutdown;
 	$SIG{'TERM'}=\&ImmediateShutdown;
+}
+
+sub VerifyIdentities {
+        my($user,$group,$name);
+
+        # check for our setuid user
+        $user=$config->get('user');
+        ($name,undef,$setUID)=getpwnam($user);
+        if (!defined($name)) {
+                $log->do('crit',"There is no such user named '$user'!  Aborting...");
+		return undef;
+        }
+
+        # check for our locking group
+        $group=$config->get('group-lock');
+        ($name,undef,$lockGID)=getgrnam($group);
+        if (!defined($name)) {
+                $log->do('crit',"There is no such group named '$group'!  Aborting...");
+		return undef;
+        }
+
+        # check for our tty r/w group
+        $group=$config->get('group-tty');
+        ($name,undef,$ttyGID)=getgrnam($group);
+        if (!defined($name)) {
+                $log->do('crit',"There is no such group named '$group'!  Aborting...");
+		return undef;
+        }
+
+        # are we root?
+        if (0 != $<) {
+		return undef;
+        }
+
+	return 1;
 }
 
 sub BecomeDaemon {
@@ -700,36 +801,9 @@ sub BecomeDaemon {
 		QueryDaemons(1);
 	}
 
-	my($user,$group,$name);
-
-	# check for our setuid user
-	$user=$config->get('user');
-	($name,undef,$setUID)=getpwnam($user);
-	if (!defined($name)) {
-		$log->do('crit',"There is no such user named '$user'!  Aborting...");
-		exit(1);
-	}
-
-	# check for our locking group
-	$group=$config->get('group-lock');
-	($name,undef,$lockGID)=getgrnam($group);
-	if (!defined($name)) {
-		$log->do('crit',"There is no such group named '$group'!  Aborting...");
-		exit(1);
-	}
-
-	# check for our tty r/w group
-	$group=$config->get('group-tty');
-	($name,undef,$ttyGID)=getgrnam($group);
-	if (!defined($name)) {
-		$log->do('crit',"There is no such group named '$group'!  Aborting...");
-		exit(1);
-	}
-
-	# are we root?
-	if (0 != $<) {
-		$log->do('crit',"Not running as 'root'!  Aborting...");
-		exit(1);
+	if (!VerifyIdentities()) {
+                $log->do('crit',"Must be running as 'root' to daemonize!  Aborting...");
+                exit(1);
 	}
 
 	# daemon mode starts here
@@ -768,7 +842,7 @@ sub BecomeDaemon {
 	# listen for reload info
 	$SIG{'HUP'}=\&Reload;
 	# listen for children death
-	$SIG{'CHLD'}=\&Respawn;
+	#$SIG{'CHLD'}=\&Respawn;
 	
 	# handle the SNPP stuff now
 	ListenForSNPP();
@@ -893,11 +967,9 @@ sub IPAllowed {
 }
 
 sub ListenForSNPP {
-	my($fh,$read,$exc,$pipe,$sigset,$match);
+	my($fh,$read,$exc,$pipe,$sigset,$match,$pid);
 
 	StartSNPP();
-
-	$sigset=&BlockSignals();
 
 	while ($SHUTDOWN!=1) {
 		if (!defined($server)) {
@@ -919,9 +991,15 @@ sub ListenForSNPP {
 		$match=0;
 		$!=0;
 		$log->do('debug',"(select starting)") if ($DEBUG_SELECT);
-		&UnblockSignals();
-		($read,undef,$exc)=IO::Select->select($s,undef,$s);
-		$sigset=&BlockSignals();
+
+		# handle children dying
+                while (($pid = waitpid(-1,&WNOHANG))>0) {
+			&Respawn('',$pid);
+		}
+
+
+		($read,undef,$exc)=IO::Select->select($s,undef,$s,1.0);
+
 		if ($! != 0) {
 			if ($! == &EINTR()) {
 				$match=1;
@@ -956,7 +1034,7 @@ sub ListenForSNPP {
 
 				$pipe = new IO::Pipe;
 
-#				$sigset=&BlockSignals();
+				$sigset=&BlockSignals();
 			
 				if(($pid = fork())>0) {
 					# Parent
@@ -972,7 +1050,7 @@ sub ListenForSNPP {
 					PipeRemember($pipe,$pid);
 	
 					# pause for a bit (no DoSing)
-					select(undef,undef,undef,0.1);
+					#select(undef,undef,undef,0.1);
 				}
 				elsif($pid==0) {
 					# Child
@@ -1011,7 +1089,7 @@ sub ListenForSNPP {
 					close($sock);
 				}
 
-#				&UnblockSignals();
+				&UnblockSignals($sigset);
 			}
 			elsif (defined($pid=$CNXNS{$fh})) {
 				$match=1;
@@ -1059,9 +1137,9 @@ sub ListenForSNPP {
 			}
 		}
 
-		if ($match==0) {
-			$log->do('warning',"Select produced an unmatched file descriptor?!");
-		}
+#		if ($match==0) {
+#			$log->do('warning',"Select produced an unmatched file descriptor?!");
+#		}
 	}
 	$log->do('info',"stopping Queue Manager and SNPP listeners (sendpage v$VERSION)");
 	StopSNPP();
@@ -1231,7 +1309,7 @@ sub Reload {
 		undef $!;
 		$log->do('debug', "Waiting for PCs to die off...") if ($DEBUG);
 		while ($finished!=0) {
-			$pid=waitpid(-1,&WNOHANG);
+			$pid=wait;
 			if ($pid==-1) {
 				if ($!==ECHILD) {
 					$log->do('warning',"Ran out of children too early?!  Continuing anyway...");
@@ -1242,7 +1320,7 @@ sub Reload {
 				}
 			}	
 			elsif ($pid==0) {
-				sleep(60); # wait for children to die
+				$log->do('warning',"Got 0 pid somehow");
 			}
 			elsif (defined($OLD{$pid})) {
 				$log->do('debug', "Letting old PC '$OLD{$pid}' rest in peace") if ($DEBUG);
