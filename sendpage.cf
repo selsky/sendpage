@@ -428,6 +428,13 @@ dev	= /dev/modem
 #rundelay=10
 
 
+# This is the "null" PagingCentral.  If you send pages to it, it will
+# pretend like it delivered them.  This is useful for turning Sendpage
+# into just an email delivery tool.  (Comment it in if you're forced to
+# use email for TAP-less SMS gateways and you haven't set up Kannel yet).
+#[pc:null]
+
+
 # I have a skytel that only works in Illinois, and I've only called this
 # number from chicago, but I think it's valid as a national TAP access
 # number.

@@ -421,6 +421,11 @@ sub send {
 	my ($PIN,$text) = @_;
 	my ($report,@result,$proto);
 
+	# A "null" PC always succeeds, pretending to send the page
+	if ($self->{NAME} eq "null") {
+		return ($SUCCESS,"");
+	}
+
 	if (!defined($self->{MODEM})) {
 		($rc,$report,$proto)=$self->start_proto();
 		if (!defined($rc)) {

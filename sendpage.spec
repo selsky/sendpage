@@ -6,8 +6,8 @@
 %define filelist %{pkgname}-%{version}-filelist
 %define maketest 1
 # Be sure to change both version numbers -- perl has dumb package numbering
-%define pkgversion 1
-%define rpmversion 1.0.0
+%define pkgversion 1.001
+%define rpmversion 1.1.0
 %define namever %{pkgname}-%{pkgversion}
 %define maketest 0
 # Install bits

@@ -22,7 +22,8 @@ Next Next
 - do something so that queues that are waiting on a modem will run
   as soon as the modem is available.  How can I do this when there are
   multiple modems available?  Weird multi semaphore notifications queues
-  based on modems?  Gah.  Strange.
+  based on modems?  Gah.  Strange.  Only the PCs know about modem use,
+  not the queue manager.  Perhaps another pipe for modem reservations?
 - implement "dialretries" (attempt dialing again for PC)
 - implement character-based translation tables
 - create more fallback PC config options (temp-fail, etc)
