@@ -1,0 +1,35 @@
+#!/usr/local/bin/perl
+#
+# quick script for sending pages through sendmail
+#
+# $Id$
+#
+# Copyright (C) 2000 Cornelius Cook
+# cook@cpoint.net, http://collective.cpoint.net/
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# http://www.gnu.org/copyleft/gpl.html
+
+# to tee off the pages, use this:
+#$cmd="tee /tmp/page.$$ | email2page | snpp ".join(" ",@ARGV);
+$cmd="email2page | snpp ".join(" ",@ARGV);
+system($cmd);
+exit ($?>>8);
+
+#
+# This is really the same as a shell script doing the following:
+#
+#	email2page | snpp "$@"
+#

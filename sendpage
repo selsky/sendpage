@@ -1,13 +1,4 @@
 #!/usr/local/bin/perl
-
-eval 'exec /usr/local/bin/perl  -S $0 ${1+"$@"}'
-    if 0; # not running under some shell
-
-BEGIN {
-	unshift(@INC,"/kees/projects/TAP/rel/Device-SerialPort-0.09/blib/lib",
-		     "/kees/projects/TAP/cvs/sendpage/lib");
-}
-
 #
 # sendpage is the tool that will handle all the paging functions
 #
@@ -157,13 +148,14 @@ Sendpage::Page(3), Sendpage::Recipient(3), Sendpage::Queue(3)
 require 5.005;
 
 # Global variables;
-$VERSION="0.9.7"; # our version!
+$VERSION="0.9.8"; # our version!
 my $config;	# holds the configuration object
 undef $log;	# holds logging object
 
 # Module-global variables
 my %CHILDREN;	# who the childrens are
 my $SHUTDOWN;	# when to shutdown
+my $RELOAD;	# when we're reloading
 my $DEBUG;	# for debugging
 my %opts;	# holds the command line args hash
 
@@ -391,9 +383,6 @@ sub NiceShutdown {
 	if ($PC eq "") {
 		my($pc,$cnxn);
 
-		# ignore the dying children (don't think I want this...)
-		#$SIG{CHLD}=DEFAULT;
-
 		foreach $pc (@pcs) {
 			if ($config->get("pc:$pc\@enabled")==0) {
 				next;
@@ -589,6 +578,9 @@ sub DropPrivs {
 sub Respawn {
 	my($pid,$pc,$now);
 
+	# don't perform the wait here: want to get it in the reload events
+	return if ($RELOAD==1);
+
 	$pid=wait;
 
 	# quit out if we're done (wait will sleep)
@@ -596,7 +588,7 @@ sub Respawn {
 
 	if ($pid==-1) {
 		if ($!==ECHILD) {
-			$log->do('warning',"Ran out of children?!  Shutting down...");
+			$log->do('warning',"No children on SIGCHLD?!  Shutting down...");
 			$SHUTDOWN=1;
 			return;
 		}
@@ -624,7 +616,8 @@ sub Respawn {
 	}
 	elsif (defined($PIPES{$pid})) {
 		$log->do('debug',"SNPP connection (pid $pid) finished") if ($DEBUG);
-		PipeShutdown($PIPES{$pid});
+		# I shouldn't do this here, I should do it in the select
+		#PipeShutdown($PIPES{$pid});
 	}
 	else {
 		# defunct children?  no!  bastards!  :)
@@ -633,8 +626,8 @@ sub Respawn {
 }
 
 sub SignalInit {
-	# set up signal handlers (to do respawning, signal sending, etc)
-	# (find out how to protect children from signal cascading from parents)
+	# set up signal handlers for children
+	$SIG{'CHLD'}='IGNORE';
 	$SIG{'HUP'}='IGNORE';
 	$SIG{'USR1'}='IGNORE';
 	$SIG{'PIPE'} = 'IGNORE';
@@ -688,7 +681,10 @@ sub BecomeDaemon {
 
 	$PC="";
 
-	# FIXME: close file handles? what about debugging.  ;)
+	# close file handles.  (unless debugging)
+	close(STDIN);
+	close(STDOUT);
+	close(STDERR) unless ($DEBUG);
 
 	# Become a daemon
 	my $pid = fork;
@@ -724,17 +720,6 @@ sub BecomeDaemon {
 	
 	die "parent died: this should never have happened: $!\n";
 }
-
-#sub ListenForChildren {
-#	$log->do('debug',"starting Queue Manager (sendpage v$VERSION)") if ($DEBUG);
-#	while ($SHUTDOWN!=1) {
-#		# restart children as they die
-#		Respawn();
-#	}
-#	$log->do('debug',"Queue Manager shutting down") if ($DEBUG);
-#	YankPidFile("");
-#	exit(0);
-#}
 
 sub initSNPP {
 	# need to use "create" so that the "accept"s don't call the constructor
@@ -835,6 +820,7 @@ sub ListenForSNPP {
 			elsif (defined($pid=$CNXNS{$fh})) {
 				# is this pipe shutdown?
 				if ($fh->eof()) {
+					PipeShutdown($fh);
 					$s->remove($fh);
 					close($pipe);
 				}
@@ -938,13 +924,13 @@ sub StartQueue {
 					$pc->deliver($page);
 
 					if ($page->has_recips()) {
-						$log->do('debug',"rewriting page to queue") if ($DEBUG);
+						$log->do('debug',"$PC: rewriting page to queue") if ($DEBUG);
 						# something requires rerun
 						$queue->writePage($page);
 						$queue->fileDone();
 					}
 					else {
-						$log->do('debug',"tossing queue file") if ($DEBUG);
+						$log->do('debug',"$PC: tossing queue file") if ($DEBUG);
 						$queue->fileToss();
 					}
 				}
@@ -1003,6 +989,8 @@ sub Reload {
 
 		StopSNPP();
 
+		$RELOAD=1;
+
 		foreach $pc (@pcs) {
 			if ($config->get("pc:$pc\@enabled")==0) {
 				next;
@@ -1045,6 +1033,9 @@ sub Reload {
 		}
 
 		$log->do('debug', "Reinitializing...") if ($DEBUG);
+
+		$RELOAD=0;
+
 		# reload our configurations
 		Initialize();
 		DaemonInit();

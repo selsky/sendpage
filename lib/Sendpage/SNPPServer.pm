@@ -32,7 +32,6 @@ use Socket 1.3;
 use Carp;
 use IO::Socket;
 use Net::Cmd;
-#use IO::Handle;
 use Sendpage::PagingCentral;
 use Sendpage::PageQueue;
 use POSIX qw(strftime);
@@ -320,9 +319,6 @@ sub write_queued_pages {
                                         "cannot send this page: queue failed");
                         }
 			else {
-				# FIXME: implement server-side fd for new page
-				#        notifications
-
 				$queued++;
 			}
                 }

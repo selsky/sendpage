@@ -898,6 +898,7 @@ sub SendMail {
 	else {
 		$msg->to($to) if (defined($to) && $to ne "");
 		$msg->cc($cc) if (defined($cc) && $cc ne "");
+		$msg->set('X-Pager',"sendpage v$main::VERSION");
 		$msg->set('From',$from);
 		$msg->subject($subject);
 
@@ -918,7 +919,7 @@ sub DESTROY {
         my $self = shift;
 
         $main::log->do('debug',
-			"PagingCentral '$self->{NAME}' being destroyed")
+			"PagingCentral object '$self->{NAME}' being destroyed")
 		if ($self->{DEBUG});
 
         $self->disconnect();

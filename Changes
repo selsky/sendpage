@@ -2,6 +2,9 @@ $Id$
 
 0.9.8:
 	- further updates to Device::SerialPort and associated documentation
+	- further updates to signal handlers
+	- fixed bug in queue directory ownership during creation
+	- added script to push email through email2page into snpp for sendmail
 
 0.9.7: (23Jan2001)
 	- implemented level 2 SNPP server

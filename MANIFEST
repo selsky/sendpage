@@ -25,5 +25,6 @@ FEATURES
 sendpage
 snpp
 email2page
+sendmail2snpp
 modemtest
 THANKS
