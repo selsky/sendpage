@@ -26,6 +26,11 @@ Jerry Paul Taft
 	will be missed.
 
 
+Steve Szabo
+	<steves@fundserv.com>
+	Let me use and abuse his Sun Blade running Solaris 8.  Nailed
+	down the DTR/Termios bug that has plagued me for a year.
+
 Randy Emler
 	<Randy_L_Emler@wr.com>
 	Showed me a bug in my select loop.  Turned out to be a few silly
