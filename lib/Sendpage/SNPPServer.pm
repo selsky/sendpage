@@ -300,8 +300,7 @@ sub write_queued_pages {
                 $log->do('debug',"opening queue for '$pc'") if ($DEBUG);
                 # write a queue file with associated PINs
                 my $queue=Sendpage::PageQueue->new($config,
-			Dir => $config->get("queuedir")."/$pc",
-			TossCmd => $config->fallbackget("pc:$pc\@tosscmd",1));
+			$config->get("queuedir")."/$pc" );
                 if (!defined($queue)) {
                         $log->do('err', "cannot find queue for PC '$pc'");
 			next;

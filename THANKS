@@ -66,6 +66,7 @@ Jonathan C. Detert
 Todd M. Lewis
 	<utoddl@email.unc.edu>
 	Suggested a change to comment parsing to allow for leading whitespace.
+	Corrected a parsing bug in email2page.
 
 Jon Scarbrough
 	<jscarbrough@grouparnold.com>
