@@ -1,6 +1,6 @@
 # $Id$
 
-Things that we need, organized roughly
+Things that need to be done...
 
 
 Needed For Fist Stable Release
@@ -11,13 +11,94 @@ Needed For Fist Stable Release
 - implement a list of addresses for SNPP server to listen on (for multihomed)
 - write up an example CGI script for sending pages
 *Docs
-- write some clear and well-divided documentation
-- how to install, set up, test, and run sendpage
-- how to make a "sendpage" user & find the groups you need
-- how to send pages with email2page
-- how to send pages with sendmail
-- how "page-daemon" alias for errors, bounces, warnings, etc, works
-- how to set variables for maxchars and char processing values
+- how to install the sendpage daemon
+	- prereqs
+		- perl modules
+			- Net::SNPP (libnet)
+			- Device::SerialPort
+			- Mail::Send
+		- syslog configuration
+			- same file or separate file
+			- split off debug output
+		- "sendpage" user environment
+			- create a "sendpage" user
+			- find locking group
+			- find tty-use group
+	- compilation
+	- installation
+		- queue directory
+		- config files
+	- configuration
+		- debugging
+		- how "page-daemon" alias works
+			- as the 'from' address
+			- for errors and warnings
+		- what is SNPP?
+		- SNPP server settings
+	- running the sendpage daemon
+		- starting daemon
+		- stopping daemon
+		- reloading daemon
+		- checking status of daemon
+		- checking status of queues
+	- what are all these processes?
+- how to add a modem
+	- how are modems used?
+	- cover all settings
+		- debugging
+		- modem defaults
+	- discuss "modemtest"
+- how to add a Paging Central
+	- what is a Paging Central?
+	- cover all settings
+		- debugging
+		- communication settings (and modem fall-back)
+		- character control settings
+		- queue run settings
+- how to add a recipient alias
+	- what is a recipient?
+		- PIN@PC
+		- recip alias
+	- cover all settings
+		- debugging
+		- email-cc
+		- dest
+	- how to test aliases
+- how to send pages
+	- from the command line
+		- local use of "snpp"
+		- remote use of "snpp"
+			- making changes to /etc/snpp.conf
+		- third-party SNPP clients
+	- from an email gateway
+		- how to email2page works
+			- header rules
+			- body rules
+			- prefix, suffix, and joining strings
+		- how sendmail2snpp works
+		- examples on how to configure with sendmail
+		- examples on how to configure with postfix
+	- from a web page
+- PC tuning guidelines
+	- discuss TAP quirks
+		- TAP specifications
+		- ctrl chars in a page
+		- response codes from the PC
+		- block sizes
+		- page limits
+		- block limits
+	- how to figure out which of "esc"/"ctrl"/"lfok" to use for a PC
+	- how to figure out "maxchars" for a PC
+		- discuss errors vs timeouts
+		- try 10 chars
+		- try half block limit
+		- try half block limit + 1
+		- try block limit
+		- try block limit + 1
+- troubleshooting
+	- does the modem work?
+	- does the PC work?
+
 
 Needed For Next Stable Release
 ------------------------------
@@ -27,6 +108,7 @@ Needed For Next Stable Release
   based on modems?  Gah.  Strange.
 - implement "dialretries" (attempt dialing again for PC)
 - implement character-based translation tables
+- create more fallback PC config options (temp-fail, etc)
 
 
 Would Be Nice
