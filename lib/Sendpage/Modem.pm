@@ -248,6 +248,7 @@ sub init {
 	$self->pulse_dtr_off(500);
 	$self->dtr_active("F");
 	select(undef,undef,undef,1.5);  # force the dtr down
+	$self->dtr_active("T");
 
 	# send the init string through
 	return $self->chat("$str\r","$str\r",$ok,$initwait,$initretries,

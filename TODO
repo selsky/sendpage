@@ -25,6 +25,7 @@ Needed For Stable Release
 - implement max-blocks-per-session for a PC
 - implement email notification fall-back
 - email paging failures to page-daemon
+- figure out an install option for forcing /usr/local
 
 
 Would Be Nice
