@@ -10,6 +10,7 @@ Needed For First Stable Release
 - have PCs shutdown on signal if active, but not sending a page.
 - clean up stale/running test during BecomeDaemon
 - option to not bounce "user not found" errors (to stop domain scanning)
+- have a "quiet" startup mode
 *Docs
 - finish sendpage-manual
 - add info about "snpp-acl"
