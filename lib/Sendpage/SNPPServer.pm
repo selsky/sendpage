@@ -351,21 +351,12 @@ sub create {
  my $class = ref($proto) || $proto;
  my %arg = @_;
 
- my $self = $class->SUPER::new(	Listen => $arg{Listen} || 5,
+ return $class->SUPER::new(	Listen => $arg{Listen} || 5,
 				LocalAddr => $arg{Addr},
 				LocalPort => $arg{Port} || "snpp(444)",
 				Timeout => $arg{Timeout},
 				Proto => 'tcp', 
 				Reuse => 1 );
-
- # if net fails, we quit too
- if (!defined($self)) {
-	return undef;
- }
-
- bless ($self, $class);
-
- return $self;
 }
 
 1;

@@ -728,6 +728,9 @@ sub initSNPP {
 		$log->do('debug',"SNPP listener running on port ".
 			$server->sockport) if ($DEBUG);
 	}
+	else {
+		$log->do('crit',"SNPP listener failed: $!");
+	}
 }
 
 sub StopSNPP {
