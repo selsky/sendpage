@@ -159,7 +159,7 @@ my $body=$mail->body();
 
 # trim the body down to "maxlines"
 if ($maxlines > 0 && $#body > $maxlines) {
-	delete @body[$maxlines+1 .. $#body];
+	splice @body, $maxlines;
 }
 
 my @okheads=();
