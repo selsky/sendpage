@@ -1,6 +1,11 @@
 $Id$
 
-0.9.5:
+0.9.5: (09/27/2000)
+	- hopefully fixed queue lock-up bug.  if not, it'll warn
+	  now instead of looping forever.
+	- added portability support for Solaris, and hopefully for
+	  AIX and HPUX.  (and SCO, too.)
+	- misc typos and corrections
 	- fixed bug where modem settings we're being passed to
 	  the modem when dialing a PC (PC defaults were being used)
 	- started to correct problems with Device::SerialPort under
