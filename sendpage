@@ -841,7 +841,10 @@ sub ListenForSNPP {
 			
 				if(($pid = fork())>0) {
 					# Parent
+
+					# close other side of pipe
 					$pipe->reader();
+					# close our forked socket
 					close($sock);
 
 					$s->add($pipe);
@@ -852,8 +855,14 @@ sub ListenForSNPP {
 				}
 				elsif($pid==0) {
 					# Child
+
+					# close other side of pipe
 					$pipe->writer();
 					$pipe->autoflush(1);
+
+					# close master socket
+					close $fh;
+					# FIXME: close ALL snpp listeners
 		
 					# set up identity
 					$PC="SNPP client";
