@@ -18,7 +18,6 @@ lib/Sendpage/PagingCentral.pm
 lib/Sendpage/Queue.pm
 lib/Sendpage/Recipient.pm
 lib/Sendpage/Modem.pm
-.RCS-release.map
 TODO
 FEATURES
 sendpage
