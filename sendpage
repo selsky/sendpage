@@ -55,9 +55,9 @@ in the configuration file.
 
 =item -bs
 
-Shutdown the running sendpage daemon and all it's children.  If a Paging
+Shutdown the running sendpage daemon and all its children.  If a Paging
 Central is in the middle of delivering a page, it will finish up and
-exit as soon as it's current page is handled.
+exit as soon as its current page is handled.
 
 =item -br
 
