@@ -544,15 +544,32 @@ sub deliver {
 				 "$paged:\n\n"
 				 . $page->text() . "\n\n"
 				 . $extra;
-			# Clear subject and use simple body for "cc-simple"
+			my $email_to=$to;
+			my $email_cc=$cc;
+
+			# If we're doing a simple CC, we need to not
+			# send the complex one now.
 	   		if ($self->{CCSimple}) {
+				$email_cc="";
+			}
+			if ($email_to ne "" || $email_cc ne "") {
+				$self->SendMail($email_to,
+					$self->{PageDaemon},
+					$email_cc,
+					$self->{PageDaemon},
+					$subject,
+					$body);
+			}
+	
+			# Now, if we're doing a CC email, and it's the
+			# simple body, send it here.
+	   		if ($self->{CCSimple} && defined($cc) && $cc ne "") {
+				$email_to=$cc;
 				$subject="";
 				$body=$paged->text()."\n\n";
-			}
-			if ($to ne "" || $cc ne "") {
-				$self->SendMail($to,
+				$self->SendMail($email_to,
 					$self->{PageDaemon},
-					$cc,
+					$email_cc,
 					$self->{PageDaemon},
 					$subject,
 					$body);

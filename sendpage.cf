@@ -298,7 +298,8 @@ dev	= /dev/modem
 #	Default is unset, and will fall back to global "cc-on-error" setting
 #cc-on-error = true
 
-# Should email CC's contain the full report or just the message body?
+# When set to "true", email CC's contain only the page message body,
+# instead of the full page and delivery report.
 #	Default is "false"
 #cc-simple = true
 
