@@ -3,8 +3,8 @@
 #
 # $Id$
 #
-# Copyright (C) 2000,2001 Kees Cook
-# cook@cpoint.net, http://outflux.net/
+# Copyright (C) 2000-2004 Kees Cook
+# kees@outflux.net, http://outflux.net/
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -740,7 +740,7 @@ __END__
 
 =head1 AUTHOR
 
-Kees Cook <cook@cpoint.net>
+Kees Cook <kees@outflux.net>
 
 =head1 SEE ALSO
 

@@ -129,7 +129,7 @@ docs):
 This is important for hanging up the modem, etc.  POSIX users running
 on Solaris, AIX, BSD or HPUX probably won't get version 0.07 working.  I
 made a patch for Device::SerialPort, getting it to version 0.09, which can
-be found at http://sendpage.cpoint.net/device-serialport/   Please use this
+be found at http://sendpage.org/device-serialport/   Please use this
 version instead of 0.07, and you shouldn't have any problems with your
 modem.
 
@@ -395,7 +395,7 @@ The TODO file lists a large number of things I still want to have
 working before the first "stable" release.
 
 For further information, check out the sendpage web site at:
-	http://sendpage.cpoint.net/
+	http://sendpage.org/
 
 For CVS updates, check out the sourceforge project at:
 	http://sourceforge.net/projects/sendpage
@@ -406,5 +406,5 @@ Thanks for using sendpage!
 
 
 -Kees Cook
-cook@cpoint.net
+ kees@outflux.net
 

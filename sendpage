@@ -1,11 +1,11 @@
-#!/usr/local/bin/perl
+#!/usr/bin/perl
 #
 # sendpage is the tool that will handle all the paging functions
 #
 # $Id$
 #
-# Copyright (C) 2000,2001 Kees Cook
-# cook@cpoint.net, http://outflux.net/
+# Copyright (C) 2000-2004 Kees Cook
+# kees@outflux.net, http://outflux.net/
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -134,7 +134,7 @@ Default directory to keep the UUCP-style device locks.
 
 =head1 AUTHOR
 
-Kees Cook <cook@cpoint.net>
+Kees Cook <kees@outflux.net>
 
 =head1 BUGS
 
@@ -160,7 +160,9 @@ Sendpage::Page(3), Sendpage::Recipient(3), Sendpage::Queue(3)
 require 5.005;
 
 # Global variables;
-$VERSION="0.9.15"; # our version!
+$VERSION=0.010_000; # our version!
+$VERSION_human=sprintf("%d.%d.%d","${VERSION}000000"=~/^(\d+)\.(\d{3})(\d{3})/);
+
 my $config;	# holds the configuration object
 undef $log;	# holds logging object
 
@@ -199,7 +201,7 @@ use Sys::Hostname;
 
 sub Usage {
 	die "Usage: $0 [OPTIONS] [alias ...]
-version $VERSION
+version $VERSION_human
 
 General Options
 	-h		you're reading it.  :)
@@ -614,7 +616,7 @@ sub SpawnChildren {
 		@which=@pcs;
 		undef %CHILDREN;
 		undef %STARTED;
-		$log->do('info',"starting Queue Manager (sendpage v$VERSION)");
+		$log->do('info',"starting Queue Manager (sendpage v$VERSION_human)");
 	}
 
 	# build new loop selector
@@ -1084,7 +1086,7 @@ sub ListenForSNPP {
 					# we will unblock signals in
 					#  the snpp handler
 					$sock->HandleSNPP(
-						"SNPP Sendpage $VERSION",
+						"SNPP Sendpage $VERSION_human",
 						$pipe, $config, $log,
 						$DEBUG_SNPP, $sigset);
 					$log->do('debug',
@@ -1152,7 +1154,7 @@ sub ListenForSNPP {
 #			$log->do('warning',"Select produced an unmatched file descriptor?!");
 #		}
 	}
-	$log->do('info',"stopping Queue Manager and SNPP listeners (sendpage v$VERSION)");
+	$log->do('info',"stopping Queue Manager and SNPP listeners (sendpage v$VERSION_human)");
 	StopSNPP();
 	YankPidFile("");
 	exit(0);

@@ -5,8 +5,8 @@
 # lack of vendor-advertised paging central phone numbers.  So, I figure we
 # should try to collect a list of them.  Should make things a lot easier.
 #
-# You can find this online at http://sendpage.cpoint.net/pc.php (searchable)
-# or as http://sendpage.cpoint.net/PagingCentrals.txt in raw text.
+# You can find this online at http://sendpage.org/pc.php (searchable)
+# or as http://sendpage.org/PagingCentrals.txt in raw text.
 #
 # To make changes, corrections, etc, please send me some email at 
 # pc-updates@outflux.net
