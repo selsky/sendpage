@@ -3,6 +3,7 @@ $Id$
 0.9.13:
 	- added parameters and code for completion command execution
 	- fixed lock-file parsing to handle minicom's strange format.
+	- allowed pid "0" to exist in lockfiles
 	- wasn't including Sys::Hostname.  whoops!
 
 0.9.12: (17Jul2001)

@@ -124,27 +124,32 @@ sub new {
 			if (defined(sysopen(LOCKFILE, "$lockfile",
 				O_RDONLY))) {
 				# read pid
-				chomp($pid=<LOCKFILE>);
-				if ($pid=~/^\s*(\d+)/) {
+				chomp($line=<LOCKFILE>);
+				close(LOCKFILE);
+				$pid=-1;
+				if ($line=~/^\s*(\d+)/) {
 					$pid=$1;
 				}
-				else {
-					$pid=0;
-				}
-				close(LOCKFILE);
 
 				# whoa: we need to clear this
 				undef $!;
 
 				if ($pid>0) {
 					kill 0, $pid;
+					if ($! == ESRCH) {
+						# pid does not exist, remove the lock
+						$log->do('debug', "Modem '$name': stale lockfile from PID $pid removed");
+						unlink("$lockfile");
+						next;
+					}
 				}
-				if ($pid==0 || $! == ESRCH) {
-					# pid does not exist, remove the lock
-					$log->do('debug', "Modem '$name': stale lockfile from PID $pid removed");
+				elsif ($pid<0) {
+					$log->do('warning', "Modem '$name': malformated lockfile being removed");
 					unlink("$lockfile");
 					next;
 				}
+				# allow PID '0' from the "lockfile" program
+				# to exist indefinitely.
 			}
 			
 			# cannot touch lockfile
