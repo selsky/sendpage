@@ -12,7 +12,7 @@ sub chk_version
  my($pkg,$wanted,$msg) = @_;
 
  $| = 1;
- print "Checking for $pkg...";
+ print "Checking for $pkg ($wanted)...";
 
  eval { my $p; ($p = $pkg . ".pm") =~ s#::#/#g; require $p; };
 
@@ -61,7 +61,7 @@ WriteMakefile(
     'VERSION_FROM' => 'sendpage', # finds $VERSION
     AUTHOR  => 'Kees Cook <cook@cpoint.net>',
     ABSTRACT_FROM => 'sendpage',
-    EXE_FILES => [qw(sendpage snpp email2page)],
+    EXE_FILES => [qw(sendpage snpp email2page sendmail2snpp)],
     dist         => { COMPRESS => 'gzip -9f', SUFFIX => '.tar.gz', }
 );
 
