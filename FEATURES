@@ -16,6 +16,8 @@ Syslog notification
 Progress logging
 Email notification on success/failure
 SNPP Server
+SNPP Client
+Direct-queue Client
 
 
 Partially Implemented
