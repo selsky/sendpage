@@ -27,7 +27,14 @@ sub chk_version
 
 #--- Check for Packages
 
-if (!chk_version(Device::SerialPort => 0.09) &&
+if (!chk_version(Net::SNPP => 1.10)) {
+    warn  "\n"
+	. "'Net::SNPP' version 1.10 or better is required.\n"
+        . "Look for Net::SNPP-x.xx.tar.gz on CPAN (or the libnet package).\n\n";
+    $fail=1;
+}
+
+if (!chk_version(Device::SerialPort => 0.11) &&
     !chk_version(Win32::SerialPort => 0.07)) {
     warn  "\n"
 	. "'Device::SerialPort' version 0.09 or better or\n"
@@ -42,13 +49,6 @@ if (!chk_version(Mail::Send => 1.08)) {
 	. "'Mail::MailTools' version 1.08 or better is required.\n"
         . "Look for MailTools-x.xx.tar.gz on CPAN in:\n"
         . "\thttp://cpan.perl.org/authors/id/G/GB/GBARR/\n\n";
-    $fail=1;
-}
-
-if (!chk_version(Net::SNPP => 1.10)) {
-    warn  "\n"
-	. "'Net::SNPP' version 1.10 or better is required.\n"
-        . "Look for Net::SNPP-x.xx.tar.gz on CPAN (or the libnet package).\n\n";
     $fail=1;
 }
 

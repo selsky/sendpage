@@ -1,5 +1,8 @@
 $Id$
 
+0.9.12:
+	- changing how to deal with vmin problems under Solaris
+
 0.9.11: (15May2001)
 	- added "maxlines" to email2page.
 	- changed (once again) how I reap dead children.  (sendpage)
@@ -98,7 +101,7 @@ $Id$
 	- added portability support for Solaris, and hopefully for
 	  AIX and HPUX.  (and SCO, too.)
 	- misc typos and corrections
-	- fixed bug where modem settings we're being passed to
+	- fixed bug where modem settings weren't being passed to
 	  the modem when dialing a PC (PC defaults were being used)
 	- started to correct problems with Device::SerialPort under
 	  other OS's.
