@@ -1,6 +1,11 @@
 $Id$
 
-0.9.14:
+0.9.15: (CVS)
+	- changed how email2page handles the header regex list.  This
+	  what it'll allow each rule to match each header line, rather
+	  that just the first match.  Recommended by Erastus Z Allen.
+
+0.9.14: (31May2002)
 	- oops!  I recreated an earlier bug where splits would destroy
 	  the page text for the next person in an alias.  Fixed in
 	  SNPPServer.pm

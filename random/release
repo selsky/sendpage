@@ -12,5 +12,16 @@ perl Makefile.PL
 make dist
 make distclean
 
+ncftpput upload.sf.net /incoming sendpage-$VERSION.tar.gz
+cp sendpage-$VERSION.tar.gz /kees/projects/web/sendpage.org/download
+rm /kees/projects/web/sendpage.org/download/LATEST*
+touch /kees/projects/web/sendpage.org/download/LATEST-IS-$VERSION
+(cd /kees/projects/web/sendpage.org/rel; \
+        tar zxf ../download/sendpage-$VERSION.tar.gz)
+(cd /kees/projects/web/sendpage.org; \
+        for i in Changes FEATURES LICENSE README sendpage.cf ; do\
+                cat rel/sendpage-$VERSION/$i > $i.txt;        \
+        done)
 mv sendpage-$VERSION.tar.gz ../../tgzs/
 (cd ../../rel; tar zxf ../tgzs/sendpage-$VERSION.tar.gz)
+echo "Edit sendpage.org/content/downloads.inc"

@@ -789,7 +789,7 @@ sub HandleUCPMessage{
    return ($result,$report);  
 }
 
-# Putting the hole message together
+# Putting the whole message together
 sub AssembleUCPMessage{
    my $self = shift;
    my($pin,$msgtext)=@_;

@@ -166,15 +166,17 @@ my @okheads=();
 
 # handle rewriting the headers
 foreach $tag ($head->tags()) {
-	INDEX:
 	foreach $index (0 .. ($head->count($tag)-1)) {
+		$matched=0;
 		$text="$tag: ".$head->get($tag,$index);
 		chomp($text);
 		foreach $rule (@headrules) {
 			if (eval "\$text =~ $rule") {
-				push(@okheads,$text);
-				next INDEX;
+				$matched=1;
 			}
+		}
+		if ($matched) {
+			push(@okheads,$text);
 		}
 	}
 }

@@ -8,9 +8,11 @@ Needed For Fist Stable Release
 *Code
 - implement SNPP "HOLD" function
 - have PCs shutdown on signal if active, but not sending a page.
+- clean up stale/running test during BecomeDaemon
 *Docs
 - finish sendpage-manual
 - add info about "snpp-acl"
+- find counting error for tempfail
 
 Needed For Next Stable Release
 ------------------------------
