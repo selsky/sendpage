@@ -7,6 +7,7 @@ $Id$
 	- added script to push email through email2page into snpp for sendmail
 	- added page queue/delivery logging
 	- fixed bug in expanding multiple pins sent to SNPP server
+	- fixed error handler for calls into SNPPServer->create
 
 0.9.7: (23Jan2001)
 	- implemented level 2 SNPP server
