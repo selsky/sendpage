@@ -5,7 +5,8 @@ $Id$
 	  (thanks to Peter Smith for pointing that out).
 	- adding timing arguments to command completion. (recommended
 	  by Russell Adams)
-	- added the "null" PC, inspired by a patch from Bill Ayres.
+	- added the options "pc:cc-simple" and "pc:proto=Test" for
+	  functionality similar to Bill Ayres's "null PC" patch.
 
 1.0.0: (2005-02-23)
 	- changed how email2page handles the header regex list.  This

@@ -1686,6 +1686,7 @@ $config->define("pc:debug",  { ARGCOUNT => 0,
 					DEFAULT => $opts{d} ? 1 : 0 });
 $config->define("pc:page-daemon", { UNSET => 1 });
 $config->define("pc:cc-on-error",  { ARGCOUNT => 0, UNSET => 1 });
+$config->define("pc:cc-simple",  { ARGCOUNT => 0, UNSET => 1 });
 $config->define("pc:fail-notify", { ARGCOUNT => 0, UNSET => 1 });
 $config->define("pc:tempfail-notify-after", { UNSET => 1 });
 $config->define("pc:max-tempfail", { UNSET => 1 });

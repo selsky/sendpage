@@ -298,6 +298,10 @@ dev	= /dev/modem
 #	Default is unset, and will fall back to global "cc-on-error" setting
 #cc-on-error = true
 
+# Should email CC's contain the full report or just the message body?
+#	Default is "false"
+#cc-simple = true
+
 # Should page senders be notified about permanent failures?
 #	Default is unset; will fall back to global option
 #fail-notify = false
@@ -369,9 +373,10 @@ dev	= /dev/modem
 #	Default is "6"
 #maxsplits=2
 
-# Which TAP protocol to use.  Should be one of "PG1", "PG3", or "UCP"
+# Which TAP protocol to use.  Should be one of "PG1", "PG3", "UCP", or "Test"
 #   Regular TAP PagingCentrals are "PG1".
 #   UCP PagingCentrals will need "UCP".
+#   Test delivery (always succeeds) is named "Test"
 # If you had a "pet3" style PC before, this needs to be "PG3"
 #	Default is "PG1"
 #proto=PG3
@@ -428,11 +433,13 @@ dev	= /dev/modem
 #rundelay=10
 
 
-# This is the "null" PagingCentral.  If you send pages to it, it will
+# This is a "null" PagingCentral.  If you send pages to it, it will
 # pretend like it delivered them.  This is useful for turning Sendpage
 # into just an email delivery tool.  (Comment it in if you're forced to
 # use email for TAP-less SMS gateways and you haven't set up Kannel yet).
 #[pc:null]
+#proto=Test
+#cc-simple=true
 
 
 # I have a skytel that only works in Illinois, and I've only called this

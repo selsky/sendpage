@@ -133,6 +133,7 @@ sub new {
 	# load config information
 	$self->{DEBUG}  = $self->{CONFIG}->get("pc:$self->{NAME}\@debug");
 	# TAP protocol/block handling options
+	$self->{Proto}=$self->{CONFIG}->get("pc:$self->{NAME}\@proto");
 	$self->{AnswerWait}=$self->{CONFIG}->get("pc:$self->{NAME}\@answerwait");
 	$self->{AnswerRetries}=$self->{CONFIG}->get("pc:$self->{NAME}\@answerretries");
 	$self->{CharsPerBlock}=$self->{CONFIG}->get("pc:$self->{NAME}\@chars-per-block");
@@ -160,6 +161,8 @@ sub new {
 	$self->{DialWait}=$self->{CONFIG}->get("pc:$self->{NAME}\@dialwait",1);
 	$self->{DialRetries}=$self->{CONFIG}->get("pc:$self->{NAME}\@dialretries");
 	# Email control settings
+	$self->{CConErr}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@cc-on-error");
+	$self->{CCSimple}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@cc-simple");
 	$self->{NotifyAfter}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@tempfail-notify-after");
 	$self->{FailNotify}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@fail-notify");
 	$self->{MaxTempFail}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@max-tempfail");
@@ -173,7 +176,6 @@ sub new {
 
 	# get the daemon info, allowing for fall-back
 	$self->{PageDaemon}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@page-daemon");
-	$self->{CConErr}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@cc-on-error");
 
 	bless($self,$class);
 	return $self;
@@ -292,7 +294,7 @@ sub start_proto {
 	# Clear counters
 	$self->clear_counters();
 
-	my $SST=$self->{CONFIG}->get("pc:$self->{NAME}\@proto"); # Get proto typ	
+	my $SST=$self->{Proto}; # Get proto typ	
 
 	# Starting implementation of UCP
 	# ------------------------------
@@ -421,8 +423,8 @@ sub send {
 	my ($PIN,$text) = @_;
 	my ($report,@result,$proto);
 
-	# A "null" PC always succeeds, pretending to send the page
-	if ($self->{NAME} eq "null") {
+	# PC in "Test" mode will pretend to deliver all pages
+	if ($self->{Proto} eq "Test") {
 		return ($SUCCESS,"");
 	}
 
@@ -537,16 +539,23 @@ sub deliver {
 			$page->drop_recip();
 
 			# Send email notification
+			my $subject="Page delivered";
+			my $body="The following page was delivered to ".
+				 "$paged:\n\n"
+				 . $page->text() . "\n\n"
+				 . $extra;
+			# Clear subject and use simple body for "cc-simple"
+	   		if ($self->{CCSimple}) {
+				$subject="";
+				$body=$paged->text()."\n\n";
+			}
 			if ($to ne "" || $cc ne "") {
 				$self->SendMail($to,
 					$self->{PageDaemon},
 					$cc,
 					$self->{PageDaemon},
-					"Page delivered",
-					"The following page was delivered to ".
-					"$paged:\n\n"
-					. $page->text() . "\n\n"
-					. $extra);
+					$subject,
+					$body);
 			}
 
 			# external commands...
