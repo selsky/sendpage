@@ -19,6 +19,7 @@ $Id$
 	- implemented "maxblocks" variable to force PC to hang up after
 	  transmitting a certain number of blocks
 	- added email debugging to PagingCentral.pm
+	- whoops: fixed total lack of "snpp-addr" working
 
 0.9.8: (30Jan2001)
 	- further updates to Device::SerialPort and associated documentation

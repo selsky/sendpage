@@ -107,7 +107,7 @@ $options can contain:
 
 =item ARGCOUNT 
 
-What type of variable this should.  Default value is "1".  The available
+What type of variable this should be.  Default value is "1".  The available
 types are:
 
 =over 4
@@ -130,7 +130,7 @@ List (an array of strings)
 
 The default value the variable should have if it is not overridden during
 the call to C<file>.  The DEFAULT must be the same data type as ARGCOUNT.
-The default DEFAULT is "<unset>".
+The default DEFAULT is the string "<unset>".
 
 =item UNSET
 

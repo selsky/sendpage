@@ -723,7 +723,9 @@ sub BecomeDaemon {
 
 sub initSNPP {
 	# need to use "create" so that the "accept"s don't call the constructor
-	$server=Sendpage::SNPPServer->create(Port => $config->get("snpp-port"));
+	$server=Sendpage::SNPPServer->create(
+		Addr => $config->get("snpp-addr"),
+		Port => $config->get("snpp-port"));
 
 	if (defined($server)) {
 		$log->do('debug',"SNPP listener running on port ".
