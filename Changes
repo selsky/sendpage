@@ -1,6 +1,6 @@
 $Id$
 
-0.9.6: (12/17/2000)
+0.9.6: (12/31/2000)
 	- ported KeesLog.pm's "new" function to use a hash (and fixed calls)
 	- ported Modem.pm's "new" function to use a hash (and fixed calls)
 	- started work on the SNPP Server functions
