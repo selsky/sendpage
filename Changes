@@ -6,6 +6,7 @@ $Id$
 	- allow whitespace to preceed comments in sendpage.cf
 	- fixed "dialout" typo in Modem.pm
 	- changed the email-sending error messages
+	- fixed bug with empty "from" getting filled to "nobody" on splits
 
 0.9.8: (30Jan2001)
 	- further updates to Device::SerialPort and associated documentation

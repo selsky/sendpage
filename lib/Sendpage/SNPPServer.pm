@@ -332,10 +332,11 @@ sub write_queued_pages {
 				foreach $r (@{$recips}) {
 					push(@tolist,$r->name());
 				}
-				$from="nobody" if ($from eq "");
+				$repfrom=$from;
+				$repfrom="nobody" if ($repfrom eq "");
 				# log our enqueuement (new word?)
 				$log->do('info',
-"$pc/$file: state=Queued, to=".join(",",@tolist).", from=$from($client), ".
+"$pc/$file: state=Queued, to=".join(",",@tolist).", from=${repfrom}($client), ".
 "size=".length($text));
 			}
                 }
