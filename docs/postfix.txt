@@ -1,31 +1,38 @@
 Postfix to Sendpage Email Configuration, from Randy Emler with additions
-by Chris Hubbell:
+by Chris Hubbell and Russell L. Adams:
 
 
-Modify the /etc/postfix/transport file to include
-	<your paging hostname>		sendpage:localhost
-	
-	Example:
-	spage.yourdomain.com      sendpage:localhost
+The virtual domain (e.g. "paging.example.com") should already be in DNS, with
+the sendpage server setup in MX record.
 
-Modify the /etc/postfix/master.cf file to include	
-	sendpage     unix  -       n       n       -       -       pipe
-	    flags= user=nobody argv=/usr/bin/sendmail2snpp -f $(user) $(sender)
+Modify the /etc/postfix/transport file to include:
+
+	paging.example.com		sendpage:localhost
+
+Modify the /etc/postfix/master.cf file to include:
+
+	sendpage     unix  -       n       n       -       -       pipe flags=
+        user=nobody argv=/usr/bin/sendmail2snpp -f $(sender) $(user)
 	
 	Just make sure the "argv=" points to the proper path for the agent.
 
-Modify the /etc/postfix/main.cf file to include
+In /etc/postfix/main.cf, add virtual domain to the "mydestination" line:
+
+mydestination = myhost.example.com, myhost, localhost.localdomain, localhost, paging.example.com
+
+In /etc/postfix/main.cf, turn on transport maps:
+
 	transport_maps = hash:/etc/postfix/transport
 
-Uncomment "local_recipient_maps" in main.cf:
+In /etc/postfix/main.cf, uncomment "local_recipient_maps":
 	local_recipient_maps =
 
-Run: "postmap transport" to create the transport.db file
+From "/etc/postfix", run "postmap transport" to create the transport.db file.
 
 Make sure your paging box accepts smtp connections from your corporate mail
 gateway box.
 
-Run: "service postfix stop", "service postfix start"
+Restart postfix.
 
 Make sure recipients are setup in the sendpage.cf file like the following
 	[recip:joe_blow]
@@ -33,7 +40,7 @@ Make sure recipients are setup in the sendpage.cf file like the following
 		
 Try sending an email page addressed like the following
 
-	To:joe_blow@spage.yourdomain.com
+	To:joe_blow@paging.example.com
 	Subject: Test Page
 	
 	Hello, I am a test page thru email using sendpage.
