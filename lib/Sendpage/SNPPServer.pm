@@ -253,7 +253,7 @@ sub HandleSNPP {
 
 sub write_queued_pages {
 	my ($self,$pipe,$from,$text,$config,$log,$DEBUG,@PINS)=@_;
-	my ($pc,$recips,%QPCS,$fail,@recips,$recip);
+	my ($pc,$recips,%QPCS,$fail,@recips,$recip,$repfrom);
 
 	my $queued=0;
 	my $client=$self->peerhost;
