@@ -4,14 +4,14 @@ Sendpage (in Perl)
 
 What this tool does
 -------------------
-Sendpage is designed to speak SNPP on one end and TAP on the other.  It gets
-pages from the network via SNPP, and then uses a modem or a direct serial
-connection to deliver the pages to a Paging Central (or "paging terminal").
-Sendpage requires, for modem use, that you know your PC's access number
-(which is not usually advertised by your paging provider), and you need to
-know the PINs of the pagers you want to deliver pages to.  All of this
-information is known by your paging provider.  If you ARE a paging provider,
-your job is much easier.  ;)
+Sendpage is designed to speak SNPP on one end and TAP (or UCP) on the
+other.  It gets pages from the network via SNPP, and then uses a modem
+or a direct serial connection to deliver the pages to a Paging Central
+(or "paging terminal").  Sendpage requires, for modem use, that you know
+your PC's access number (which is not usually advertised by your paging
+provider), and you need to know the PINs of the pagers you want to deliver
+pages to.  All of this information is known by your paging provider.
+If you ARE a paging provider, your job is much easier.  ;)
 
 
 Quick Start (for Linux)

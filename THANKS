@@ -6,6 +6,9 @@ particular, I've noted it.
 	-Kees Cook <cook@cpoint.net>, http://outflux.net/
 
 
+Mark Fullmer
+        For creating the original Sendpage and making it open source.  :)
+
 
 Jerry Paul Taft
 	Born Israel Kotchka 8/10/45 in Russia
@@ -32,9 +35,11 @@ Karsten Hilbert
 
 Mark Frey
 	<markfrey@sympatico.ca>
+        <markfrey@extendcomm.com>
 	Found a strange bug (in Perl?) where Modem.pm wasn't closing
 	the device on a DESTROY.  Also found where lockfiles made by minicom
 	weren't be handled correctly, and found a bug with the -f option.
+        Found a bug in the 8-bit to 7-bit conversion routine.
 
 Steve Szabo
 	<steves@fundserv.com>
@@ -132,3 +137,6 @@ Steven Bishop
 	<bishop@telus.net>
 	for reporting to me that Sendpage works with AIX 4.3.2.
 
+Adrian Steiner
+        <aedu.steiner@ascom.ch>
+        for writing UCP support!

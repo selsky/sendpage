@@ -117,6 +117,9 @@ my $RS="\x1e";
 my $US="\x1f";
 my $ETB="\x17";
 my $SUB="\x1a";
+my $TRN="\x2f";
+my $OP="\x4f";
+my $RE="\x52";
 
 sub new {
 	my $proto = shift;
@@ -278,121 +281,137 @@ sub start_proto {
 		return (undef,"Could not dial out");
 	}
 
-	# wait for ID=
-	#   timeout("\r")
-	$result=$modem->chat("\r","\r","ID=",$self->{AnswerWait},
-		$self->{AnswerRetries});
-	if (!defined($result)) {
-		$main::log->do('crit',"PC did not send 'ID=' tag");
-		return (undef,"Could not perform protocol startup");
+	my $SST=$self->{CONFIG}->get("pc:$self->{NAME}\@proto"); # Get proto typ	
+
+	# Starting implementation of UCP
+	# ------------------------------
+	# I did a few new routines to handle UCP:
+	# - HandleUCPMessage
+	# - AssambleUCPMessage
+	# - CalcUCPChecksum
+	# - CreateUCPMessage
+	# - CreateUCPHeader
+	# - TranmistUCPMessage
+	# And I modified the following routines:
+	# - send
+	# - disconnect
+	# - and this one (start_proto)
+	# UCP doesn't need to loggon. So we just skip that for UCP
+	if($SST ne "UCP"){	# Proto is PG1 or PG3
+	   # wait for ID=
+	   #   timeout("\r")
+	   $result=$modem->chat("\r","\r","ID=",$self->{AnswerWait},
+		   $self->{AnswerRetries});
+	   if (!defined($result)) {
+		   $main::log->do('crit',"PC did not send 'ID=' tag");
+		   return (undef,"Could not perform protocol startup");
+	   }
+   
+	   # Try to log on
+	   #					ID=
+	   #    \033PG1${PASS}\r
+   
+	   my $LEAD=$self->{LEAD};
+	   my $LOGONretries=3;	# this is protocol-defined
+	   # my $SST=$self->{CONFIG}->get("pc:$self->{NAME}\@proto"); # PG1, etc
+	   my $PASS=$self->{CONFIG}->get("pc:$self->{NAME}\@password");
+   
+	   # adjust the length of the password to MAKE SURE it's 6 chars
+	   if (length($PASS)>6) {
+		   $PASS=substr($PASS,0,6);
+	   }
+	   elsif (length($PASS)<6) {
+		   # should I be back-filling this password?
+		   #$PASS=sprintf("%06s",$PASS);
+	   }
+	   # supposedly, we can get a go-head here too, so we should handle it
+	   my $early_go_ahead;
+	   undef $early_go_ahead;
+   
+	   my $logged_in=0;
+	   while (!$logged_in && $LOGONretries) {
+   
+		   $result=$modem->chat("${ESC}${SST}${PASS}\r","",
+		     "(${LEAD}(${ACK}|${NAK}|${ESC}${EOT})${CR}|${ESC}\\[p${CR})",
+		     $T[3],$N[0]); # the N here is not spec'd
+		   if (!defined($result)) {
+			   $main::log->do('crit',"PC timed out during logon handshake");
+			   return (undef,"Paging Central timed out during logon handshake");
+		   }
+		   $modem->HexDump($result) if ($self->{DEBUG});
+   
+		   #					something\rcode\r
+		   #   nak: retry
+		   #   ack: followed with go ahead
+		   #   eot: failure
+		   # show any messages
+		   $report=$self->ReportMsgSeq($result);
+   
+		   if ($result =~ /${ESC}\[p${CR}/) {
+			   # got an early go ahead, skip next chat
+			   $main::log->do('debug',"Got early go-ahead")
+				   if ($self->{DEBUG});
+			   # FIXME: we're pattern matching on the entire string
+			   #	instead of feeding the "leftovers" back into
+			   #	the "chat" tool
+			   $logged_in=1;
+			   $early_go_ahead=1;
+		   }
+		   elsif ($result =~ /${LEAD}${ACK}${CR}/) {
+			   # Logon accepted
+			   $logged_in=1;
+			   $main::log->do('debug',"Logon success!")
+				   if ($self->{DEBUG});
+		   }
+		   elsif ($result =~ /${LEAD}${NAK}${CR}/) {
+			   # Logon requested again
+			   $LOGONretries--;
+			   $main::log->do('debug',"Logon needs to be retried")
+				   if ($self->{DEBUG});
+		   }
+		   elsif ($result =~ /${LEAD}${ESC}${EOT}${CR}/) {
+			   # Forced disconnected
+			   $main::log->do('crit',"PC requested immediate disconnect");
+			   return (undef,"Immediate disconnect requested: $report");
+		   }
+   	
+		   # make report on failure or debug
+		   $main::log->do($logged_in==1 ? 'debug' : 'crit',
+			   "proto_startup: $report")
+			   if ($report ne "" && ($self->{DEBUG} || $logged_in!=1));
+	   }
+	   if (!$logged_in) {
+		   $main::log->do('crit',"Tried to log in $LOGONretries times and failed");
+		   return undef;
+	   }
+   
+	   if (!defined($early_go_ahead)) {
+		   # wait for them to be done announcing crap
+		   #					${GO_AHEAD}\r
+		   # n is not spec'd here
+		   $result=$modem->chat("","","${ESC}\\[p${CR}",$T[3],$N[0]);
+		   if (!defined($result)) {
+			   $main::log->do('crit',"PC timed out during logon speech");
+			   return (undef,"Protocol timed out");
+		   }
+		   $modem->HexDump($result) if ($self->{DEBUG});
+		   $report=$self->ReportMsgSeq($result);
+   
+		   $main::log->do('debug',"go ahead: $report")
+			   if ($report ne "" && $self->{DEBUG});
+	   }
 	}
-
-	# Try to log on
-	#					ID=
-	#    \033PG1${PASS}\r
-
-	my $LEAD=$self->{LEAD};
-	my $LOGONretries=3;	# this is protocol-defined
-	my $SST=$self->{CONFIG}->get("pc:$self->{NAME}\@proto"); # PG1, etc
-	my $PASS=$self->{CONFIG}->get("pc:$self->{NAME}\@password");
-
-	# adjust the length of the password to MAKE SURE it's 6 chars
-	if (length($PASS)>6) {
-		$PASS=substr($PASS,0,6);
-	}
-	elsif (length($PASS)<6) {
-		# should I be back-filling this password?
-		#$PASS=sprintf("%06s",$PASS);
-	}
-
-	# supposedly, we can get a go-head here too, so we should handle it
-	my $early_go_ahead;
-	undef $early_go_ahead;
-
-	my $logged_in=0;
-	while (!$logged_in && $LOGONretries) {
-
-		$result=$modem->chat("${ESC}${SST}${PASS}\r","",
-		  "(${LEAD}(${ACK}|${NAK}|${ESC}${EOT})${CR}|${ESC}\\[p${CR})",
-		  $T[3],$N[0]); # the N here is not spec'd
-		if (!defined($result)) {
-			$main::log->do('crit',"PC timed out during logon handshake");
-			return (undef,"Paging Central timed out during logon handshake");
-		}
-		$modem->HexDump($result) if ($self->{DEBUG});
-
-		#					something\rcode\r
-		#   nak: retry
-		#   ack: followed with go ahead
-		#   eot: failure
-		# show any messages
-		$report=$self->ReportMsgSeq($result);
-
-		if ($result =~ /${ESC}\[p${CR}/) {
-			# got an early go ahead, skip next chat
-			$main::log->do('debug',"Got early go-ahead")
-				if ($self->{DEBUG});
-			# FIXME: we're pattern matching on the entire string
-			#	instead of feeding the "leftovers" back into
-			#	the "chat" tool
-			$logged_in=1;
-			$early_go_ahead=1;
-		}
-		elsif ($result =~ /${LEAD}${ACK}${CR}/) {
-			# Logon accepted
-			$logged_in=1;
-			$main::log->do('debug',"Logon success!")
-				if ($self->{DEBUG});
-		}
-		elsif ($result =~ /${LEAD}${NAK}${CR}/) {
-			# Logon requested again
-			$LOGONretries--;
-			$main::log->do('debug',"Logon needs to be retried")
-				if ($self->{DEBUG});
-		}
-		elsif ($result =~ /${LEAD}${ESC}${EOT}${CR}/) {
-			# Forced disconnected
-			$main::log->do('crit',"PC requested immediate disconnect");
-			return (undef,"Immediate disconnect requested: $report");
-		}
-	
-		# make report on failure or debug
-		$main::log->do($logged_in==1 ? 'debug' : 'crit',
-			"proto_startup: $report")
-			if ($report ne "" && ($self->{DEBUG} || $logged_in!=1));
-	}
-	if (!$logged_in) {
-		$main::log->do('crit',"Tried to log in $LOGONretries times and failed");
-		return undef;
-	}
-
-	if (!defined($early_go_ahead)) {
-		# wait for them to be done announcing crap
-		#					${GO_AHEAD}\r
-		# n is not spec'd here
-		$result=$modem->chat("","","${ESC}\\[p${CR}",$T[3],$N[0]);
-		if (!defined($result)) {
-			$main::log->do('crit',"PC timed out during logon speech");
-			return (undef,"Protocol timed out");
-		}
-		$modem->HexDump($result) if ($self->{DEBUG});
-		$report=$self->ReportMsgSeq($result);
-
-		$main::log->do('debug',"go ahead: $report")
-			if ($report ne "" && $self->{DEBUG});
-	}
-
 	$self->{MODEM}=$modem;
-	return (1,"Proto startup success");
+	return (1,"Proto startup success",$SST);
 }
 
 sub send {
 	my $self = shift;
 	my ($PIN,$text) = @_;
-	my ($report,@result);
+	my ($report,@result,$proto);
 
 	if (!defined($self->{MODEM})) {
-		($rc,$report)=$self->start_proto();
+		($rc,$report,$proto)=$self->start_proto();
 		if (!defined($rc)) {
 			$main::log->do('crit',"proto startup failed (%s)",$report);
 			return ($TEMP_ERROR,$report); # temp failure
@@ -402,7 +421,12 @@ sub send {
 	# now we are at step 8, and we can send pages
 	my @fields=($PIN,$text);
 
-	@result=$self->HandleMessage(@fields);
+	if ($proto eq "UCP"){ # UCP has his own message-handler
+		@result=$self->HandleUCPMessage(@fields);
+	}
+	else{
+		@result=$self->HandleMessage(@fields);
+	}
 
 	# Handle any post-processing (maxpages, etc)
 	$self->{PagesProcessed}++;
@@ -622,13 +646,14 @@ sub disconnect {
 	$main::log->do('debug',"PagingCentral '$self->{NAME}' disconnecting")
 		if ($self->{DEBUG});
 
-	#neither t nor n spec'd
-	my $result=$self->{MODEM}->chat("${EOT}${CR}","","${CR}",$T[1],$N[0]);
-	if (!defined($result)) {
+        if($self->{CONFIG}->get("pc:$self->{NAME}\@proto") ne "UCP"){
+	   #neither t nor n spec'd
+   	   my $result=$self->{MODEM}->chat("${EOT}${CR}","","${CR}",$T[1],$N[0]);
+	   if (!defined($result)) {
 		$main::log->do('crit',"disconnect chat failed -- continuing");
 		$result=1;
-	}
-	else {
+	   }
+	   else {
 		$self->{MODEM}->HexDump($result) if ($self->{DEBUG});
 		$report=$self->ReportMsgSeq($result);
 
@@ -642,7 +667,7 @@ sub disconnect {
 			$result=1;
 		}
 
-	$main::log->do('debug',"PagingCentral '$report' reported")
+	   $main::log->do('debug',"PagingCentral '$report' reported")
 		if ($self->{DEBUG});
 
 
@@ -650,6 +675,10 @@ sub disconnect {
 		$main::log->do($result!=1 ? 'crit' : 'debug',
 			"disconnect: $report") if ($report ne "" &&
 					($self->{DEBUG} || $result!=1));
+	   }
+	}
+	else{   
+           # UCP has no loggoff sequence, so we just skip a protocol hangup
 	}
 
 	$self->dropmodem();
@@ -737,6 +766,116 @@ sub GenerateBlocks {
    return @blocks;
 }
 
+# Handling the UCP Message
+sub HandleUCPMessage{
+   my $self = shift;
+   my($pin,$msgtext)=@_;
+
+   # checking maxlenth of Text to send
+   if (length($msgtext) > $self->{MAXCHARS}){
+	$main::log->do('crit',"Cannot send message!".
+		" Message with %d chars to long.",$self->{MAXCHARS});
+                $self->disconnect();
+   }
+
+   # Create the hole message for sending, including header and checksum
+   $msg=$self->AssembleUCPMessage($pin,$msgtext);
+
+   # Transmit the message
+   ($result,$report)=$self->TransmitUCPmsg($msg);
+
+   $main::log->do('info',"RETURN: ".$result,"");
+   print length($fields[1])."\n"; 
+   return ($result,$report);  
+}
+
+# Putting the hole message together
+sub AssembleUCPMessage{
+   my $self = shift;
+   my($pin,$msgtext)=@_;
+   my($field,
+      $UCPlength,
+      $UCPChecksum,
+      $HEADERchksum,
+      $HEADER,
+      $HEADERlen,
+      $ASCIImsg,
+      $MSG);
+
+   chop($msgtext);
+   $ASCIImsg=$self->CreateUCPMessage($msgtext);
+
+   $UCPlength = length($pin) + length($ASCIImsg);
+   ($HEADER,$HEADERlen,$HEADERchksum)=$self->CreateUCPHeader($UCPlength);
+   $MSG = $HEADER.$pin.$TRN.$TRN.$TRN."3".$TRN.$ASCIImsg.$TRN;
+   $UCPChecksum=$self->CalcUCPChecksum($MSG);
+   return $MSG.$UCPChecksum;
+}
+
+# Calculating the UCP Checksum
+sub CalcUCPChecksum{
+   my $self = shift;
+   my($HoleMSG)=@_;
+   my($CHKtotal,@bytes,$CHKbin,$i,$int);
+   
+   @chars = split(//,$HoleMSG);
+   foreach $char (@chars){
+	$CHKtotal += ord($char);
+   }
+      $CHKbin = sprintf("%b",$CHKtotal);
+      push(@bytes,substr($CHKbin,length($CHKbin)-8,4));
+      push(@bytes,substr($CHKbin,length($CHKbin)-4,4));
+   
+   undef $CHKtotal;
+   for($i=0;$i<$#bytes+1;$i++){
+	$int = oct("0b".$bytes[$i]);
+	if ($int <= 9){
+	   $int += 48;
+	}
+	else{
+	   $int += 55;
+	}
+	$CHKtotal.= chr($int);
+   }
+
+      
+   return $CHKtotal;
+   
+}
+
+# Translate Messagepart to ASCII
+sub CreateUCPMessage{
+   my $self = shift;
+   my($field)=@_;
+   my($str,$newfield,$origfield,$chunk,$chksum,$i,$length);
+
+   $origfield=$field;
+   for($i=0;$i<length($field);$i++){
+      undef $newfield;
+      # pull the next char and translate and escape it if we need to
+      my($chunk,$newfield)=$self->PullNextChar($origfield);
+      $str.=sprintf("%02X",ord($chunk));
+      $origfield=$newfield;
+   }
+   
+   return $str;
+}
+
+# UCP Header
+sub CreateUCPHeader{
+   my $self = shift;
+   my($UCPlength)=@_;
+   my($HDtext,$HDmsg,$HDlen,$HDchksum,$totalLength);
+
+   $totalLength=sprintf("%05u",($UCPlength + 22));
+   
+   $HDmsg = "01".$TRN.$totalLength.$TRN."O".$TRN."01".$TRN;
+                
+   return $HDmsg;
+   
+   
+}
+
 sub HandleMessage {
    my $self = shift;
    my(@fields)=@_;
@@ -810,16 +949,18 @@ sub PullNextChar {
 		else {
 			$left="";
 		}
+
+		# drop chars to 7 bits, as required by TAP protocol
+		if (ord($char) != (ord($char) & 0x7f)) {
+			$main::log->do('warning',"hi-bit character reduced to 7 bits: '$char'");
+			$char=chr(ord($char) & 0x7f);
+		}
+
 	} while (!$self->CharOK($char));
 
 	# don't check empties
 	return ("","") if ($char eq "");
 
-	# drop chars to 7 bits
-	if (ord($char) != (ord($char) & 0x7f)) {
-		$main::log->do('warning',"hi-bit character reduced to 7 bits: '$char'");
-		$char=chr(ord($char) & 0x7f);
-	}
 	# escape low chars if the PC supports it
 	if ($self->{ESC}) {
 		if (ord($char) < 0x20) {
@@ -856,6 +997,60 @@ sub CharOK {
 		return undef;
 	}
 	return 1;
+}
+
+# UCP is much simpler than IOX so we need a
+# different Transmit routine
+sub TransmitUCPmsg{
+   my $self = shift;
+   my($block)=@_;
+   my($result,$done,$retries,$report);
+
+   if (!defined($self->{MODEM})) {
+        $main::log->do('warning', "Yikes!  The modem object disappeared!");
+        return ($TEMP_ERROR,"Lost modem object");
+   }
+
+   $block=${STX}.$block.${ETX};
+
+   my $LEAD=$self->{LEAD};
+
+   $main::log->do('debug', "Block to trans (%d): ".
+        Sendpage::Modem->HexStr($block),length($block))
+                if ($self->{DEBUG});
+
+   # count this block as being sent
+   $self->{BlocksProcessed}++;
+
+   undef $done;
+   $retries=0;
+   while (!defined($done) && $retries <= $N[2]) {
+
+        # make sure the modem stays connected
+        if (!$self->{MODEM}->ready("TransmitBlock")) {
+                $self->dropmodem();
+                return ($TEMP_ERROR,"Lost modem connection");
+        }
+        # transmit block here
+        $result=$self->{MODEM}->chat($block,"",
+                "\x0A",
+                $T[3],1);
+        if (!defined($result)) {
+                $main::log->do('warning',"total block xmit failure--retrying");
+                $retries++;
+                next;   # restart block xmit
+        }
+
+        $self->{MODEM}->HexDump($result) if ($self->{DEBUG});
+        # show any messages
+        $report=$self->ReportMsgSeq($result);
+                $done=$SUCCESS;
+   }
+
+   # assume a temporary error unless we already know our state
+   $done=$TEMP_ERROR if (!defined($done));
+
+   return ($done,$report);
 }
 
 sub TransmitBlock {

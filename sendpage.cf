@@ -343,7 +343,9 @@ maxchars=300
 #	Default is "6"
 #maxsplits=2
 
-# Which TAP protocol to use.  Should be either "PG1" or "PG3".  Most are "PG1".
+# Which TAP protocol to use.  Should be one of "PG1", "PG3", or "UCP"
+#   Regular TAP PagingCentrals are "PG1".
+#   UCP PagingCentrals will need "UCP".
 # If you had a "pet3" style PC before, this needs to be "PG3"
 #	Default is "PG1"
 #proto=PG3

@@ -1,6 +1,7 @@
 
 Implemented
 -----------
+UCP communication
 TAP communication
 Daemonized queue manager
 Multiple modem support

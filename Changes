@@ -4,6 +4,8 @@ $Id$
 	- oops!  I recreated an earlier bug where splits would destroy
 	  the page text for the next person in an alias.  Fixed in
 	  SNPPServer.pm
+        - corrected 8-bit CRC bug, thanks to Mark Frey
+        - added UCP support, thanks to a great patch from Adrian Steiner
 
 0.9.13: (04Nov2001)
 	- added parameters and code for completion command execution.
