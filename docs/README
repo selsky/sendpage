@@ -29,6 +29,8 @@ a standard install of postfix.
 "sendpage.php" is a quick PHP script for sending pages using "snpp" from
 a web page.
 
+"pc-testing.txt" is a rough draft of how to examine the limits of a Paging
+Central.
 
 -Kees Cook
  cook@cpoint.net
