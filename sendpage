@@ -512,6 +512,7 @@ sub SpawnChildren {
 		@which=@pcs;
 		undef %CHILDREN;
 		undef %STARTED;
+		$log->do('info',"starting Queue Manager (sendpage v$VERSION)");
 	}
 
 	# spawn PCs
@@ -741,6 +742,7 @@ sub StopSNPP {
 }
 
 sub StartSNPP {
+	$log->do('info',"starting SNPP listener");
 	initSNPP();
 	$s->add($server) if (defined($server));
 }
@@ -751,8 +753,6 @@ sub RestartSNPP {
 }
 
 sub ListenForSNPP {
-	$log->do('info',"starting Queue Manager and SNPP listener (sendpage v$VERSION)");
-
 	my($fh,$read,$exc,$pipe);
 
 	StartSNPP();
@@ -983,7 +983,7 @@ sub DoNothing {
 sub Reload {
 	my($pid);
 
-	$log->do('debug', "Reloading...") if ($DEBUG);
+	$log->do('info', "initiating reload ...");
 
 	if ($PC eq "") {
 		my %OLD=%CHILDREN;

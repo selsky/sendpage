@@ -22,6 +22,9 @@ Quick Start (for Linux)
 
 	- copy 'sendpage.cf' into /etc, and edit to your needs
 	- copy 'email2page.conf' into /etc, and edit to your needs
+	- if you use SysV-style init scripts, you can use "sendpage.init"
+	  to start and stop sendpage.  Copy it to where you keep your rc
+	  files.
 	- create the user "sendpage"
 	- figure out which group ID can write to your locks directory
 	  (usually "uucp" can write in "/var/lock")
@@ -141,15 +144,23 @@ your modem, paging central, etc.  Turn on the debugging if you're interested.
 I'm going to eventually write a tool to convert old-style config files (and
 perhaps even qpage and beepage config files) into the new-style config file.
 Right now, this is not done.  Note that "sendpage.cf" needs to live in
-/etc, or where ever you run "sendpage -C" with.  Also install and edit the
-"email2page.conf" file for the email-to-page converting tool.  Documentation
-is in the conf file for that one right now.
+/etc, or where ever you run "sendpage -C" with.  Please note, that you can
+safely ignore any "Attempt to free unreferenced scalar." messages you get
+while shutting down sendpage if you have debugging turned on.  This is just
+Perl complaining about the paging centrals for some reason.
+
+Also install and edit the "email2page.conf" file for the email-to-page
+converting tool.  Documentation is in the conf file for that one right now.
 
 Now there is the "sendpage" daemon itself.  Run (as root) the command:
 	sendpage -bd
 to start up the daemon mode.  (Make sure that "sendpage" is in the PATH
 for the root user.)  The SNPP server connections and Paging Centrals will
-lose root privs when the fork, so that should be safe.
+lose root privs when the fork, so that should be safe.  "sendpage -bs" will
+stop sendpage.  The file "sendpage.init" has been included to run at as a
+SysV-style init script, which takes "start" and "stop" arguments.  This
+script assumes that sendpage is installed in /usr/local/bin, so be sure to
+change it if you need to.
 
 To put a page into the queue, run "snpp RECIP" where RECIP is either a 
 valid alias "recip" section in /etc/sendpage.cf, or has the form PIN@PC,
