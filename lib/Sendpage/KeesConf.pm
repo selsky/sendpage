@@ -149,19 +149,21 @@ sub define {
 	my $default;
 
 	$self->{DEFAULTS}->{$name}->{ARGCOUNT}=defined($vars->{ARGCOUNT}) ?
-		$vars->{ARGCOUNT} : $ARGCOUNT_ONE;
+	   $vars->{ARGCOUNT} : $ARGCOUNT_ONE;
 	if ($self->{DEFAULTS}->{$name}->{ARGCOUNT} == $ARGCOUNT_LIST) {
-		$self->{DEFAULTS}->{$name}->{DEFAULT}= defined($vars->{DEFAULT}) ?
-			$vars->{DEFAULT} : undef ;
+	   $self->{DEFAULTS}->{$name}->{DEFAULT}= defined($vars->{DEFAULT}) ?
+		$vars->{DEFAULT} : undef ;
 	}
 	else {
-		$self->{DEFAULTS}->{$name}->{DEFAULT}= defined($vars->{DEFAULT}) ?
-			$vars->{DEFAULT} : "<unset>";
+	   $self->{DEFAULTS}->{$name}->{DEFAULT}= defined($vars->{DEFAULT}) ?
+		$vars->{DEFAULT} : "<unset>";
 	}
 
-	undef $self->{DEFAULTS}->{$name}->{DEFAULT} if (defined($vars->{UNSET}));
+	undef $self->{DEFAULTS}->{$name}->{DEFAULT}
+		if (defined($vars->{UNSET}));
 
-	#warn "'$name' defined with '".$self->{DEFAULTS}->{$name}->{ARGCOUNT}."' and '".$self->{DEFAULTS}->{$name}->{DEFAULT}."'\n";
+#	warn "'$name' defined with '".$self->{DEFAULTS}->{$name}->{ARGCOUNT}.
+#		"' and '".$self->{DEFAULTS}->{$name}->{DEFAULT}."'\n";
 	
 }
 

@@ -72,7 +72,7 @@ my $SPEED=10;	# how much to speed up the char reader
 #
 sub new {
 	# local vars
-	my($dev,$lockprefix,$lockfile,$realdev,$debug,$pid);
+	my($lockfile,$realdev,$pid);
 
 	# get our args
 	my $proto = shift;

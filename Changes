@@ -26,6 +26,10 @@ $Id$
 	- added "disabled" notice to the "-bq" output
 	- added proper signal handler control during forks
 	- fixed bug with hanging SNPP clients during a HUP
+	- fixed "fail-notify" to be a boolean
+	- added "fail-notify", "tempfail-notify-after", and "max-tempfail"
+	  to PC section, allowing for global fall back
+	- added first pass at IP address Access Control Lists
 
 0.9.8: (30Jan2001)
 	- further updates to Device::SerialPort and associated documentation

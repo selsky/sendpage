@@ -178,6 +178,7 @@ use Sendpage::Page;
 use Sendpage::Recipient;
 use Sendpage::KeesLog;
 use Sendpage::SNPPServer;
+use Socket;
 use IO::Select;
 use IO::Pipe;
 
@@ -803,6 +804,66 @@ sub RestartSNPP {
 	StartSNPP();
 }
 
+# FIXME: have all the ACLs pre-expanded for us...
+sub IPAllowed {
+	my $sock=shift;
+
+        # Verify that this connection is allowed
+
+	my $peer=$sock->peerhost();
+
+        my $other_end = $sock->peername();
+        if (!defined($other_end)) {
+                $log->do('alert',"SNPP client '$peer' failed getpeername!");
+                return undef;
+        }
+        my ($port, $iaddr) = unpack_sockaddr_in($other_end);
+        my $other_ip_address = inet_ntoa($iaddr);
+
+        # Compare this IP address to our ACL list
+        my $item;
+        my $allowed=0;
+	my $found=0;
+        foreach $item (@{$config->get("snpp-acl")}) {
+                my ($netmask,$way) = split(/:/,$item,2);
+                $way=uc($way);
+                my ($net_str,$mask_str) = split(/\//,$netmask,2);
+                $log->do('debug',"ACL: '$net_str'/'$mask_str' is '$way'")
+                        if ($DEBUG);
+
+                my $net  = inet_aton($net_str);
+                my $mask = inet_aton($mask_str);
+
+                # Drop the peer IP through the mask
+                my $net_check = ($iaddr & $mask);
+
+                my $check_str=inet_ntoa($net_check);
+
+                $log->do('debug',"ip: '$peer' mask: '$mask_str' masked: '$check_str' net: '$net_str'")
+                if ($DEBUG);
+
+                # if result is our network, we have a hit
+                if ($check_str eq $net_str) {
+			$found=1;
+                        $log->do('debug', "Matched ACL") if ($DEBUG);
+                        if ($way eq "ALLOW") {
+                                $allowed=1;
+                        }
+                        # if not allow, then reject
+                        last;
+                }
+        }
+	if ($DEBUG && $found == 0) {
+                $log->do('debug',"No ACL matched '$peer'");
+	}
+        if ($allowed != 1) {
+		$sock->command("421 Connection denied");
+                $log->do('info',"SNPP client '$peer' rejected");
+                return undef;
+        }
+	return 1;
+}
+
 sub ListenForSNPP {
 	my($fh,$read,$exc,$pipe,$sigset);
 
@@ -834,6 +895,11 @@ sub ListenForSNPP {
 
 				$log->do('debug',"got connection from ".
 					$sock->peerhost) if ($DEBUG);
+
+				if (!IPAllowed($sock)) {
+					close($sock);
+					next;
+				}
 
 				$pipe = new IO::Pipe;
 
@@ -1329,7 +1395,7 @@ $config->define("alias-debug",    { ARGCOUNT => 0, DEFAULT => 0 });
 $config->define("debug",    { ARGCOUNT => 0,
 				DEFAULT => $opts{d} ? 1 : 0 });
 # should the sender be notified of failures?
-$config->define("fail-notify", { DEFAULT => 1 });
+$config->define("fail-notify", { ARGCOUNT => 0, DEFAULT => 1 });
 # sender should be notified how on every X temp fails? (0=never)
 $config->define("tempfail-notify-after", { DEFAULT => 5 });
 # how many temp fails does it take to produce a perm failure?
@@ -1347,6 +1413,7 @@ $config->define("syslog-facility", { DEFAULT => "local6" });
 # SNPP settings
 $config->define("snpp-port", { DEFAULT => "444" });
 $config->define("snpp-addr", { DEFAULT => "localhost" });
+$config->define("snpp-acl", { ARGCOUNT => 2, DEFAULT => [ "127.0.0.1/255.255.255.255:ALLOW" ] });
 
 # aliases defaults
 #$config->define("recip:", { ARGCOUNT => 2 });
@@ -1395,6 +1462,9 @@ $config->define("pc:debug",  { ARGCOUNT => 0,
 					DEFAULT => $opts{d} ? 1 : 0 });
 $config->define("pc:page-daemon", { UNSET => 1 });
 $config->define("pc:cc-on-error",  { ARGCOUNT => 0, UNSET => 1 });
+$config->define("pc:fail-notify", { ARGCOUNT => 0, UNSET => 1 });
+$config->define("pc:tempfail-notify-after", { UNSET => 1 });
+$config->define("pc:max-tempfail", { UNSET => 1 });
 $config->define("pc:modems", { ARGCOUNT => 2 });
 $config->define("pc:baud",   { DEFAULT => 9600 });
 $config->define("pc:data",   { DEFAULT => 7 });

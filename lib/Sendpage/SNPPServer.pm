@@ -54,14 +54,18 @@ sub HandleSNPP {
 	my $DEBUG = shift;
 	my $sigset = shift; # for unblocking the signal handlers
 
-        my($pin,@PINS,$pc,$recips,$recip,@recips,$fail,$text,$caller,$peer);
+        my($pin,@PINS,$pc,$recips,$recip,@recips,$fail,$text,$caller);
 
 	# how far are we in the process?
 	my $NEED_PIN=1;
 	my $NEED_TEXT=1;
 
+	# Get our string for the peer
+	my $peer=$sock->peerhost();
+
 	sub shutdown {
-		$log->do('debug',"SNPP client signalled down") if ($DEBUG);
+		$log->do('debug',"SNPP client '$peer' signalled down")
+			if ($DEBUG);
 		$sock->command("221 administratively down");
 		exit(0);
 	}
@@ -76,6 +80,9 @@ sub HandleSNPP {
                 $log->do('alert',"Could not unblock signals!");
         }
 
+	# FIXME: use some other debug value to debug SNPP sessions
+	#$sock->debug($DEBUG);
+
 	sub reset_inputs {
 		@PINS=();
 		@recips=();
@@ -88,9 +95,6 @@ sub HandleSNPP {
 
 	reset_inputs();
 
-	#$sock->debug($DEBUG);
-
-	$peer=$sock->peerhost;
 	$log->do('debug',"Handling SNPP connection from ".$peer)
 		if ($DEBUG);
 
@@ -364,7 +368,7 @@ sub create {
  my $class = ref($proto) || $proto;
  my %arg = @_;
 
- return = $class->SUPER::new(	Listen => $arg{Listen} || 5,
+ return $class->SUPER::new(	Listen => $arg{Listen} || 5,
 				LocalAddr => $arg{Addr},
 				LocalPort => $arg{Port} || "snpp(444)",
 				Timeout => $arg{Timeout},

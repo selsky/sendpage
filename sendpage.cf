@@ -115,6 +115,22 @@
 #	Default is "localhost"
 #snpp-addr=0.0.0.0
 
+# What to do about incoming SNPP requests (multiple entries allowed)
+#   *NOTE*
+#	You should set this to "0.0.0.0/0.0.0.0:ALLOW" if you want
+#	anyone to connect to your SNPP server.
+#   *NOTE*
+#
+#	Format is "NET/MASK:WAY" where WAY is either "ALLOW" or "DENY"
+#
+#	ACL processing is done top to bottom, and if no match occurs,
+#	the connection is rejected.
+#
+#	Default is "127.0.0.1/255.255.255.255:ALLOW"
+#snpp-acl="128.174.5.0/255.255.255.0:ALLOW"
+#snpp-acl="128.23.1.10/255.255.255.255:DENY"
+#snpp-acl="128.23.1.0/255.255.255.0:ALLOW"
+
 # List of modems a PC should use if not told explicitly.
 #	Default is all available modems.
 #
@@ -244,6 +260,19 @@ dev	= /dev/modem
 # Will page-daemon be Cc'd on email failures for this PC?
 #	Default is unset, and will fall back to global "cc-on-error" setting
 #cc-on-error = true
+
+# Should page senders be notified about permanent failures?
+#	Default is unset; will fall back to global option
+#fail-notify = false
+
+# Page senders should be notified every Xth temporary failure.
+# (0 means 'never')
+#	Default is unset; will fall back to global option
+#tempfail-notify-after=10
+
+# How many times does a page hit a temporary error before failing forever?
+#	Default is unset; will fall back to global option
+#max-tempfail=50
 
 # If for some reason you need to override the default list of modems,
 # do it here.

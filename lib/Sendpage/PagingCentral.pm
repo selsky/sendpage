@@ -155,6 +155,11 @@ sub new {
 	$self->{PhoneNum}=$self->{CONFIG}->get("pc:$self->{NAME}\@phonenum");
 	$self->{DialWait}=$self->{CONFIG}->get("pc:$self->{NAME}\@dialwait",1);
 	$self->{DialRetries}=$self->{CONFIG}->get("pc:$self->{NAME}\@dialretries");
+	# Email control settings
+	$self->{NotifyAfter}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@tempfail-notify-after");
+	$self->{FailNotify}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@fail-notify");
+	$self->{MaxTempFail}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@max-tempfail");
+
 
 	$self->{LEAD}="";
 	$self->{LEAD}=$CR
@@ -416,11 +421,7 @@ sub send {
 sub deliver {
 	my($self,$page)=@_;
 	my($rc, $report);
-	my($to,$cc,$extra,$temprep,$failrep,$attempts,$maxtemp);
-
-	$temprep=$self->{CONFIG}->get("tempfail-notify-after");
-	$failrep=$self->{CONFIG}->get("fail-notify");
-	$maxtemp=$self->{CONFIG}->get("max-tempfail");
+	my($to,$cc,$extra,$attempts);
 
 	for ($page->reset(), $page->next();
 	     defined($recip=$page->recip());
@@ -435,7 +436,7 @@ sub deliver {
 		my $now=time;
 
 		# push temp error into a perm fail if needed
-		if ($rc == $TEMP_ERROR && $attempts > $maxtemp) {
+		if ($rc == $TEMP_ERROR && $attempts > $self->{MaxTempFail}) {
 			$rc=$PERM_ERROR;
 			$report.="\n'Too many errors ($attempts) -- giving up.'";
 		}
@@ -517,7 +518,8 @@ sub deliver {
 			}
 		
 			# Send email notification
-			if ($temprep > 0 && ($attempts % $temprep == 0) && 
+			if ($self->{NotifyAfter} > 0 &&
+			    ($attempts % $self->{NotifyAfter} == 0) && 
 		   	    ($to ne "" || $errcc ne "")) {
 				$self->SendMail($to,
 					$self->{PageDaemon},
@@ -548,7 +550,8 @@ sub deliver {
 			}
 		
 			# Send email notification
-			if ($failrep && ($to ne "" || $errcc ne "")) {
+			if ($self->{FailNotify} &&
+			    ($to ne "" || $errcc ne "")) {
 				$self->SendMail($to,
 					$self->{PageDaemon},
 					$errcc,
