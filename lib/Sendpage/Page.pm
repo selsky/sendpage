@@ -1,10 +1,11 @@
+#
 # this package will encapsulated the data of an actual page to be
 # send, including all the recipients.
 #
 # $Id$
 #
-# Copyright (C) 2000 Cornelius Cook
-# cook@cpoint.net, http://collective.cpoint.net/
+# Copyright (C) 2000,2001 Kees Cook
+# cook@cpoint.net, http://outflux.net/
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

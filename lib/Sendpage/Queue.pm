@@ -1,11 +1,11 @@
 #
-# this tools handles dealing with a single queue directory
+# this tool handles dealing with a single queue directory
 # it processes *one* file at a time with a few functions
 #
 # $Id$
 #
-# Copyright (C) 2000 Cornelius Cook
-# cook@cpoint.net, http://collective.cpoint.net/
+# Copyright (C) 2000,2001 Kees Cook
+# cook@cpoint.net, http://outflux.net/
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
