@@ -220,7 +220,7 @@ Daemon Options
 Page Queuing Options
 	-f USER         force page to be from USER (default is current user)
 	-m MESSAGE      message to send (reads from stdin by default)
-	-n              no email carboning to 'from' for this page
+	-n              no email status sent to 'from' for this page
 
 ";
 }
