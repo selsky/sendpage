@@ -8,6 +8,7 @@ $Id$
 	- added page queue/delivery logging
 	- fixed bug in expanding multiple pins sent to SNPP server
 	- fixed error handler for calls into SNPPServer->create
+	- added an init-script
 
 0.9.7: (23Jan2001)
 	- implemented level 2 SNPP server

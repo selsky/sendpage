@@ -8,32 +8,9 @@ fi
 
 DIR="sendpage-$VERSION"
 
-# find our RCS dirs and build our exclusion list and file list
-RCSs=`find . -type d -name RCS | cut -c3-`
-for i in $RCSs
-do
-	RCSEXCLUDE="$RCSEXCLUDE --exclude $DIR/$i"
-	RCSLIST="$RCSLIST $i/*"
-done
-
-# Make our release symbol on the RCS files
-REL=`echo $VERSION | perl -pe 's/\./\-/g;'`
-rcs -Nrelease-${REL}: $RCSLIST
-
-# dump the release list
-#for i in "$RCSLIST"
-#do
-#	rlog $i | egrep '^(RCS file|head|	release-)' > .RCS-release.map
-#done
-
 perl Makefile.PL
 make dist
 make distclean
 
-#echo "use 'make dist' now after verifying MANIFEST and updating VERSION in sendpage"
-exit
-
-cd .. || exit 1
-mv src $DIR || exit 1
-tar zcf /tmp/$DIR.tgz --exclude $DIR/.RCS-release.map --exclude $DIR/random $RCSEXCLUDE $DIR
-mv $DIR src || exit 1
+mv sendpage-$VERSION.tar.gz ../../tgzs/
+(cd ../../rel; tar zxf ../tgzs/sendpage-$VERSION.tar.gz)
