@@ -1,0 +1,110 @@
+$Id$
+
+
+Just to note, this documentation assumes you're using sendmail version 8.8.x
+or better.
+
+
+To get sendpage working with sendmail, there are a few things you'll need:
+
+	1) set up sendpage (and test)
+	2) get yourself a paging domain
+	3) configure sendmail to use your domain
+	4) configure email2page.conf
+	5) test your set up
+	6) add stuff to your sendmail.cf file
+
+
+Step 1: Set up sendpage (and test)
+----------------------------------
+
+	Assuming you've already configured sendpage, and tested it with
+"snpp", and you've gotten your page, you're ready to move on to step 2.
+
+
+Step 2: Get yourself a paging domain
+------------------------------------
+
+	Since I get most of my email from "outflux.net", I decided I'd
+make my paging domain "pager.outflux.net".  So I added this to my DNS
+information, and refreshed my DNS server.  Once you have a domain resolving
+with your DNS server, continue to step 3.
+
+
+Step 3: Configure sendmail to use your domain
+---------------------------------------------
+
+	Add your domain to either the "Cw" line in sendpage, or add it
+to the /etc/sendmail.cw file (recommended).  Restart sendmail, and
+continue to step 4.
+
+
+Step 4: Configure email2page.conf
+---------------------------------
+
+	Take a look at /etc/email2page.conf and set up the header rules
+to suite your needs.  The file is fairly well documented.  When finished,
+continue to step 5.
+
+
+Step 5: Test your set up
+------------------------
+
+	Send a page by piping an email (with headers) into "sendmail2snpp".
+This tool should run "email2page" and "snpp" for you.  Once you get it 
+working, continue to step 6.
+
+
+Step 6: Add stuff to your sendmail.cf file
+------------------------------------------
+
+	I recommend using style a), but you can choose either:
+
+	a) add stuff to your sendmail.mc file (and regenerate your sendmail.cf
+	   file).  Change "pager.outflux.net" and the sendmail2snpp path, if
+	   you need to:
+
+		dnl
+		dnl Kees' changes for sendpage
+		dnl
+		# for pager gateway
+		CGpager.outflux.net
+		LOCAL_RULE_0
+		# sendpage
+		R$+<@$=G.>	$#sendpage $:$1
+		define(`SENDPAGE_MAILER_PATH',`/usr/local/bin/sendmail2snpp')
+		define(`SENDPAGE_MAILER_FLAGS',`lsPn')
+		define(`SENDPAGE_MAILER_ARGS',`sendmail2snpp -f $f')
+		MAILER_DEFINITIONS
+		Msendpage, P=SENDPAGE_MAILER_PATH, F=SENDPAGE_MAILER_FLAGS,
+			S=10, R=20, A=SENDPAGE_MAILER_ARGS $u
+
+	-or-
+
+	b) add stuff to your sendmail.cf file directly.  Change
+	   "pager.outflux.net" and the sendmail2snpp path, if you need
+	   to.
+
+		Near the top:
+
+			# for pager gateway
+			CGpager.outflux.net
+
+		At the end of rule "S98":
+
+			# sendpage
+			R$+<@$=G.>	$#sendpage $:$1
+
+		Near your mailer definitions:
+
+			Msendpage, P=/usr/local/bin/sendmail2snpp, F=lsPn,
+				S=10, R=20, A=sendmail2snpp -f $f $u
+
+
+
+Once that's done, restart sendmail with your new .cf file, and you should
+be ready to rock and roll.
+
+
+-Kees Cook
+cook@cpoint.net
