@@ -1071,7 +1071,7 @@ $config->define("recip:dest", { ARGCOUNT => 2 });
 # modem defaults
 $config->define("modem:debug",  { ARGCOUNT => 0, 
 					DEFAULT => $opts{d} ? 1 : 0 });
-$config->define("modem:baud",   { DEFAULT => 115200 });
+$config->define("modem:baud",   { DEFAULT => 9600 });
 $config->define("modem:data",   { DEFAULT => 7 });
 $config->define("modem:parity", { DEFAULT => "even" });
 $config->define("modem:stop",   { DEFAULT => 1 });
@@ -1099,7 +1099,7 @@ $config->define("modem:dialretries",{ DEFAULT => 3 });
 $config->define("pc:debug",  { ARGCOUNT => 0, 
 					DEFAULT => $opts{d} ? 1 : 0 });
 $config->define("pc:modems", { ARGCOUNT => 2 });
-$config->define("pc:baud",   { DEFAULT => 115200 });
+$config->define("pc:baud",   { DEFAULT => 9600 });
 $config->define("pc:data",   { DEFAULT => 7 });
 $config->define("pc:parity", { DEFAULT => "even" });
 $config->define("pc:stop",   { DEFAULT => 1 });

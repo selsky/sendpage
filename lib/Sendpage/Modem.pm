@@ -251,10 +251,14 @@ sub init {
 
 	# hang up just in case
 	$main::log->do('debug', "reseting DTR ...") if ($self->{DEBUG});
-	$self->pulse_dtr_off(500);
-	$self->dtr_active("F");
+	#$self->pulse_dtr_off(500);
+	$self->dtr_active(F);
 	select(undef,undef,undef,1.5);  # force the dtr down
-	$self->dtr_active("T");
+	$self->dtr_active(T);
+
+	# make sure the RTS is up
+	$main::log->do('debug', "reseting RTS ...") if ($self->{DEBUG});
+	$self->rts_active(T);
 
 	# send the init string through
 	return $self->chat("$str\r","$str\r",$ok,$initwait,$initretries,
