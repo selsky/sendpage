@@ -61,7 +61,7 @@
 
 # Database dbi type/connection info for large user lists
 #
-#	Default is ""
+#	Defaults are all ""
 #
 #dsn = dbi:Pg:Db:dbname=sendpage
 #dsn = dbi:mysql:database=sendpage;host=db.mydomain.name;port=3306
