@@ -1,0 +1,62 @@
+$Id$
+
+0.9.4c: (07/28/2000, argh: deadly typo.  I should be more careful)
+	- fixed a stupid typo in Modem.pm
+
+0.9.4b: (07/28/2000, another point-release due to serious bug fixes)
+	- made sendpage fail with exit codes on bad pager aliases
+	- smooshed setgid taint removed in Modem.pm
+	- smooshed modem disconnect chat failure buf in Modem.pm
+	- queue manager announces it's version (for people sending debugging)
+
+0.9.4a: (07/13/2000, point-release due to serious numeric-only paging bug)
+	- created the "lfok" option and corrected the ctrl-char detection
+          code.  This bug made paging numeric pagers impossible because of
+	  the trailing LF.
+	- fixed some typos in the documentation
+
+0.9.4: (06/30/2000)
+	- email notification completed
+	- error reporting cleaned up further
+	- temporary failures will eventually time out
+	- added a bunch of documentation
+	- converted all the package names to be correct
+	- fixed a bug with alias expansion across multiple PCs
+	- changed how we listen for children (now a wait loop, not SIGCHLD)
+	- fixed up modem ioctl checking
+	- allowed any PIN@PC as recipient if the PC exists
+	- fixed the stupid damn error I've ever seen with Perl.  The
+	  ExtUtils::MakeMaker doesn't let you have imbedded PODs inside
+          .pm files that have "config" or "setup" in their name.  STUPID!
+          I had to change KeesConfig to KeesConf.  I guess it has a nicer
+          ring to it, but that's just plain dumb.
+
+0.9.3: (06/21/2000)
+	- created the logging subsystem and migrated to it
+	- working more issues out of the TAP implementation
+	- more and more error checking
+	- started the framework for email support
+	- created Makefile.PL and started adding pod documentation
+
+0.9.2: (06/17/2000)
+	- queue manager fully implemented and tested.  should be stable.
+	- debugging cleaned up: one line at a time, prep'ing for syslog.
+	- continued misc bug fixes.
+
+0.9.1: (06/14/2000)
+	- queue manager written and mostly functioning.
+	- Device::Serial buffer-flushing bug worked around.
+	- various improvements and bug fixes to TAP implementation.
+	- various improvements to config engine.
+	- tested with 2 more PCs.  Seems totally fine.
+
+0.9.0: (04/27/2000)
+	- initial public release.
+	- TAP protocol implemented and tested.
+	- configuration engine implemented and tested.
+	- I registered a Sourceforge account.
+	- Code is FAR from finished, but it at least controls the modem
+	  correctly (one hard part), has a configuration engine (another
+	  hard part), and speaks TAP within most specs that I can find.
+	  And I've tested it with a whole *2* paging centrals.  :)
+

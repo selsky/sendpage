@@ -1,0 +1,78 @@
+This file contains a mostly order-less list of people I have to thank for
+help out with the Sendpage project.  When I can remember what they did in
+particular, I've noted it.
+
+
+Jerry Paul Taft
+	Born Israel Kotchka 8/10/45 in Russia
+	Died 6/21/00 in Chicago
+
+	He was a camper and counselor for many years at Camp Chi in
+	Wisconsin.  He was offered a graduate fellowship in philosophy
+	at Stanford University. He opposed the war in Vietnam.  He was
+	a co-founder of the Revolutionary Automobile Cooperative in
+	Chicago and worked as a mechanic there.  He drove a cab.  He
+	lived and worked on Kibbutz Be'eri in Israel. He struggled for
+	almost 30 years with manic-depressive illness, struggling also
+	to remain as independent as possible.  He loved coffee and
+	cigarettes.  He helped care for his parents when they became
+	ill.  He was a faithful friend.  He remained opposed to
+	injustice and nonsense his entire life, never lost his ideals,
+	and lived his life with integrity and without pretension.  He
+	will be missed.
+
+
+Philip Moors
+	<PMoors@edisonmission.com>
+	Found a bug in the Modem disconnect function.  I wasn't actually
+	letting go of the modem on a chat failure.
+
+
+John Furman
+	<jfurman@b2bscene.com>
+	Found a setgid taint bug in Modem.pm for me.
+
+
+Drew Smith
+	<drew@pctc.com>
+	Reported and helped me track down a numeric-only paging problem.
+
+
+Andy Wardley
+	<abw@cre.canon.co.uk>
+	for giving me an API that I liked and adapted for my own use, even
+	if I didn't use any of the code (AppConfig).
+
+
+Eric Schenk
+	<Eric.Schenk@dna.lth.se>
+	for giving me a clear example of how to create a uucp-style lock file
+	for a serial device.   (And for teaching me about "kill(0, pid)"!)
+
+
+tomiii@qpage.net
+	for a huge list of PC information.
+
+
+Kurt Boyack
+	<Kurt.Boyack@pyxis.com>
+	for paging central information.
+
+
+Aaron Botsis
+	for making me realize that other people besides me, do, in fact,
+	use sendpage.
+
+
+Paul Holcomb
+	<pholcomb@cpoint.net>
+	for endless support and encouragement.
+
+Steve Kennedy
+	<steve@gbnet.net>
+	for always having a patch ready to help me out.
+
+Jason Winget
+	<jason.a.winget@uwrf.edu>
+	for letting me spam his pager while doing TAP testing.
+

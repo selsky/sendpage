@@ -1,0 +1,151 @@
+# $Id$
+
+Sendpage (in Perl)
+
+Quick Start
+-----------
+
+   Requirements.
+
+	- Device::SerialPort  (or Win32::SerialPort, untested)
+	- Mail::MailTools
+
+   Installation.
+
+	- run the following commands:
+
+		perl Makefile.PL
+		make
+		make install
+
+	- copy 'sendpage.cf' into /etc, and edit to your needs
+	- create the user "sendpage" and group.  Make sure it is a member
+	  of the "uucp" group (or whichever group can write to
+	  /var/lock) and the "tty" group (or whichever group
+	  can read/write on your modem device).
+	- make sure your modem device is writable.  For example, if
+	  ttyS0 is your modem, and the "tty" group needs read/write:
+
+		chmod g+rw /dev/ttyS0
+
+	- make the queue area:
+
+		mkdir -p /var/spool/sendpage
+		chown sendpage:sendpage /var/spool/sendpage
+		chmod g+sw /var/spool/sendpage
+
+	- set sendpage to be setgid "sendpage":
+
+		chgrp sendpage `which sendpage`
+		chmod g+s `which sendpage`
+
+	- start the sendpage daemon as the sendpage user
+
+		su - sendpage -c "sendpage -bd"
+	
+
+Long Version
+------------
+
+Sendpage will be a fully-featured paging solution when it's done.
+Right now I'm focusing on getting the email interaction pieces working.
+The future work includes implementing an SNPP server.
+
+Sendpage (the C program) was originally written in 1995 almost entirely
+by Mark Fullmer.  Version "7" was when I became aware of it picked up
+the code, since Mark didn't want to maintain it any more.  I developed
+a "configure" script to make compiling easier, started working on merging
+some features that other people had written, and stomping out a few bugs.
+I released a series called "0.8", which still had a bunch of problems,
+but seemed to mostly work for most people.  I haven't looked at the C
+code in about a year, and it was getting rather dusty.  I was about to
+work on porting it up to RedHat 6.1 and realized it would be easier to
+redesign it from scratch.  I decided to use Perl because of all the great
+modules I could use to help me get my job done.  And then I could spread
+the blame around when things didn't work right.  ;)
+
+And at this point I'd like to apologize here for my sloppy Perl modules.
+I'm new to writing *modules* under Perl, so I fear that I'm violating
+module and CPAN specs left and right.  I will try to correct any of these
+problems as I learn about them.  My final goal is to produce a set of
+modules that would be useful to any other packages that need to send
+pages directly, and could be installed via CPAN.  Right now, just do:
+
+	perl Makefile.PL
+	make
+	make install
+
+to install this package.  The important man page (sendpage's) is done.
+The others are just overviews.  I need to finish those.
+
+To get it started you'll need the following Perl modules installed:
+
+	- a serial port module.  Either
+		Device::SerialPort (for POSIX (unix))
+			-or-
+		Win32::SerialPort (for Windoze)
+	- Mail::MailTools
+
+You can get these from http://cpan.perl.org/
+
+And please check this out for POSIX people (lifted from the Device::SerialPort
+docs):
+
+	There are a small number of ioctl calls to handle the RTS and DTR
+	outputs. Those require (from more or less traditional locations) the
+	outputs from "h2ph" for ioctl.h and related files. If the module does
+	not find the prerequisites, it disables the method calls that require
+	them and sets "can_ioctl" false.
+        	.../_h2ph_pre.ph        .../asm/termios.ph
+        	.../asm/termbits.ph     .../asm/posix_types.ph
+        	.../asm/ioctls.ph       .../asm/ioctl.ph
+        	.../linux/posix_types.ph
+
+This is important for hanging up the modem, etc.
+
+Make sure you create a sendpage user who has write access to /var/lock
+and who owns /var/spool/sendpage.  BE SURE that /var/spool/sendpage is
+set-group-id (as group "sendpage") and that sendpage itself is setgid
+to sendpage.  In the future I'll want to work around this by having the
+SNPP server running, and any client can just connect to that server invisibly,
+and I won't have to worry about a setgid tool running around.
+
+Once that's working, take a look at "sendpage.cf", and configure it for
+your modem, paging central, etc.  Turn on the debugging if you're interested.
+I'm going to eventually write a tool to convert old-style config files (and
+perhaps even qpage and beepage config files) into the new-style config file.
+Right now, this is not done.  Note that "sendpage.cf" needs to live in
+/etc, or whereever you run "sendpage -C" with.
+
+Now there is the "sendpage" daemon itself.  Run (as root) the command:
+	su - sendpage -c "sendpage -bd"
+to start up the daemon mode.  The SNPP server is not implemented yet; it's
+first on the list right now. 
+
+To put a page into the queue, run "sendpage RECIP" where RECIP is either a 
+valid alias "recip" section in /etc/sendpage.cf, or has the form PIN@PC,
+where the PC is a valid "pc" section in /etc/sendpage.cf.  It will deliver
+directly to the named PIN.
+
+To force a queue run immediately, run (as root or sendpage) "sendpage -q".
+If you have debugging turned on, it should be flooding your syslog with
+lots of fun information while delivering the pages.
+
+Look in the "docs" directory for various misc information files, including
+the TAP specifications, the SNPP RFC, and a list of the known paging centrals
+in the file "PagingCentrals.txt".  See if the PCs for your area are listed. 
+If not, and you locate them, you should email them to me, and I'll update this
+list.  There is also a searchable database of these available at the website
+below.
+
+Also, the TODO file lists a large number of things I still want to have
+working before the first "stable" release.
+
+For updates, check out the sourceforge project at:
+	http://sendpage.sourceforge.net
+
+Thanks!
+
+
+-Kees Cook    (cook@cpoint.net)
+

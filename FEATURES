@@ -1,0 +1,27 @@
+
+Implemented
+-----------
+TAP communication
+Daemonized queue manager
+Multiple modem support
+Modem sharing
+Multiple Paging Centrals
+Parallel Paging Central delivery
+Dynamic reconfiguration
+Modem-level debugging
+Paging Central-level debugging
+Pager alias support
+Syslog notification
+Email notification on success/failure
+
+
+Partially Implemented
+---------------------
+Delayed delivery
+
+
+To Be Implemented
+-----------------
+SNPP Server
+Character based translation tables
+

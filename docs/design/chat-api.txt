@@ -1,0 +1,11 @@
+
+# desired chat API.....  maybe I should go look at the Expect perl module?
+
+what to send first
+what to send on timeout
+
+what to expect
+timeout in seconds
+retries count
+
+

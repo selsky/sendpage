@@ -1,0 +1,57 @@
+# $Id$
+
+Things that we need, organized roughly
+
+
+Needed For Stable Release
+-------------------------
+- Implement SNPP server-side functions (RFC 1861)
+- Implement SNPP client (fewer modules to load to send a page)
+- Do something so that queues that are waiting on a modem will run
+  as soon as the modem is available.  How can I do this when there are
+  multiple modems available?  Weird multi semaphore notifications queues
+  based on modems?  Gah.  Strange.
+- do something so that when pages are written to the queue, sendpage will
+  auto-signal the server to rescan.
+- Decide my stance on email-parsing for page sending.  Is this another
+  tool's job, or is it our job?  Probably should be our job to some degree
+  since Sendpage may not have "procmail" around to do all the work.
+- Need documentation on how to install, set up, test, and run sendpage
+- Need documentation on "page-daemon" alias for errors, bounces, warnings, etc?
+- make sure sendpage.cf gets handled by Makefile.PL  etc dir?
+- implement filelocking (needs to work with NFS & windoze)
+- have lock directory writing tested
+- document how to make a "sendpage" user, and which group it needs to be in
+- implement max-blocks-per-session for a PC
+- implement email notification fall-back
+- email paging failures to page-daemon
+
+
+Would Be Nice
+-------------
+- code needs more documentation
+- make *useful* API documentation for all the modules via pod
+- update API doc to reflect changes made for PageQueue, Page, and Recipient
+- spit out short GPL note somewhere?
+- Write up an example CGI script for sending pages
+- Figure out how to do filelocking under Windows
+- Figure out what to replace my Syslog calls with under Windows
+- add "include" verb to sendpage.cf for sucking in other files?
+
+
+
+Stuff I Might Need Some Time Soon
+---------------------------------
+- Implement multiple TAP protocols? (are there differences?  PG1, PG3, etc)
+  I don't think I'll ever need this due to my "pc:fields" variable.
+
+
+
+I'm Probably Never Going To Implement These Crazy Ideas
+-------------------------------------------------------
+- if you have A LOT of pages, you'd want multiple modems running for
+  a single PC.  Since that would REALLY be a lot of pages, I'm going to
+  leave out the idea of parallel tasking modems for the same PC.  That
+  seems like insane overkill, but it's something that would be pretty
+  cool for HIGH volume paging centers.  Some day, perhaps.
+

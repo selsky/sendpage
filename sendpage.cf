@@ -1,0 +1,312 @@
+##############################################################################
+#                                 sendpage.cf                                #
+##############################################################################
+#
+# There are four majors sections:
+#	- global	Any global settings
+#	- "modem"	Each modem's settings
+#	- "pc"		Each Paging Central's settings
+#	- "recip"	Each recipient name's settings
+#
+# Except for global, each section starts with the section name in
+# []'s.  So, to define a modem named "sportster", the section name
+# would be "[modem:sportster]", and all of the sportster's settings
+# would follow.
+#
+# section names cannot have "=", "@", or ":" in their text.
+#
+# For each major section, I go through all the default values
+# and their variable names.  If you don't like a default value,
+# just comment in the variable name, and change the value to something
+# else.
+#
+
+
+
+#############################
+# global section
+#############################
+# system-level debugging.  Default is "false"
+#
+#debug=true
+
+# alias-expansion debugging.  Default is "false"
+#
+#alias-debug=true
+
+# Filename prefix for writing process ID files.
+# 	Default is "/var/spool/sendpage/sendpage"
+#
+#pidfileprefix = /tmp/var/spool/sendpage/sendpage
+
+# Filename prefix for writing UUCP-style device locks.
+#	Default is "/var/lock/LCK.."
+#
+#lockprefix = /tmp/var/lock/LCK..
+
+# Directory to store Paging Central pager queues
+#	Default is "/var/spool/sendpage"
+#
+#queuedir = /tmp/var/spool/sendpage
+
+# Username that sendpage should be running as.  Default is "sendpage"
+#
+#user = nemesis
+
+# Email address that sendpage claimed to be coming from.
+#	Default is "sendpage"
+#
+#page-daemon = nemesis
+
+# By which mechanism should email be delivered?  mail, sendmail, or SMTP?
+#	Default is "sendmail"
+#mail-agent = mail
+
+# Should page senders be notified about permanent failures?
+#	Default is "true"
+#fail-notify = false
+
+# Page senders should be notified every Xth temporary failure.
+# (0 means 'never')
+#	Default is "5".
+#tempfail-notify-after=10
+
+# How many times does a page hit a temporary error before failing forever?
+#	Default is "20"
+#max-tempfail=50
+
+# Should syslog be used instead of STDERR for logging?
+#	Default is "true"
+#syslog=false
+
+# When using syslog, which syslog options should be used?
+# (any of "pid", "ndelay", "cons", or "nowait")
+#	Default is "pid"
+#syslog-opt= pid, cons
+
+# Which syslog facility should be used?  man syslog for more info
+#	Default is "local6"
+#syslog-facility=local4
+
+# List of modems a PC should use if not told explicitly.
+#	Default is all available modems.
+#
+#modems = sportster
+
+# Default domain for email-cc (not implemented yet)
+#fallback-email-domain	=	@cpoint.net
+
+######################
+# modem configuration
+# 	Each section should be called "modem".  (e.g.  "[modem:sportster]")
+######################
+
+# My first "modem" section.  I named it "sportster" because that's what it is
+[modem:sportster]
+# Should this modem's character-level debugging be turned on?
+#	Default is "false"
+#debug	= true
+
+# This modem's transmission settings.
+#	Defaults are data=7, parity=even, stop=1, flow=rts, baud=115200
+#data	= 8
+#parity	= none
+#stop	= 1
+#flow   = soft
+#baud   = 9600
+
+# Which device this modem should use
+#	Default is "/dev/null", so you better specify one.  :)
+dev	= /dev/modem
+
+# This modem's initialization string
+#	Default is "ATZ"
+#init   = ATE&1
+
+# This modem's "okay" response string
+#	Default is "OK"
+#initok = 0
+
+# What to look for if something has gone wrong while init'ing
+#	Default is "ERROR"
+#error=1
+
+# How many seconds to wait for initok after init with this modem
+#	Default is "4"
+#initwait=1
+
+# How many times to try to initialize the modem
+#	Default is "2"
+#initretries=1
+
+# The dialing prefix for this modem
+#	Default is "ATDT"
+#dial=ATDT9,
+
+# What to look for after connecting successfully
+#	Default is "CONNECT"
+#dialok=0
+
+# What to look for if something goes wrong while dialing
+#	Default is "ERROR|NO CARRIER|BUSY|NO DIAL|VOICE"
+#no-carrier=ERROR
+
+# How many seconds to wait for dialing to connect
+#	Default is "60"
+#dialwait=30
+
+# How many times to try and redial (unimplemented, actually...)
+#	Default is "3"
+#dialretries=1
+
+
+
+
+#########################
+# Paging central section
+#	each section should be called "pc" (e.g. "[pc:ameritech]")
+#########################
+# I have an ameritech pager.  It actually works in the entire state,
+# so I should dig up the Champaign/Urbana PC info.  For now, this is the
+# chicago access number
+[pc:ameritech]
+# This PC's protocol-level debugging.
+#	Default is "false"
+#debug	= true
+
+# If for some reason you need to override the default list of modems,
+# do it here.
+#	Default is all available modems.
+#modems	= sportster
+
+# If you need specific communication settings for this PC, they go here.
+#	Defaults are data=7, parity=even, stop=1, flow=rts, baud=115200
+#data	= 8
+#parity	= none
+#stop	= 1
+#flow	= soft
+#baud	= 9600
+
+# What phone number to reach this PC at.
+#	Default is "", so you better fill one in
+phonenum= 13125149243
+
+# How many characters can be sent in each page for this PC?
+#	Default is 1024
+maxchars=300
+
+# How many times are we allowed to split up a page that exceeds the
+# max chars limit?  (For example, if maxchars was "100" and maxsplits was
+# "5" and someone sent a 2000 character page, sendpage would generate
+# five 100-character pages before cutting off the page.)
+#	Default is "6"
+#maxsplits=2
+
+# How many fields does the PC expect to be getting during Block Transmission?
+# If you had a "pet3" style PC before, this needs to be "3".
+#	Default is "2"
+#fields=3
+
+# What is the password for accessing this Paging Central?
+#	Default is "000000".  Shouldn't be more than 6 characters.
+#password=123456
+
+# Should we assume strict TAP protocol, and require CR before each answer?
+# If you can set this to true, do so, as it makes response codes easier to read.
+#	Default is "false"
+#stricttap=true
+
+# Characters less than 0x20 are allowed in a block's field?
+# If you can set this, it makes pages prettier (can send \n's etc)
+#	Default is "false"
+#ctrl=true
+
+# Can characters less than 0x20 be escaped, as in TAP spec 1.8?
+# If you can't set ctrl to true, see if this one set to true works.
+#	Default is "false"
+#esc=true
+
+# Is LF explicitly allowed by this PC? (only useful if "ctrl=false")
+# 	Default is "false"
+#lfok=true
+
+# Can fields be split across blocks?
+#	Default is "true"
+#fieldsplits=false
+
+# How many seconds to wait before giving up waiting for the ID= tag?
+#	Default is "2", from the T1 of the TAP protocol
+#answerwait=10
+
+# How many seconds before we giving up trying to dial this PC?
+#	Default is whatever the modem's dialwait is
+#dialwait=20
+
+# How many seconds should this PC wait between queue scans?
+#	Default is "20"
+#rundelay=10
+
+
+# I have a skytel that only works in Illinois, and I've only called this
+# number from chicago, but I think it's valid as a national TAP access
+# number.
+[pc:skytel]
+phonenum= 18007596366
+stricttap=true
+
+# I have a nextel that should work Nationally, but I've only called this
+# number from Chicago, while I was IN Chicago with the NexTel.
+[pc:nextel]
+phonenum= 13129076683
+stricttap=true
+
+# This is the BellSouth RIM pager
+[pc:rim-pager]
+phonenum= 1800-868-2835
+stricttap=true
+
+
+###################
+# Recipients
+#	This section starts with "recip".  (e.g. "[recip:cook]")
+#	Sorry this section is so clunky...
+#
+#	'email-cc' will get passed down to an expanding alias.  For
+#	example, look at the "[recip:cook]" below.  I have an email-cc,
+#	and it'll stick with the recip alias, even though it finally
+#	expands the "dest" to be "cook_ameritech".  Did that make any sense?
+#
+#	dest:		Where to send the page.  Either PIN@paging-central, or
+#			another recip name.
+#	email-cc:	Where to send an email CC of the page
+#		
+###################
+
+# My three pagers
+[recip:cook_ameritech]
+dest	=	1234567@ameritech
+[recip:cook_nextel]
+dest	=	1234567@nextel
+[recip:cook_skytel]
+dest	=	1234567@skytel
+[recip:cook]
+dest	=	cook_ameritech
+email-cc=	cook@cpoint.net
+
+# Paul's nextel
+[recip:pholcomb]
+dest	=	1234567@nextel
+
+# Kirsten's ameritech pager
+[recip:kirsten]
+dest	=	1234567@ameritech
+email-cc=	dragon@blight.com
+
+# Christian's RIM pager
+[recip:cvoid]
+dest	=	1234567@rim-pager
+
+# A group alias for Paul and me
+[recip:oncall]
+dest	=	cook, pholcomb
+email-cc=	cpoint@cpoint.net

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+MODS="lib/Sendpage/Modem.pm lib/Sendpage/KeesConfig.pm lib/Sendpage/Page.pm \
+	lib/Sendpage/PageQueue.pm lib/Sendpage/PagingCentral.pm \
+	lib/Sendpage/Queue.pm lib/Sendpage/Recipient.pm lib/Sendpage/KeesLog.pm"
+CONF=sendpage.cf
+PROG=sendpage
+TXT="README THANKS TODO Changes FEATURES"
+
+FILES="$TXT $CONF $MODS $PROG"
+
+co -l $FILES

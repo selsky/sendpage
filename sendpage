@@ -1,0 +1,1173 @@
+#!/usr/local/bin/perl
+#
+# sendpage is the tool that will handle all the paging functions
+#
+# $Id$
+#
+# Copyright (C) 2000 Cornelius Cook
+# cook@cpoint.net, http://collective.cpoint.net/
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# http://www.gnu.org/copyleft/gpl.html
+
+=head1 NAME
+
+sendpage - send alphanumeric pages via modem
+
+=head1 SYNOPSIS
+
+sendpage [OPTIONS] [recipient ...]
+
+=head1 OPTIONS
+
+=over 4
+
+=item -bd
+
+Start sendpage in "daemon mode" where it will start all the Paging
+Central queues and wait for pages to be delivered.  When sendpage
+runs as a daemon, it must be running as the 'sendpage' user as specified
+in the sendpage.cf file.
+
+=item -bp
+
+Display all the pages waiting in the Paging Central queues.
+
+=item -bv
+
+Try to expand the "recipient" name, using the recipient aliases specified
+in the configuration file.
+
+=item -bs
+
+Shutdown the running sendpage daemon and all it's children.  If a Paging
+Central is in the middle of delivering a page, it will finish up and
+exit as soon as it's current page is handled.
+
+=item -br
+
+This will send a SIGHUP to the master daemon.  When the master gets the
+SIGHUP, it will re-read its configuration file, and restart all the
+Paging Centrals.  It will wait for any busy Paging Centrals to finish
+before continuing.
+
+=item -bq
+
+This displays the state of the running daemons: Running or Not running.
+If a pid file is stale (the file exists, but the process doesn't), it
+will mark that pid as "Stale".
+
+=item -q[R pc]
+
+This will send a SIGUSR1 signal to either the master daemon, or,
+if the Paging Central is specified, just that Paging Central in particular.
+When the master gets a SIGUSR1, it will send it to each of the running Paging
+Centrals.  If the Paging Central is not busy, it will immediately start a
+queue run.
+
+=item -f
+
+This will override the "from" default for delivering a page.  This is
+useful for running sendpage as a client to another tool that takes
+pages from another source (sendmail gateway, etc.)  If this option is not
+specified, the "from" information is taken from the username who is
+running the sendpage client.
+
+=item -C FILE
+
+Read the configuration file FILE instead of the default /etc/sendpage.cf
+
+=item -h
+
+Display a summary of all the available command line options.
+
+=item -d
+
+Turn on debugging (like "debug=true" in /etc/sendpage.cf)
+
+=back
+
+=head1 DESCRIPTION
+
+Sendpage can run as the delivery agent, or as a client to insert a page
+into the paging queue.  For the various command-line arguments, 
+the idea here was to use sendmail-style arguments where I can, not to
+fully implement every option that sendmail has.  I just want the
+learning curve of sendpage to be small for people already familiar
+with sendmail.
+
+=head1 FILES
+
+=over 4
+
+=item F</etc/sendpage.cf>
+
+Default location for sendpage.cf, which holds all the configuration
+information for sendpage, including Paging Central definitions,
+recipients, and various other behaviors.
+
+=item F</var/spool/sendpage>
+
+Default directory for all the Paging Central queues and pid files.
+
+=item F</var/lock>
+
+Default directory to keep the UUCP-style device locks.
+
+=back
+
+=head1 AUTHOR
+
+Kees Cook <cook@cpoint.net>
+
+=head1 BUGS
+
+Oh, I bet this code is crawling with them.  :)  I've done my best to 
+test this code, but I'm only one person.  If you find strange behavior,
+please let me know.
+
+=head1 COPYRIGHT
+
+sendpage is free software; it can be used under the terms of the GNU
+General Public License.
+
+=head1 SEE ALSO
+
+perl(1), kill(1), Device::SerialPort(3), Mail::Send(3),
+Sendpage::KeesConf(3), Sendpage::KeesLog(3),
+Sendpage::Modem(3), Sendpage::PagingCentral(3), Sendpage::PageQueue(3),
+Sendpage::Page(3), Sendpage::Recipient(3), Sendpage::Queue(3)
+
+=cut
+
+# we need at least this version.  FIXME: I forgot why, though.  :P
+require 5.005;
+
+# Global variables;
+$VERSION="0.9.4c"; # our version!
+undef $log;	  # hold logging object
+
+# Module-global variables
+my %CHILDREN;	# who the childrens are
+my $SHUTDOWN;	# when to shutdown
+my $DEBUG;	# for debugging
+my $config;	# holds the configuration object
+my %opts;	# holds the command line args hash
+
+# Global queue run variables   FIXME: maybe this should be a separate module?
+my $PC;		# holds name of PC for queue runners
+my $sleeptime;  # holds sleeptime for next queue delay
+
+# FIXME: load modules in a nice error-correcting fashion (borrow from misterhouse)
+use POSIX;
+use Getopt::Std;
+use Sendpage::Modem;
+use Sendpage::KeesConf;
+use Sendpage::PagingCentral;
+use Sendpage::PageQueue;
+use Sendpage::Page;
+use Sendpage::Recipient;
+use Sendpage::KeesLog;
+
+sub Usage {
+	die "Usage: $0 [OPTIONS] [alias ...]
+version $VERSION
+
+-h		you're reading it.  :)
+-bd		run in daemon mode
+-bp		display the queues
+-bv		verify addresses
+-bs		shutdown server
+-br		have server reload configurations
+-q		force a queue run
+-f USER		force page to be from user USER
+-qR PC		force a queue run only for the PC paging central
+-C FILE		use FILE as the sendpage.cf file
+-d		turn debug on
+
+";
+}
+
+# Start logging immediately
+$log=Sendpage::KeesLog->new();
+
+# get our options
+if (!getopts('hvdqC:b:R:f:',\%opts) || $opts{h}) {
+	Usage();
+}
+
+# build default configuration, with any command line info
+$config=initConfig(\%opts);
+
+# load configuration
+Initialize();
+
+# Restart logging
+$log->reconfig($config);
+
+# Mode of operation selection
+#
+#	Modes:
+#		- daemon (spawn queue runners, listen for pages)
+#		- queue display
+#		- address expansion
+#		- force a queue run (optionally for only a certain PC)
+#
+if ($opts{b}) {
+	QueryDaemons(1) if ($opts{b} eq "q");
+	SendHUP() if ($opts{b} eq "r");
+	ShutdownEverything() if ($opts{b} eq "s");
+	BecomeDaemon() if ($opts{b} eq "d");
+	DisplayQueue() if ($opts{b} eq "p");
+	VerifyAddress(@ARGV) if ($opts{b} eq "v");
+	die "Unknown run mode: '$opts{b}'.  Try '$0 -h' for help.\n";
+}
+if ($opts{q}) {
+	my $ret=SendSignal('USR1',$opts{R} ? $opts{R} : "");
+	# FIXME: should run the queue by hand if no one else can
+	die "Failed to notify queue manager: $!\nMaybe you should run me with -bd?\n" if (!defined($ret) || $ret != 0);
+	exit;
+}
+
+if (!defined($ARGV[0])) {
+	Usage();
+}
+else {
+	my($pin,%PINS,%QPCS,$pc,$recips,$recip,@recips,$fail);
+
+	($fail,@recips)=ArrayDig(@ARGV);
+	if ($fail != 0) {
+		$log->do('crit',"Page aborted: undeliverable addresses.");
+		exit(1);
+	}
+	$recips=\@recips;
+
+	my $text=TakePage();
+
+	# sort them into PC bins
+	foreach $recip (@{ $recips }) {
+		# make list of PCs
+		push(@{ $QPCS{$recip->pc()} },$recip);
+	}
+
+	# 
+	foreach $pc (sort keys %QPCS) {
+		# get our PC-list of recipients
+		$recips=$QPCS{$pc};
+
+		$log->do('debug',"opening queue for '$pc'") if ($DEBUG);
+		# write a queue file with associated PINs
+		my $queue=Sendpage::PageQueue->new($config,$config->get("queuedir")."/$pc");
+		if (!defined($queue)) {
+			$log->do('err', "cannot find queue for PC '$pc'");
+		}
+
+		my @pages;
+		undef @pages;
+
+		my $pagingcentral=Sendpage::PagingCentral->new($config,$pc);
+
+		if (length($text) > $pagingcentral->maxchars()) {
+			my($newtext,$i);
+			my $maxsplits=$pagingcentral->maxsplits();
+			my $format=length($maxsplits);
+			my $availlen=$pagingcentral->maxchars()-($format * 2)-2;
+			my $chunks=POSIX::ceil(length($text)/$availlen);
+			
+			# never send more than $maxsplits pages from one text
+			$chunks=$maxsplits if ($chunks>$maxsplits);
+
+			for ($i=0; $i<$chunks; $i++) {
+				$newtext=sprintf("%0${format}d/%0${format}d:",
+						$i+1,$chunks);
+				$newtext.=substr($text,0,$availlen);
+				$text=substr($text,$availlen);
+
+				push(@pages,$newtext);
+			}
+			if ($text ne "") {
+				$log->do('warning',"threw away %d extra chars at the end of a page with more than %d splits",length($text),$chunks);
+			}
+		}
+		else {
+			push(@pages,$text);
+		}
+
+		umask(0007); # allow group read/write
+		foreach $text (@pages) {
+			if (!defined($queue->addPage(Sendpage::Page->new($recips,\$text,
+				{ 'when' => time,
+				  'from' => $opts{f} ? $opts{f} : 
+					scalar(getpwuid($<))
+				 })))) {
+				$log->do('err',
+					"cannot send this page: queue failed");
+			}
+		}
+	}
+}
+
+sub QueryDaemons {
+	my($display)=@_;
+	my(@check,$pc,$pid,$state,$running);
+
+	undef $running;
+	@check=@pcs;
+	unshift(@check,"");
+	foreach $pc (@check) {
+		$pid=PidOf($pc,1);
+		if ($pid==0) {
+			$state="Not running";
+		}
+		else {
+			undef $!;
+			kill 0, $pid;
+			if ($! == ESRCH) {
+				$state="Stale: not running";
+			}
+			else {
+				$state="Running";
+				$running=1;
+			}
+		}
+		printf("%-6d %20s : %s\n",$pid,
+			($pc eq "") ? 'Queue Manager' : $pc, $state)
+				if ($display);
+	}
+
+	exit(0) if ($display);
+
+	return $running;
+}
+
+sub SendHUP {
+	my $ret=SendSignal('HUP',"");
+	die "Failed to notify queue manager: $!\n" if (!defined($ret) || $ret != 0);
+	exit;
+}
+
+sub ShutdownEverything {
+	# there's no need for individual killing is there?
+	#my $ret=SendSignal('QUIT',$opts{R} ? $opts{R} : "");
+	my $ret=SendSignal('QUIT',"");
+	warn "Failed to notify queue manager: $!\n" if (!defined($ret) || $ret != 0);
+	exit;
+}
+
+sub Initialize {
+	&loadConfig();
+	$DEBUG=$config->get("debug");
+	@pcs=$config->instances("pc");
+	undef %pcs; grep($pcs{$_}=1,@pcs);
+	@modems=$config->instances("modem");
+
+	# sanity check our queue names and directories
+	if (!$opts{C}) { # only if running with regular config file, though
+		my $mask=umask(0002); # make sure we can group write to the dirs
+		foreach $pc (@pcs) {
+			$dir=$config->get("queuedir")."/$pc";
+			if (! -d $dir) {
+				mkdir($dir,0775) ||
+					warn "Cannot mkdir '$dir': $!\n";
+			}
+		}
+		umask($mask);
+	}
+}
+
+# plops down a pid file
+sub RecordPidFile {
+	my($name,$pid)=@_;
+	my($file);	
+
+	$name=".$name" if ($name ne "");
+	$file=$config->get("pidfileprefix").$name.".pid";
+	open(FILE,">$file") || $log->do('err',"Cannot write to '$file': $!");
+	print FILE $pid,"\n";
+	close(FILE);
+}
+
+# deletes a pid file by name
+sub YankPidFile {
+	my($name)=@_;
+	my($file);
+
+	$name=".$name" if ($name ne "");
+	$file=$config->get("pidfileprefix").$name.".pid";
+	unlink($file) || $log->do('err',"Cannot unlink '$file': $!");
+}
+
+# sends a signal to the specified PID
+# returns non-0 on failure
+sub SendSignal {
+	my($sig,$pid)=@_;
+
+	if ($pid !~ /^\d+$/) {
+		$pid=PidOf($pid);
+	}
+
+	return undef if ($pid == 0);
+
+	#warn "signalling $sig to $pid\n";
+	undef $!;
+	kill $sig, $pid;
+	return $!+0;
+}
+
+# tries to find the PID of a certain sendpage
+# return PID, or 0 or failure
+sub PidOf {
+	my($name,$quiet)=@_;
+	my($file,$pid);
+
+	if ($name ne "") {
+		if (!defined($pcs{$name})) {
+			$log->do('warning',"No such PC '$name'");
+			return 0;
+		}
+		$name=".$name";
+	}
+
+	$pid=0;
+	$file=$config->get("pidfileprefix").$name.".pid";
+	if (-f $file) {
+		my $line;
+
+		open(FILE,"<$file") || $log->do('err',"Cannot read '$file': $!");
+		chomp($line=<FILE>);
+
+		# this is used to untaint for a sendpage -q
+		if ($line=~/^(\d+)$/) {
+			$pid=$1;
+		}
+		close(FILE);
+	}
+	else {
+		my $warning=sprintf("No pid file found for sendpage%s!",
+			$name);
+		$log->do('warning',$warning) if (!defined($quiet));
+	}
+	return ($pid+0);
+}
+	
+sub NiceShutdown {
+	$SIG{QUIT}=$SIG{INT}=DEFAULT;
+
+	$SHUTDOWN=1;
+	if ($PC eq "") {
+		my $pc;
+
+		# ignore the dying children (don't think I want this...)
+		#$SIG{CHLD}=DEFAULT;
+
+		foreach $pc (@pcs) {
+			$log->do('debug',"Signalling '$pc' ...") if ($DEBUG);
+			SendSignal('QUIT',$pc);
+		}
+	}
+	$log->do('debug',"Shutting down nicely: '$PC'") if ($DEBUG);
+}
+
+sub ImmediateShutdown {
+	$SIG{TERM}=DEFAULT;
+	$log->do('debug',"Shutting down immediately") if ($DEBUG);
+	exit(0);
+}
+
+sub QueueRun {
+	#warn "Pid $$ heard USR1\n";
+
+	# we need to signal all the PC's if we're master
+	if ($PC eq "") {
+		my $pc;
+		foreach $pc (@pcs) {
+			$log->do('debug',"Signalling '$pc' ...") if ($DEBUG);
+			SendSignal('USR1',$pc);
+		}
+	}
+	else {
+		# perform queue run
+		$log->do('debug',"QueueRun requested for '$PC' ...")
+			if ($DEBUG);
+
+		# if we get a request for this DURING a queue run, we
+		#  should immediately rescan our queue.  To do this,
+		#  we set our next sleeptime to 0
+		$sleeptime=0;
+	}
+}
+
+sub DisplayQueue {
+	my($queue, $waiting, $page, $recip);
+
+	# FIXME: don't need to lock these files....
+	foreach $pc (@pcs) {
+		$queue=Sendpage::PageQueue->new($config,$config->get("queuedir")."/$pc");
+		if (($waiting=$queue->ready())>-1) {
+			print "\nin the '$pc' queue: ".($waiting+1)."\n";
+			while (defined($page=$queue->getPage())) {
+				print "\tqueue filename: ".$queue->file()."\n";
+				print "\tdeliverable:    ".$page->deliverable()."\n";
+				
+				print "\tattempts:       ".$page->attempts()."\n";
+				for ($page->reset(), $page->next();
+				     defined($recip=$page->recip());
+                                     $page->next()) {
+					print "\tdest: '".$recip->name()."' (pin '".$recip->pin()."', email '".$recip->datum('email-cc')."')\n";
+				}
+				$queue->fileDone();
+			}
+		}
+	}
+	exit(0);
+}
+
+sub VerifyAddress {
+	my ($fail,@recips);
+	($fail,@recips)=ArrayDig(@ARGV);
+	if ($fail != 0) {
+		exit(1);
+	}
+	foreach $recip (@recips) {
+		print "deliverable: ".$recip->name()." as ".$recip->pin().
+			" via ".$recip->pc()." (email is '".$recip->datum('email-cc')."')\n";
+	}
+	exit(0);
+}
+
+sub DaemonInit {
+	my $modref;
+
+	# test modems, keeping functioning ones in a list for the PCs to pick
+	if ($DEBUG) {
+		grep($log->do('debug',"found listing for modem: $_"),@modems);
+		grep($log->do('debug',"found listing for pc: $_"),@pcs);
+	}
+
+	# should be limit which modems we're using?
+	if (defined($modref=$config->get("modems",1))) {
+		# we should limit the modem list
+		@modems=@{ $modref };
+		grep($log->do('debug',"using specified modem: $_"),@modems)
+			if ($DEBUG);
+	}
+	else {
+		# pull from instance list
+		@modems=$config->instances("modem");
+	}
+	# check the modems
+	@modems=verifyModems(@modems);
+	grep($log->do('debug',"found functioning modem: $_"),@modems)
+		if ($DEBUG);
+
+	$log->do('alert',"no functioning modems!") if (!defined($modems[0]));
+}
+
+# start one or all the children
+sub SpawnChildren {
+	my($which)=@_;
+	
+	my($pid,$pc,@which);
+
+	if (defined($which)) {
+		undef @which;
+		push(@which,$which);
+	}
+	else {
+		@which=@pcs;
+		undef %CHILDREN;
+		undef %STARTED;
+	}
+
+	# spawn PCs
+	foreach $pc (@which) {
+		$pid=fork();
+		if ($pid<0) {
+			# failure
+			$log->do('emerg',"Cripes!  Cannot spawn process: $!");
+		}
+		elsif ($pid>0) {
+			# parent
+			$log->do('debug',"spawned child: $pid for PC '$pc'")
+				if ($DEBUG);
+			$CHILDREN{$pid}=$pc;
+			$STARTED{$pc}=time;
+			RecordPidFile($pc,$pid);
+		}
+		else {
+			# child
+			&StartQueue($pc);	
+			$log->do('crit',"PC '$pc' died!  Whoops, that can't happen!");
+			exit(1);
+		}
+	}
+}
+
+sub Respawn {
+	my($pid,$pc,$now);
+
+	$pid=wait;
+
+	# quit out if we're done (wait will sleep)
+	return if ($SHUTDOWN==1);
+
+	if ($pid==-1) {
+		if ($!==ECHILD) {
+			$log->do('warning',"Ran out of children?!  Shutting down...");
+			$SHUTDOWN=1;
+			return;
+		}
+		else {
+			$log->do('warning',"Oops: waitpid spat totally unexpected error: $!");
+			return;
+		}
+	}	
+	if (defined($CHILDREN{$pid})) {
+		$log->do('debug', "pid $pid died: '".$CHILDREN{$pid}."'")
+			if ($DEBUG);
+
+		$pc=$CHILDREN{$pid};
+		$now=time;
+
+		# restart within the same 10 seconds??
+		if ($now<($STARTED{$pc}+10)) {
+			$log->do('alert',"Ugly nasty problem with $CHILDREN{$pid} queue manager!");
+			$log->do('alert',"The same PC has died twice rather quickly.  Shutting it down.");
+		}
+		else {
+			$log->do('err',"Whoa!  The '$CHILDREN{$pid}' PC died unexpectedly -- restarting it.");
+			SpawnChildren($CHILDREN{$pid});
+		}
+	}
+	else {
+		# defunct children?  no!  bastards!  :)
+		$log->do('warning',"Bastard child detected!  Unknown PID '$pid' was reaped.");
+	}
+}
+
+sub BecomeDaemon {
+	# check to see if we're already running
+	if (QueryDaemons()) {
+		warn "Already running:\n";
+		QueryDaemons(1);
+	}
+
+	my($user,$name,$uid);
+
+	# check who we're running as
+	$user=$config->get('user');
+	($name,undef,$uid)=getpwnam($user);
+	if (!defined($name)) {
+		$log->do('crit',"There is no such user named '$user'!  Aborting...");
+		exit(1);
+	}
+	# are we that user already?
+	if ($uid != $<) {
+		$log->do('crit',"Not running as '$user'!  Aborting...");
+		exit(1);
+	}
+
+	# daemon mode starts here
+	DaemonInit();
+
+	# set up signal handlers (to do respawning, signal sending, etc)
+	# (find out how to protect children from signal cascading from parents)
+	$SIG{'HUP'}='IGNORE';
+	$SIG{'INT'}=$SIG{'QUIT'}=\&NiceShutdown;
+	$SIG{'TERM'}=\&ImmediateShutdown;
+	$SIG{'PIPE'} = 'IGNORE';
+	$PC="";
+
+	# FIXME: close file handles? what about debugging.  ;)
+
+	# Become a daemon
+	my $pid = fork;
+	exit if $pid;
+	die "Couldn't fork: $!" unless defined($pid);
+	POSIX::setsid() or die "Can't start a new session: $!";
+
+	# reconfig, and reopen syslog connection
+	$log->reconfig($config);
+	$log->on();
+
+	$0="sendpage: accepting connections";
+	$SHUTDOWN=0;
+	RecordPidFile($PC,$$);
+
+	# start the queue runners
+	SpawnChildren();
+
+	# listen for USR1 to send USR1s
+	$SIG{'USR1'} = \&QueueRun;
+	# listen for reload info
+	$SIG{'HUP'}=\&Reload;
+	# listen for children death
+	$SIG{'CHLD'}=\&DoNothing;
+	
+	# handle children
+	ListenForChildren();
+	
+	die "parent died: this should never have happened: $!\n";
+}
+
+sub ListenForChildren {
+	$log->do('debug',"starting Queue Manager (sendpage v$VERSION)") if ($DEBUG);
+	while ($SHUTDOWN!=1) {
+		# restart children as they die
+		Respawn();
+	}
+	$log->do('debug',"Queue Manager shutting down") if ($DEBUG);
+	YankPidFile("");
+	exit(0);
+}
+
+sub ListenForSNPP {
+	$log->do('debug',"starting SNPP listener") if ($DEBUG);
+	while ($SHUTDOWN!=1) {
+		sleep(60);
+	}
+	$log->do('debug',"SNPP shutting down") if ($DEBUG);
+	YankPidFile("");
+	exit(0);
+}
+
+sub TakePage {
+	#warn "Enter page.  End with a '.' alone on a line:\n";
+	my($input,$text);
+	while ($input=<STDIN>) {
+		chomp($input);
+		return $text if ($input eq ".");
+		$text.=$input."\n";
+	}
+	return $text;
+}
+
+sub StartQueue {
+	my($name)=@_;
+
+	# Queue-runner variables (FIXME: should I make a separate module?)
+	my($rundelay,$pc,$waiting);
+	$rundelay=$config->get("pc:${name}\@rundelay");
+	#warn "run delay: $rundelay\n";
+
+	$PC=$name;
+	$pc=Sendpage::PagingCentral->new($config,$PC,\@modems);
+
+	# rename myself
+	$0="sendpage: $PC queue";
+
+	# set up handler
+	$SIG{'USR1'} = \&QueueRun;
+
+	$log->do('debug', "starting queue runs for '$PC'") if ($DEBUG);
+
+	$queue=Sendpage::PageQueue->new($config,$config->get("queuedir")."/$PC");
+
+	if (!defined($queue)) {
+		$log->do('alert',"Failed to open queue for '$PC'  --  exiting");
+		exit(1);
+	}
+
+	while ($SHUTDOWN!=1) {
+		# reset our sleep time
+		$sleeptime=$rundelay;
+
+		# search queue, gathering pages
+		if (($waiting=$queue->ready())>-1) {
+			while (defined($page=$queue->getPage())) {
+				if ($page->deliverable()) {
+					$pc->deliver($page);
+
+					if ($page->has_recips()) {
+						#warn "rewriting page to queue\n";
+						# something requires rerun
+						$queue->writePage($page);
+						$queue->fileDone();
+					}
+					else {
+						#warn "tossing queue file\n";
+						$queue->fileToss();
+					}
+				}
+			}
+		}
+
+		$pc->disconnect();
+
+		# pause for the next queue run
+		sleep($sleeptime);
+	}
+	$log->do('debug', "Queue runner for '$PC' shutting down") if ($DEBUG);
+	# remove our pid file
+	YankPidFile($PC);
+	exit(0);
+}
+
+sub DoNothing {
+	# no code here, but just have HAVING a signal handler, I'll wake up
+	# during a SIGCHLD for my waitpid
+}
+
+sub Reload {
+	my($pid);
+
+	$log->do('debug', "Reloading...") if ($DEBUG);
+
+	if ($PC eq "") {
+		my %OLD=%CHILDREN;
+		undef %CHILDREN;
+		undef %STARTED;
+
+		foreach $pc (@pcs) {
+			$log->do('debug', "Signalling '$pc' ...") if ($DEBUG);
+			SendSignal('QUIT',$pc);
+		}
+
+		# FIXME: can't do "DaemonInit" until everyone is dead
+		#	  because we need to re-init all the modems.
+		#		GAH!
+
+		my @keys=keys %OLD;
+		# how many children do we need to kill?
+		my $finished=$#keys+1;
+
+		undef $!;
+		$log->do('debug', "Waiting for PCs to die off...") if ($DEBUG);
+		while ($finished!=0) {
+			$pid=waitpid(-1,&WNOHANG);
+			if ($pid==-1) {
+				if ($!==ECHILD) {
+					$log->do('warning',"Ran out of children too early?!  Continuing anyway...");
+					$finished=0;
+				}
+				else {
+					$log->do('warning',"Oops: waitpid spat totally unexpected error: $!");
+				}
+			}	
+			elsif ($pid==0) {
+				sleep(60); # wait for children to die
+			}
+			elsif (!defined($OLD{$pid})) {
+				$log->do('warning',"Strange, I got an unknown child PID: '$pid'");
+			}
+			else {
+				$log->do('debug', "Letting old PC '$OLD{$pid}' rest in peace") if ($DEBUG);
+				$finished--;
+			}	
+		}
+
+		$log->do('debug', "Reinitializing...") if ($DEBUG);
+		# reload our configurations
+		Initialize();
+		DaemonInit();
+
+		# Restart logging
+		$log->reconfig($config);
+		$log->on();
+
+		# Start up all our children
+		SpawnChildren();
+	}
+	else {
+		$log->do('warning',"Weird: PC '$PC' caught a Reload signal somehow.");
+	}
+}
+
+sub verifyModems {
+	my (@totest) = @_;
+
+	# find all our valid modems, keeping those that are either in use (e.g.
+	# we have been HUPd) or respond to initialization
+	my $m;
+	my $result;
+	my $modem;
+	my @okay;
+
+	foreach $modem (@totest) {
+		$m=Sendpage::Modem->new($config,$modem);
+		if (!defined($m)) {
+			$log->do('warning',"Cannot find modem '$modem'");
+			next;
+		}
+		if (!defined($result=$m->init())) {
+			$log->do('alert',"Cannot initialize modem '$modem'");
+			next;
+		}
+		undef $m;
+		push(@okay,$modem);
+	}
+
+	return @okay;
+}
+
+sub RecipDig {
+	my($recip,$seen)=@_;
+	my($dests,$one,%hash,$result);
+
+	if (!defined($seen)) {
+		my %holder;
+		$holder{$recip->name()}=1;
+		$seen=\%holder;
+	}
+	else {
+		$seen->{$recip->name()}++;
+	}
+
+	if ($seen->{$recip->name()}>1) {
+		$log->do('alert',"Loop found in alias expansion!  Culprit recip: '".
+			$recip->name()."'");
+		exit(1);
+	}
+
+	# no alias, just return this one (leaf node)
+	return ($recip) if (!$recip->alias());
+
+	$log->do('debug',"from: '%s'",$recip->name())
+		if ($config->get("alias-debug"));
+
+	# get expanded list
+	$dests=$recip->dests();
+
+	# dump list
+	grep($log->do('debug',"starting with: '$_'"),@{$dests})
+		if ($config->get("alias-debug"));
+
+	# expand each one
+	foreach $one (@{ $dests }) {
+		$log->do('debug',"expanding: '$one'") if ($config->get("alias-debug"));
+		my %copy=%{$seen};
+		my $r=Sendpage::Recipient->new($config,$one,$recip->data());
+		if (!defined($r)) {
+			$log->do('err',"undeliverable: '$one'");
+		}
+		else {
+			my @results=RecipDig($r,\%copy);
+
+			# add them to our hash
+			foreach $result (@results) {
+				$log->do('debug',"got: '%s'",$result->name())
+					if ($config->get("alias-debug"));
+				$hash{$result->name()}=$result;
+			}	
+		}
+	}
+		
+	undef @results;
+	foreach $one (keys %hash) {
+		$log->do('debug',"passing back: '%s'",$hash{$one}->name())
+			if ($config->get("alias-debug"));
+		push(@results,$hash{$one});
+	}
+
+	return @results;
+}
+
+sub ArrayDig {
+	my(@array)=@_;
+	my ($one,$result,@results,$fail);
+
+	# did a look-up fail?
+	$fail=0;
+	# dump list
+	grep($log->do('debug',"starting with: '$_'"),@array)
+		if ($config->get("alias-debug"));
+
+	# expand each one
+	foreach $one (@array) {
+		$log->do('debug',"expanding: '$one'")
+			if ($config->get("alias-debug"));
+		my $recip=Sendpage::Recipient->new($config,$one);
+		if (!defined($recip)) {
+			$log->do('err',"undeliverable: '$one'");
+			$fail=1;
+		}
+		else {
+			my @results=RecipDig($recip);
+
+			# add them to our hash
+			foreach $result (@results) {
+				$log->do('debug',"got: '%s'",$result->name())
+					if ($config->get("alias-debug"));
+				$hash{$result->name()}=$result;
+			}	
+		}
+	}
+		
+	undef @results;
+	foreach $one (keys %hash) {
+		$log->do('debug',"passing back: '%s'",$hash{$one}->name())
+			if ($config->get("alias-debug"));
+		push(@results,$hash{$one});
+	}
+
+	return ($fail,@results);
+}
+
+sub initConfig {
+	my(%opts) = %{ $_[0] };
+
+	# set up default values  (this is ignored by KeesConf...)
+	my %cfg=(
+		PEDANTIC=> 1,
+		CASE	=> 1,
+		CREATE  => 1,
+		GLOBAL  => {
+			DEFAULT   => "<unset>",
+			ARGCOUNT  => ARGCOUNT_ONE,
+			},
+		);
+	my $config = Sendpage::KeesConf->new(\%cfg);
+
+# global variables
+$config->define("cfgfile",   { DEFAULT => "/etc/sendpage.cf" });
+$config->define("pidfileprefix",{ DEFAULT => "/var/spool/sendpage/sendpage" });
+$config->define("lockprefix",{ DEFAULT => "/var/lock/LCK.." });
+$config->define("queuedir", { DEFAULT => "/var/spool/sendpage" });
+$config->define("mail-agent", { DEFAULT => "sendmail" });
+$config->define("user", { DEFAULT => "sendpage" });
+$config->define("page-daemon", { DEFAULT => "sendpage" });
+$config->define("modems",   { ARGCOUNT => 2 });
+$config->define("alias-debug",    { ARGCOUNT => 0, DEFAULT => 0 });
+$config->define("debug",    { ARGCOUNT => 0,
+				DEFAULT => $opts{d} ? 1 : 0 });
+# should the sender be notified of failures?
+$config->define("fail-notify", { DEFAULT => 1 });
+# sender should be notified how on every X temp fails? (0=never)
+$config->define("tempfail-notify-after", { DEFAULT => 5 });
+# how many temp fails does it take to produce a perm failure?
+$config->define("max-tempfail", { DEFAULT => 20 });
+# default email CC domain
+$config->define("fallback-email-domain", { DEFAULT => undef });
+# syslog toggle: strerr is used if not syslog
+$config->define("syslog", { DEFAULT => 1, ARGCOUNT => 0 });
+# syslog logopt words (any of "pid", "ndelay", "cons", "nowait")
+$config->define("syslog-opt", { DEFAULT => "pid" });
+# syslog facility to log with (one of "auth", "authpriv", "cron", "daemon",
+#	"kern", "local0" through "local7", "lpr", "mail", "news", "syslog",
+#	"user", or "uucp"
+$config->define("syslog-facility", { DEFAULT => "local6" });
+
+# aliases defaults
+#$config->define("recip:", { ARGCOUNT => 2 });
+# where to send email-cc's of pages.  none if blank, defaults to 
+#	ALIAS @ fallback-email-domain if unset
+$config->define("recip:email-cc", { UNSET => 1 });
+# page is PIN@PC, alias is just the recip name again
+$config->define("recip:dest", { ARGCOUNT => 2 });
+
+# modem defaults
+$config->define("modem:debug",  { ARGCOUNT => 0, 
+					DEFAULT => $opts{d} ? 1 : 0 });
+$config->define("modem:baud",   { DEFAULT => 115200 });
+$config->define("modem:data",   { DEFAULT => 7 });
+$config->define("modem:parity", { DEFAULT => "even" });
+$config->define("modem:stop",   { DEFAULT => 1 });
+$config->define("modem:flow",   { DEFAULT => "rts" });
+$config->define("modem:dev",    { DEFAULT => "/dev/null" });
+$config->define("modem:ignore-carrier", { UNSET => 1 });
+$config->define("modem:init",   { DEFAULT => "ATZ" });
+$config->define("modem:initok", { DEFAULT => "OK" });
+$config->define("modem:initwait",{DEFAULT => 4 });
+$config->define("modem:initretries",{ DEFAULT => 2 });
+$config->define("modem:dial",   {DEFAULT => "ATDT" });
+$config->define("modem:dialok", {DEFAULT => "CONNECT" });
+$config->define("modem:dialwait",{DEFAULT => 60 });
+$config->define("modem:error",{DEFAULT => "ERROR" });
+$config->define("modem:no-carrier",
+	{DEFAULT => "ERROR|NO CARRIER|BUSY|NO DIAL|VOICE" });
+# FIXME:
+# currently not implemented -- perhaps never, better to stall and try again
+$config->define("modem:dialretries",{ DEFAULT => 3 });
+
+# paging central defaults
+#     Paging centrals can override baud, data, parity, stop, flow, dialwait,
+#       dialretries
+#  modem connect info
+$config->define("pc:debug",  { ARGCOUNT => 0, 
+					DEFAULT => $opts{d} ? 1 : 0 });
+$config->define("pc:modems", { ARGCOUNT => 2 });
+$config->define("pc:baud",   { DEFAULT => 115200 });
+$config->define("pc:data",   { DEFAULT => 7 });
+$config->define("pc:parity", { DEFAULT => "even" });
+$config->define("pc:stop",   { DEFAULT => 1 });
+$config->define("pc:flow",   { DEFAULT => "rts" });
+$config->define("pc:phonenum",{DEFAULT => "" });
+# how many chars per page before auto-splitting?
+$config->define("pc:maxchars",{DEFAULT => 1024 });
+# how many page splits allowed per page?
+$config->define("pc:maxsplits",{DEFAULT => 6 });
+# allow for forced multiple fields in BlockTrans
+$config->define("pc:fields",{DEFAULT => 2 });
+# FIXME: which dial wait does the modem actually end up using?
+$config->define("pc:dialwait",{ UNSET => 1 });
+$config->define("pc:rundelay",{DEFAULT => 20 });
+$config->define("pc:dialretries",{ DEFAULT => 3 });
+$config->define("pc:password",{DEFAULT => "000000" });
+#  proto establishment info
+$config->define("pc:answerwait", { DEFAULT => 2 });
+#  protocol settings
+#   MUST have the leading "<CR>" for each answer?
+$config->define("pc:stricttap",		{ DEFAULT => 0, ARGCOUNT => 0 });
+#   chars less than 0x20 are allowed in a field
+$config->define("pc:ctrl",		{ DEFAULT => 0, ARGCOUNT => 0 });
+#   chars CAN be escaped (if false, "LF" is allowed, it seems?)
+$config->define("pc:esc",  		{ DEFAULT => 0, ARGCOUNT => 0 });
+#   is LF allowed (some PCs allow it, but no other ctrl chars)
+$config->define("pc:lfok",		{ DEFAULT => 0, ARGCOUNT => 0 });
+#   fields cannot be split across blocks?
+$config->define("pc:fieldsplits",	{ DEFAULT => 1, ARGCOUNT => 0 });
+#  paging central limits
+#   max blocks per connection (0 = unlimited) (unimplemented)
+$config->define("pc:maxblocks",		{ DEFAULT => 0 });
+#   max pages per connection (0 = unlimited) (unimplemented)
+$config->define("pc:maxpages",		{ DEFAULT => 0 });
+#   max chars per block (250 is protocol) (this is protocol hard-coded)
+#$config->define("pc:maxchars-block",	{ DEFAULT => 250 });
+
+	return $config;
+}
+
+sub loadConfig {
+	my($cfgfile);
+
+	$cfgfile=$config->get("cfgfile");
+	$cfgfile=$opts{C} if (defined($opts{C}));
+
+	# toss our config
+	$config->dump();
+
+
+	# yes, this seems silly, but we allow cmdline options to change
+	# various defaults, including this one
+	$config->file($cfgfile);
+}
+
+
+#
+# file locking example from the Perl Cookbook
+#
+# use Fcntl qw(:DEFAULT :flock);
+# 
+# sysopen(FH, "numfile", O_RDWR|O_CREAT)
+#                                     or die "can't open numfile: $!";
+# flock(FH, LOCK_EX)                  or die "can't write-lock numfile: $!";
+# # Now we have acquired the lock, it's safe for I/O
+# $num = <FH> || 0;                   # DO NOT USE "or" THERE!!
+# seek(FH, 0, 0)                      or die "can't rewind numfile : $!";
+# truncate(FH, 0)                     or die "can't truncate numfile: $!";
+# print FH $num+1, "\n"               or die "can't write numfile: $!";
+# close(FH)                           or die "can't close numfile: $!";
+#
+#

@@ -1,0 +1,25 @@
+
+The TAP protocol specifications appear to be under copyright, so I can't
+include the specification with this code.  You'll need to check with the PCIA:
+   http://www.pcia.com/wireres/index.htm
+or with Motorola:
+   http://www.motorola.com/MIMS/MSPG/pcia_protocols/tap_v1p8/index.html
+
+
+HTML version of TAP v1.8 can be found at
+	    http://www.pcia.com/wireres/protocol/tapv1p8/toc.htm
+PDF:	    http://www.pcia.com/wireres/protocol/tapv1p8/tap_v1p8.pdf
+PostScript: http://www.pcia.com/wireres/protocol/tapv1p8/tap_v1p8.ps
+
+Contact me if you need a copy of the specification and none of the above
+URLs work.  I'll help you find a copy.  ;)
+
+
+I have, however, included the SNPP specifications from RFC1861.
+
+And the "PagingCentrals.txt" file contains a database dump of all the
+paging centrals I know about.
+
+
+-Kees Cook
+ cook@cpoint.net
