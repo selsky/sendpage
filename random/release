@@ -21,10 +21,10 @@ REL=`echo $VERSION | perl -pe 's/\./\-/g;'`
 rcs -Nrelease-${REL}: $RCSLIST
 
 # dump the release list
-for i in "$RCSLIST"
-do
-	rlog $i | egrep '^(RCS file|head|	release-)' > .RCS-release.map
-done
+#for i in "$RCSLIST"
+#do
+#	rlog $i | egrep '^(RCS file|head|	release-)' > .RCS-release.map
+#done
 
 perl Makefile.PL
 make dist
