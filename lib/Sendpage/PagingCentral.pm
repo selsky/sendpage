@@ -202,7 +202,10 @@ sub start_proto {
                         DialRetry => $config->get("modem:${name}\@dialretries"),
                         NoCarrier => $config->get("modem:${name}\@no-carrier"),
 			DTRToggleTime => $config->get("modem:${name}\@dtrtime"),
-                        IgnoreCarrier => $config->get("modem:${name}\@ignore-carrier",1)
+                        IgnoreCarrier => $config->get("modem:${name}\@ignore-carrier",1),
+                        AreaCode => $config->get("modem:${name}\@areacode",1),
+                        LongDist => $config->get("modem:${name}\@longdist"),
+                        DialOut =>  $config->get("modem:${name}\@dialout")
                 );
 
 		last if (defined($modem));
@@ -226,7 +229,8 @@ sub start_proto {
 	}
 
 	# Dial
-	$result=$modem->dial($self->{CONFIG}->get("pc:$self->{NAME}\@phonenum"),
+	$result=$modem->dial($self->{CONFIG}->get("pc:$self->{NAME}\@areacode",1),
+			     $self->{CONFIG}->get("pc:$self->{NAME}\@phonenum"),
 			     $self->{CONFIG}->get("pc:$self->{NAME}\@dialwait",1)
 			);
 	if (!defined($result)) {

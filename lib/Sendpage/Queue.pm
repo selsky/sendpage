@@ -25,6 +25,8 @@
 package Sendpage::Queue;
 use FileHandle;
 
+my $DEBUG=0;
+
 =head1 NAME
 
 Queue.pm - implements a simple directory-based file queue
@@ -106,15 +108,15 @@ sub ready {
 	opendir(DIRHANDLE,$self->{DIR})
 		|| $main::log->do('alert', "Cannot access '".$self->{DIR}."': $!");
 	my @files=readdir(DIRHANDLE);
-	#grep(warn("in '".$self->{DIR}."': $_\n"),@files);
+	close(DIRHANDLE);
+
+	grep(warn("$$: in '".$self->{DIR}."': $_\n"),@files) if ($DEBUG);
 
 	@{$self->{FILES}}=grep(/^q/,@files);
 	@files=@{$self->{FILES}};
 
-	#grep(warn("in FILES: $_\n"),@files);
-	#warn "ready will be: ".$#files."\n";
-
-	close(DIRHANDLE);
+	grep(warn("$$: in FILES: $_\n"),@files) if ($DEBUG);
+	warn "$$: ready will be: ".$#files."\n" if ($DEBUG);
 	
 	return $#files;
 }	
@@ -130,21 +132,32 @@ sub getReadyFile {
 
 		return undef;
 	}
-	my($file)=$self->{FILES}[0];
-	return undef if (!defined($file));
+	warn "$$: in getReadyFile\n" if ($DEBUG);
+	my(@filelist)=@{$self->{FILES}};
+	my($file)=shift @filelist;
+	if (!defined($file)) {
+		warn "$$: no more files in queue\n" if ($DEBUG);
+		$main::log->do('debug',"No more files in queue")
+			if ($main::DEBUG);
+		return undef;
+	}
 
 	my $err="queue '$file' from '".$self->{DIR}."':";
 
 	my $fname = $self->{DIR}."/$file";
 
+	warn "$$: fname is '$fname'\n" if ($DEBUG);
+
 	# create new queue files
 	if (!-f $fname) {
+		warn "$$: creating '$fname'\n" if ($DEBUG);
 		open($fh,">$fname") || $main::log->do('alert', "Cannot write $err $!");
 		close($fh);
 	}
 
 	# open queue files read/write
 	if (!open($fh,"+<$fname")) {
+		warn "$$: cannot read $err $!\n" if ($DEBUG);
 		$main::log->do('alert', "Cannot read $err $!");
 
 		# try the next file
@@ -153,6 +166,7 @@ sub getReadyFile {
 	}
 
 	if (!$self->lockFile($fname)) {
+		warn "$$: cannot lock $err $!\n" if ($DEBUG);
 		$main::log->do('alert', "Cannot lock $err $!");
 		close($fh);
 
@@ -162,6 +176,7 @@ sub getReadyFile {
 	}
 
 	if (! -f $fname) {
+		warn "$$: cannot find '$fname'\n" if ($DEBUG);
 		# someone deleted the file while they had it locked,
 		close($fh);
 
@@ -170,6 +185,7 @@ sub getReadyFile {
 		return $self->getReadyFile();
 	}
 
+	warn "$$: file handle is '$fh'\n" if ($DEBUG);
 	$self->{OPEN}=$fh;
 
 	return $self->{OPEN};

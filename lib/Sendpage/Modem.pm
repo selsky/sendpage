@@ -41,7 +41,7 @@ Sendpage::Modem.pm - extends the Device::SerialPort package
     $modem=Sendpage::Modem->new($params);
     $modem->init($baud,$parity,$data,$stop,$flow,$str);
     $modem->ready($functionname);
-    $modem->dial($str);
+    $modem->dial($areacode,$phonenumber,$timeout);
     $modem->chat($send,$resend,$expect,$timeout,$retries,$dealbreaker,
     	$ignore_carrier);
     $modem->hangup();
@@ -197,7 +197,7 @@ sub new {
 
 	# grab config settings
 	my $index;
-	foreach $index (qw(Baud Parity Data Stop Flow Init InitOK InitWait InitRetry Error Dial DialOK DialWait DialRetry NoCarrier IgnoreCarrier DTRToggleTime)) {
+	foreach $index (qw(Baud Parity Data Stop Flow Init InitOK InitWait InitRetry Error Dial DialOK DialWait DialRetry NoCarrier IgnoreCarrier DTRToggleTime AreaCode LongDist DialOut)) {
 		if (defined($arg{$index})) {
 			$self->{$index} = $arg{$index};
 			$log->do('debug',"Modem '$name' setting '$index': '".
@@ -312,9 +312,9 @@ sub init {
 		$self->{LOG}->do('debug', "reseting DTR ...")
 			if ($self->{DEBUG});
 		# force the dtr down
-		$self->dtr_active(F);
+		$self->dtr_active(0);
 		select(undef,undef,undef,$self->{DTRToggleTime});
-		$self->dtr_active(T);
+		$self->dtr_active(1);
 	}
 	else {
 		$self->{LOG}->do('debug',"skipping DTR toggle ...")
@@ -363,29 +363,50 @@ sub ready {
 # FIXME: implement dial retries
 sub dial {
 	my $self=shift;
-	my $str=shift;
+	my $dial_areacode=shift;
+	my $dial_num=shift;
 	my $dialwait=shift;
 	my $dialretries=shift;
 
 	return undef unless $self->ready("dial");
 
-	my $dial = $self->{Dial};
+	my $modem_dial = $self->{Dial};
+	my $modem_areacode = $self->{AreaCode};
+	my $modem_longdist = $self->{LongDist};
+	my $modem_dialout = $self->{DialOut};
+
 	$dialwait = $self->{DialWait} if (!defined($dialwait));
 	$dialretries = $self->{DialRetry} if (!defined($dialretries));
 
 	# allow for blank dial strs (direct attaches)
-	if ($dial eq "") {
+	if ($modem_dial eq "") {
 		$self->{LOG}->do('debug',"skipping dial ...")
 			if ($self->{DEBUG});
 		return 1;
 	}
 
-	if (!defined($str) || $str eq "") {
+	if (!defined($dial_num) || $dial_num eq "") {
 		$self->{LOG}->do('err',"Nothing to dial (no phone number)");
 		return undef;
 	}
 
-	return $self->chat("$dial$str\r","",
+	my $actual_num="";
+
+	if (defined($dial_areacode) && defined($modem_areacode)) {
+		if ($dial_areacode != $modem_areacode) {
+			$actual_num=$modem_longdist.$dial_areacode.$dial_num;
+		}
+		else {
+			$actual_num=$dial_num;
+		}
+	}
+	else {
+		$actual_num=$dial_areacode.$dial_num;
+	}
+
+	$self->{LOG}->do('debug',"Calling '$actual_num'") if ($self->{DEBUG});
+
+	return $self->chat($modem_dial.$dialout.$actual_num."\r","",
 		$self->{DialOK},
 		$dialwait,1,$self->{NoCarrier},
 		1);

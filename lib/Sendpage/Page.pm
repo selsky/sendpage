@@ -147,7 +147,7 @@ sub deliverable {
 	# right now, we can support the "when to schedule" option,
 	# but in theory, we should be able to extend this to anything
 	# else we can think of.
-	return 1 if (time > $self->{DATA}->{'when'});
+	return 1 if (time >= $self->{DATA}->{'when'});
 	return undef;
 }
 

@@ -3,9 +3,9 @@
 eval 'exec /usr/local/bin/perl  -S $0 ${1+"$@"}'
     if 0; # not running under some shell
 
-#BEGIN {
-#        unshift(@INC,"/kees/projects/TAP/cvs/sendpage/lib");
-#}
+BEGIN {
+        unshift(@INC,"/kees/projects/TAP/cvs/sendpage/lib");
+}
 
 #
 # sendpage is the tool that will handle all the paging functions
@@ -166,6 +166,8 @@ require 5.005;
 # Global variables;
 $VERSION="0.9.7"; # our version!
 undef $log;	  # hold logging object
+undef $server;	  # hold our SNPP server obj
+$s=IO::Select->new(); # create our primary loop selector
 
 # Module-global variables
 my %CHILDREN;	# who the childrens are
@@ -189,6 +191,8 @@ use Sendpage::Page;
 use Sendpage::Recipient;
 use Sendpage::KeesLog;
 use Sendpage::SNPPServer;
+use IO::Select;
+use IO::Pipe;
 
 sub Usage {
 	die "Usage: $0 [OPTIONS] [alias ...]
@@ -356,7 +360,7 @@ sub SendSignal {
 
 	return undef if ($pid == 0);
 
-	#warn "signalling $sig to $pid\n";
+	$log->do('debug',"signalling '$sig' to pid '$pid'") if ($DEBUG);
 	undef $!;
 	kill $sig, $pid;
 	return $!+0;
@@ -409,10 +413,12 @@ sub NiceShutdown {
 		#$SIG{CHLD}=DEFAULT;
 
 		foreach $pc (@pcs) {
+			if ($config->get("pc:$pc\@enabled")==0) {
+				next;
+			}
 			$log->do('debug',"Signalling '$pc' ...") if ($DEBUG);
 			SendSignal('QUIT',$pc);
 		}
-		$log->do('debug',"Manager returning from NiceShutdown") if ($DEBUG);
 	}
 	else {
 		$log->do('debug',"Shutting down nicely: '$PC'") if ($DEBUG);
@@ -426,12 +432,15 @@ sub ImmediateShutdown {
 }
 
 sub QueueRun {
-	#warn "Pid $$ heard USR1\n";
+	#$log->do('debug',"Pid $$ heard signal USR1") if ($DEBUG);
 
 	# we need to signal all the PC's if we're master
 	if ($PC eq "") {
 		my $pc;
 		foreach $pc (@pcs) {
+			if ($config->get("pc:$pc\@enabled")==0) {
+				next;
+			}
 			$log->do('debug',"Signalling '$pc' ...") if ($DEBUG);
 			SendSignal('USR1',$pc);
 		}
@@ -468,6 +477,7 @@ sub DisplayQueue {
 					print "\tdest: '".$recip->name()."' (pin '".$recip->pin()."', email '".$recip->datum('email-cc')."')\n";
 				}
 				$queue->fileDone();
+				print "\n";
 			}
 		}
 	}
@@ -533,6 +543,10 @@ sub SpawnChildren {
 
 	# spawn PCs
 	foreach $pc (@which) {
+		if ($config->get("pc:$pc\@enabled")==0) {
+			next;
+		}
+
 		$pid=fork();
 		if ($pid<0) {
 			# failure
@@ -548,10 +562,36 @@ sub SpawnChildren {
 		}
 		else {
 			# child
+			&DropPrivs();
 			&StartQueue($pc);	
 			$log->do('crit',"PC '$pc' died!  Whoops, that can't happen!");
 			exit(1);
 		}
+	}
+}
+
+sub DropPrivs {
+	if (!defined($setUID)) {
+		$log->do('crit',"Effective User ID unknown -- aborting!");
+		exit(1);
+	}
+	if (!defined($lockGID)) {
+		$log->do('crit',"Effective Group ID for locking unknown -- aborting!");
+		exit(1);
+	}
+	if (!defined($ttyGID)) {
+		$log->do('crit',"Effective Group ID for tty read/write unknown -- aborting!");
+		exit(1);
+	}
+
+	$(=$)="$lockGID $ttyGID";
+	if ($( != "$lockGID $ttyGID") {
+		$log->do('crit',"Could not setgids: $! -- aborting!");
+	}
+
+	$<=$>=$setUID;
+	if ($< != $setUID) {
+		$log->do('crit',"Could not setuid: $! -- aborting!");
 	}
 }
 
@@ -591,6 +631,10 @@ sub Respawn {
 			SpawnChildren($CHILDREN{$pid});
 		}
 	}
+	elsif (defined($PIPES{$pid})) {
+		$log->do('debug',"SNPP connection (pid $pid) finished") if ($DEBUG);
+		PipeShutdown($PIPES{$pid});
+	}
 	else {
 		# defunct children?  no!  bastards!  :)
 		$log->do('warning',"Bastard child detected!  Unknown PID '$pid' was reaped.");
@@ -604,18 +648,35 @@ sub BecomeDaemon {
 		QueryDaemons(1);
 	}
 
-	my($user,$name,$uid);
+	my($user,$group,$name);
 
-	# check who we're running as
+	# check for our setuid user
 	$user=$config->get('user');
-	($name,undef,$uid)=getpwnam($user);
+	($name,undef,$setUID)=getpwnam($user);
 	if (!defined($name)) {
 		$log->do('crit',"There is no such user named '$user'!  Aborting...");
 		exit(1);
 	}
-	# are we that user already?
-	if ($uid != $<) {
-		$log->do('crit',"Not running as '$user'!  Aborting...");
+
+	# check for our locking group
+	$group=$config->get('group-lock');
+	($name,undef,$lockGID)=getgrnam($group);
+	if (!defined($name)) {
+		$log->do('crit',"There is no such group named '$group'!  Aborting...");
+		exit(1);
+	}
+
+	# check for our tty r/w group
+	$group=$config->get('group-tty');
+	($name,undef,$ttyGID)=getgrnam($group);
+	if (!defined($name)) {
+		$log->do('crit',"There is no such group named '$group'!  Aborting...");
+		exit(1);
+	}
+
+	# are we root?
+	if (0 != $<) {
+		$log->do('crit',"Not running as 'root'!  Aborting...");
 		exit(1);
 	}
 
@@ -678,72 +739,160 @@ sub ListenForChildren {
 	exit(0);
 }
 
-sub ListenForSNPP {
-	$log->do('debug',"starting Queue Manager and SNPP listener (sendpage v$VERSION)") if ($DEBUG);
-
-	my $server=Sendpage::SNPPServer->new(LocalPort => 3044);
+sub initSNPP {
+	# need to use "create" so that the "accept"s don't call the constructor
+	$server=Sendpage::SNPPServer->create(Port => $config->get("snpp-port"));
 
 	$log->do('debug',"SNPP listener running on port ".$server->sockport)
 		if ($DEBUG);
+}
 
-	my $vec='';
-	my $r;
+sub StopSNPP {
+	$log->do('debug',"SNPP listener shutting down")
+		if ($DEBUG);
+	$s->remove($server);
+	undef $server;
+}
 
-	vec($vec,fileno($server),1) = 1;
+sub StartSNPP {
+	initSNPP();
+	$s->add($server);
+}
 
-	while($SHUTDOWN!=1 && select($r=$vec,undef,undef,undef)) {
-		$log->do('debug',"returned from SNPP select")
-			if ($DEBUG);
-		my $pid;
-		my $sock = $server->accept;
-	
-		$log->do('debug',"got connection from ".$sock->peerhost)
-			if ($DEBUG);
-	
-		if (!defined($sock)) {
-			carp $!;
-			next;
+sub RestartSNPP {
+	StopSNPP();
+	StartSNPP();
+}
+
+sub ListenForSNPP {
+	$log->do('debug',"starting Queue Manager and SNPP listener (sendpage v$VERSION)") if ($DEBUG);
+
+	my($fh,$read,$exc,$pipe);
+
+	StartSNPP();
+
+	while ($SHUTDOWN!=1) {
+		if (!defined($server)) {
+			$log->do('crit',"Cannot start SNPP listener -- aborting!");
+			NiceShutdown();
+			YankPidFile("");
+			exit(1);
 		}
-	
-		if(($pid = fork())>0) {
-			# Parent
-	
-			# pause for a second (no DOSing)
-			select(undef,undef,undef,0.1);
-			close($sock);
-		}
-		elsif($pid==0) {
-			# Child
 
-			$0="sendpage: SNPP client: ".$sock->peerhost;
+		# reset my containers
+		$read=$exc=undef;
+		($read,undef,$exc)=IO::Select->select($s,undef,$s);
+		#$log->do('debug',"SNPP returned from select") if ($DEBUG);
+
+		foreach $fh (@$read) {
+			if ($fh == $server) {
+				my $pid;
+				my $sock = $server->accept;
 	
-			$sock->HandleSNPP("SNPP Sendpage $VERSION",$config,$log,
-				$DEBUG);
+				if (!defined($sock)) {
+					$log->do('err',"SNPP accept: $!");
+					next;
+				}
+
+				$log->do('debug',"got connection from ".
+					$sock->peerhost) if ($DEBUG);
+
+				$pipe = new IO::Pipe;
+			
+				if(($pid = fork())>0) {
+					# Parent
+					$pipe->reader();
+					close($sock);
+
+					$s->add($pipe);
+					PipeRemember($pipe,$pid);
 	
-			exit(0);
-				
+					# pause for a bit (no DOSing)
+					select(undef,undef,undef,0.1);
+				}
+				elsif($pid==0) {
+					# Child
+					$pipe->writer();
+					$pipe->autoflush(1);
+		
+					$0="sendpage: SNPP client: ".
+						$sock->peerhost;
+					&DropPrivs();
+	
+					$sock->HandleSNPP("SNPP Sendpage $VERSION",
+						$pipe, $config, $log, $DEBUG);
+					$log->do('debug',
+						"leaving SNPP client cnxn")
+						if ($DEBUG);
+	
+					exit(0);
+						
+				}
+				else {
+					$log->do('err',"SNPP fork: $!");
+					# error on fork
+					close($sock);
+				}
+			}
+			elsif (defined($pid=$CNXNS{$fh})) {
+				# is this pipe shutdown?
+				if ($fh->eof()) {
+					$s->remove($fh);
+					close($pipe);
+				}
+				# something is readable from a pipe
+				else {
+					chomp(my $pc=<$fh>);
+			
+					SendSignal('USR1',$pc) if ($pc ne "");
+				}
+			}
+			else {
+				# toss any straggling pipes
+				$log->do('debug',"Removing selectable stale file handle")
+					if ($DEBUG);
+				$s->remove($fh);
+				close($pipe);
+			}
 		}
-		else {
-			$log->do('err',"SNPP listener fork: $!");
-			# error on fork
-			close($sock);
+		foreach $fh (@$exc) {
+			if ($fh == $server) {
+				$log->do('err',"Whoa!  Server socket took a hit!  -- reopening it");
+				RestartSNPP();
+			}
+			else {
+				$log->do('warning',"SNPP connection took a hit!");
+				$s->remove($fh);
+				close($pipe);
+			}
 		}
 	}
-	$log->do('debug',"SNPP listener shutting down") if ($DEBUG);
+	StopSNPP();
 	YankPidFile("");
 	exit(0);
 }
 
-sub TakePage {
-	#warn "Enter page.  End with a '.' alone on a line:\n";
-	my($input,$text);
-	while ($input=<STDIN>) {
-		chomp($input);
-		return $text if ($input eq ".");
-		$text.=$input."\n";
+sub PipeShutdown {
+	my $pipe = shift;
+
+	my $pid;
+
+	if (!defined($pid=$CNXNS{$pipe})) {
+		$log->do('warning',"Yikes!  Tried to disable pipe for unknown file handle");
+		return;
 	}
-	return $text;
+	
+	delete $PIPES{$pid};
+	delete $CNXNS{$pipe};
 }
+
+sub PipeRemember {
+	my($pipe,$pid)=@_;
+
+	$PIPES{$pid}=$pipe;
+	$CNXNS{$pipe}=$pid;
+}
+
 
 sub StartQueue {
 	my($name)=@_;
@@ -776,7 +925,8 @@ sub StartQueue {
 		$sleeptime=$rundelay;
 
 		# search queue, gathering pages
-		if (($waiting=$queue->ready())>=0) {
+		$waiting=$queue->ready()+1;
+		if ($waiting>0) {
 			while (defined($page=$queue->getPage())) {
 				if ($page->deliverable()) {
 					$pc->deliver($page);
@@ -798,10 +948,31 @@ sub StartQueue {
 			}
 		}
 
-		$pc->disconnect();
+		# don't hang up if need to rescan our queue
+		if ($sleeptime != 0) {
+			$pc->disconnect();
 
-		# pause for the next queue run
-		sleep($sleeptime);
+
+			# strange eval needed to wake up on USR1 signals
+			eval {
+				local $SIG{USR1} = sub { die "usr1\n" };
+
+				# pause for the next queue run
+				sleep($sleeptime);
+			};
+			if ($@) {
+				QueueRun();
+			}
+			else {
+				# nothing: we're done sleeping
+			}
+		}
+
+		# check and see if we should shutdown (parent is init)
+		if (getppid==1) {
+			$log->do('err',"Parent process died -- aborting");
+			$SHUTDOWN=1;
+		}
 	}
 	$log->do('debug', "Queue runner for '$PC' shutting down") if ($DEBUG);
 	# remove our pid file
@@ -824,7 +995,12 @@ sub Reload {
 		undef %CHILDREN;
 		undef %STARTED;
 
+		StopSNPP();
+
 		foreach $pc (@pcs) {
+			if ($config->get("pc:$pc\@enabled")==0) {
+				next;
+			}
 			$log->do('debug', "Signalling '$pc' ...") if ($DEBUG);
 			SendSignal('QUIT',$pc);
 		}
@@ -875,6 +1051,7 @@ sub Reload {
 
 		# Start up all our children
 		SpawnChildren();
+		StartSNPP();
 	}
 	else {
 		$log->do('warning',"Weird: PC '$PC' caught a Reload signal somehow.");
@@ -913,7 +1090,10 @@ sub verifyModems {
 			DialRetry => $config->get("modem:${modem}\@dialretries"),
 			NoCarrier => $config->get("modem:${modem}\@no-carrier"),
 			DTRToggleTime => $config->get("modem:${modem}\@dtrtime"),
-			IgnoreCarrier => $config->get("modem:${modem}\@ignore-carrier",1)
+			IgnoreCarrier => $config->get("modem:${modem}\@ignore-carrier",1),
+			AreaCode => $config->get("modem:${modem}\@areacode",1),
+			LongDist => $config->get("modem:${modem}\@longdist"),
+			DialOut =>  $config->get("modem:${modem}\@dialout")
 			);
 		if (!defined($m)) {
 			$log->do('warning',"Cannot find modem '$modem'");
@@ -1055,6 +1235,8 @@ $config->define("lockprefix",{ DEFAULT => "/var/lock/LCK.." });
 $config->define("queuedir", { DEFAULT => "/var/spool/sendpage" });
 $config->define("mail-agent", { DEFAULT => "sendmail" });
 $config->define("user", { DEFAULT => "sendpage" });
+$config->define("group-lock", { DEFAULT => "uucp" });
+$config->define("group-tty", { DEFAULT => "tty" });
 $config->define("page-daemon", { DEFAULT => "sendpage" });
 $config->define("modems",   { ARGCOUNT => 2 });
 $config->define("alias-debug",    { ARGCOUNT => 0, DEFAULT => 0 });
@@ -1076,6 +1258,9 @@ $config->define("syslog-opt", { DEFAULT => "pid" });
 #	"kern", "local0" through "local7", "lpr", "mail", "news", "syslog",
 #	"user", or "uucp"
 $config->define("syslog-facility", { DEFAULT => "local6" });
+# SNPP settings
+$config->define("snpp-port", { DEFAULT => "444" });
+$config->define("snpp-addr", { DEFAULT => "localhost" });
 
 # aliases defaults
 #$config->define("recip:", { ARGCOUNT => 2 });
@@ -1099,14 +1284,18 @@ $config->define("modem:ignore-carrier", { UNSET => 1 });
 $config->define("modem:dtrtime", { DEFAULT => 0.5 });
 $config->define("modem:init",   { DEFAULT => "ATZ" });
 $config->define("modem:initok", { DEFAULT => "OK" });
-$config->define("modem:initwait",{DEFAULT => 4 });
+$config->define("modem:initwait",{ DEFAULT => 4 });
 $config->define("modem:initretries",{ DEFAULT => 2 });
-$config->define("modem:dial",   {DEFAULT => "ATDT" });
-$config->define("modem:dialok", {DEFAULT => "CONNECT.*\r" });
-$config->define("modem:dialwait",{DEFAULT => 60 });
-$config->define("modem:error",{DEFAULT => "ERROR" });
+$config->define("modem:dial",   { DEFAULT => "ATDT" });
+$config->define("modem:dialok", { DEFAULT => "CONNECT.*\r" });
+$config->define("modem:dialwait",{ DEFAULT => 60 });
+$config->define("modem:error", { DEFAULT => "ERROR" });
 $config->define("modem:no-carrier",
-	{DEFAULT => "ERROR|NO CARRIER|BUSY|NO DIAL|VOICE" });
+	{ DEFAULT => "ERROR|NO CARRIER|BUSY|NO DIAL|VOICE" });
+$config->define("modem:areacode", { UNSET => 1 });
+$config->define("modem:longdist", { DEFAULT => 1 });
+$config->define("modem:dialout", { DEFAULT => "" });
+
 # FIXME:
 # currently not implemented -- perhaps never, better to stall and try again
 $config->define("modem:dialretries",{ DEFAULT => 3 });
@@ -1115,6 +1304,7 @@ $config->define("modem:dialretries",{ DEFAULT => 3 });
 #     Paging centrals can override baud, data, parity, stop, flow, dialwait,
 #       dialretries
 #  modem connect info
+$config->define("pc:enabled",{ ARGCOUNT => 0, DEFAULT => 1 });
 $config->define("pc:debug",  { ARGCOUNT => 0, 
 					DEFAULT => $opts{d} ? 1 : 0 });
 $config->define("pc:modems", { ARGCOUNT => 2 });
@@ -1124,6 +1314,7 @@ $config->define("pc:parity", { DEFAULT => "even" });
 $config->define("pc:stop",   { DEFAULT => 1 });
 $config->define("pc:flow",   { DEFAULT => "rts" });
 $config->define("pc:phonenum",{DEFAULT => "" });
+$config->define("pc:areacode",{ UNSET => 1 });
 # how many chars per page before auto-splitting?
 $config->define("pc:maxchars",{DEFAULT => 1024 });
 # how many page splits allowed per page?
@@ -1132,7 +1323,7 @@ $config->define("pc:maxsplits",{DEFAULT => 6 });
 $config->define("pc:fields",{DEFAULT => 2 });
 # FIXME: which dial wait does the modem actually end up using?
 $config->define("pc:dialwait",{ UNSET => 1 });
-$config->define("pc:rundelay",{DEFAULT => 20 });
+$config->define("pc:rundelay",{DEFAULT => 30 });
 $config->define("pc:dialretries",{ DEFAULT => 3 });
 $config->define("pc:password",{DEFAULT => "000000" });
 #  proto establishment info

@@ -49,9 +49,17 @@
 #
 #queuedir = /tmp/var/spool/sendpage
 
-# Username that sendpage should be running as.  Default is "sendpage"
-#
+# Username that sendpage should be running as.
+#	Default is "sendpage"
 #user = nemesis
+
+# Group sendpage needs to lock devices.  
+#	Default is "uucp"
+#group-lock=lock
+
+# Group sendpage needs to read/write devices.
+#	Default is "tty"
+#group-tty=users
 
 # Email address that sendpage claimed to be coming from.
 #	Default is "sendpage"
@@ -87,6 +95,21 @@
 # Which syslog facility should be used?  man syslog for more info
 #	Default is "local6"
 #syslog-facility=local4
+
+# What port sendpage binds to for the SNPP server.
+#	Default is "444"
+#snpp-port=3044
+
+# What local address sendpage binds the SNPP server to.  
+#   *NOTE*
+#	You should set this to "0.0.0.0" if you want to receive pages from
+#	the rest of the world.
+#
+#	You can use this to limit which IP address SNPP is bound to.
+#   *NOTE*
+#
+#	Default is "localhost"
+#snpp-addr=0.0.0.0
 
 # List of modems a PC should use if not told explicitly.
 #	Default is all available modems.
@@ -141,7 +164,19 @@ dev	= /dev/modem
 
 # The dialing prefix for this modem
 #	Default is "ATDT"
-#dial=ATDT9,
+#dial=ATDP
+
+# The telephone prefix to get a dialtone out of the building (for PBXs, etc)
+#	Default is ""
+#dialout="9,"
+
+# The areacode this modem has (for figuring areacode matches with PCs)
+#	Default is unset
+#areacode="847"
+
+# The dialing prefix for dialing long distance calls (some PBXs do weird stuff)
+#	Default is "1-"
+#longdist="81"
 
 # What to look for after connecting successfully (this is a regexp)
 #	Default is "CONNECT"
@@ -189,6 +224,10 @@ dev	= /dev/modem
 # so I should dig up the Champaign/Urbana PC info.  For now, this is the
 # chicago access number
 [pc:ameritech]
+# Is this PC enabled?  Set to false to stop processing a PC, for example
+#	Default is "true"
+#enabled= false
+
 # This PC's protocol-level debugging.
 #	Default is "false"
 #debug	= true
@@ -206,9 +245,13 @@ dev	= /dev/modem
 #flow	= soft
 #baud	= 9600
 
+# What areacode is this PC in?  If unset, the modem won't match areacodes
+#	Default is unset
+areacode= 312
+
 # What phone number to reach this PC at.
 #	Default is "", so you better fill one in
-phonenum= 13125149243
+phonenum= 5149243
 
 # How many characters can be sent in each page for this PC?
 #	Default is 1024

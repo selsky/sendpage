@@ -11,17 +11,18 @@ Dynamic reconfiguration
 Modem-level debugging
 Paging Central-level debugging
 Pager alias support
+Pager alias-level debugging
 Syslog notification
 Email notification on success/failure
+SNPP Server
 
 
 Partially Implemented
 ---------------------
-Delayed delivery
+Delayed delivery (needs SNPP "HOLD" implementation)
 
 
 To Be Implemented
 -----------------
-SNPP Server
 Character based translation tables
 

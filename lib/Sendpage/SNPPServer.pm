@@ -49,6 +49,7 @@ use POSIX qw(strftime);
 sub HandleSNPP {
 	my $sock = shift;
 	my $banner = shift;
+	my $pipe = shift;
 	my $config = shift;
 	my $log = shift;
 	my $DEBUG = shift;
@@ -74,7 +75,10 @@ sub HandleSNPP {
 
 	reset_inputs();
 
-	$sock->debug(9999);
+	#$sock->debug($DEBUG);
+
+	$log->do('debug',"Handling SNPP connection from ".$sock->peerhost)
+		if ($DEBUG);
 
 	# What is my hostname, for the banner?
 	my $hostname = gethostbyaddr($sock->sockaddr, AF_INET);
@@ -91,7 +95,8 @@ sub HandleSNPP {
 		# begin the input loop
 		while (1) {
 			my $input=$sock->getline();
-			$sock->debug_print(0,$input);
+			$sock->debug_print(0,$input)
+				if (${*$sock}{'net_cmd_debug'});
 
 			# drop our trailing crlf
 			$input=~s/\r?\n$//;
@@ -118,7 +123,7 @@ sub HandleSNPP {
 				my @pins=split(/\s+/,$args);
 				# validate pager ids
 			        ($fail,@recips)=main::ArrayDig(@pins);
-			        if ($fail == 0) {
+			        if ($fail == 0 && $#recips > -1) {
 					$sock->command("250 Pager ID Accepted: '$args'");
         				$recips=\@recips;
 
@@ -198,7 +203,7 @@ sub HandleSNPP {
 				#$sock->command("421 Gateway Service Unavailable (terminate connection)");
 			}
 			elsif ($cmd =~ /^SEND/) {
-				my $queued=$sock->write_queued_pages($caller,$text,$config,$log,$DEBUG,%QPCS);
+				my $queued=$sock->write_queued_pages($pipe,$caller,$text,$config,$log,$DEBUG,%QPCS);
 
 				if ($queued>0) {
 					$sock->command("250 $queued Queued Successfully (caller: '$caller')");
@@ -270,11 +275,12 @@ sub HandleSNPP {
 }
 
 sub write_queued_pages {
-	my ($self,$from,$text,$config,$log,$DEBUG,%QPCS)=@_;
+	my ($self,$pipe,$from,$text,$config,$log,$DEBUG,%QPCS)=@_;
 	my ($pc,$recips,$queued);
 
 	$queued=0;
 
+	my $mask=umask(0077); # allow only user read/write
         foreach $pc (sort keys %QPCS) {
                 # get our PC-list of recipients
                 $recips=$QPCS{$pc};
@@ -321,7 +327,6 @@ sub write_queued_pages {
                         push(@pages,$text);
                 }
 
-                my $mask=umask(0007); # allow group read/write
                 foreach $text (@pages) {
                         if (!defined($queue->addPage(Sendpage::Page->new($recips,\$text,
                                 { 'when' => time,
@@ -338,21 +343,26 @@ sub write_queued_pages {
 				$queued++;
 			}
                 }
-		umask($mask);
+		print $pipe "$pc\n";
         }
+	umask($mask);
 
 	return $queued;
 }
 
-sub new {
- my $self = shift;
- my $class = ref($self) || $self;
+sub create {
+ my $proto = shift;
+ my $class = ref($proto) || $proto;
+ my %arg = @_;
 
- $self = $class->SUPER::new(Listen => 5, Proto => 'tcp', 
-				    Reuse => 1, @_);
+ my $self = $class->SUPER::new(	Listen => $arg{Listen} || 5,
+				LocalAddr => $arg{Addr},
+				LocalPort => $arg{Port} || "snpp(444)",
+				Timeout => $arg{Timeout},
+				Proto => 'tcp', 
+				Reuse => 1 );
 
  bless ($self, $class);
-
 
  return $self;
 }

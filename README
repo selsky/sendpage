@@ -21,38 +21,28 @@ Quick Start (for Linux)
 		make install
 
 	- copy 'sendpage.cf' into /etc, and edit to your needs
-	- create the user "sendpage" and group.  Make sure it is a member
-	  of the "uucp" group (or whichever group can write to
-	  /var/lock) and the "tty" group (or whichever group
-	  can read/write on your modem device).
-	- make sure your modem device is writable.  For example, if
-	  ttyS0 is your modem, and the "tty" group needs read/write:
-
-		chmod g+rw /dev/ttyS0
-
+	- create the user "sendpage".
+	- figure out which group ID can write to your locks directory
+	  (usually "uucp" can write in "/var/lock")
+	- figure out which group ID can write to your modem device
+	  (usually "tty" can write to "/dev/ttyS0")
 	- make the queue area:
 
 		mkdir -p /var/spool/sendpage
-		chown sendpage:sendpage /var/spool/sendpage
-		chmod g+sw /var/spool/sendpage
+		chown sendpage /var/spool/sendpage
+		chmod og-rwx /var/spool/sendpage
 
-	- set sendpage to be setgid "sendpage":
+	- start the sendpage daemon as the root user (it will change
+	  user id to 'sendpage')
 
-		chgrp sendpage `which sendpage`
-		chmod g+s `which sendpage`
-
-	- start the sendpage daemon as the sendpage user
-
-		su - sendpage -c "sendpage -bd"
+		sendpage -bd
 	
 
 Long Version
 ------------
 
 Sendpage will be a fully-featured paging solution when it's done.
-Right now I'm focusing on making sure it works on as many platforms as
-I can get my hands on.  The future work includes implementing an SNPP
-server.
+Right now, I'm interested in testing the new SNPP server.
 
 Sendpage (the C program) was originally written in 1995 almost entirely
 by Mark Fullmer.  Version "7" was when I became aware of it picked up
@@ -105,7 +95,7 @@ and running correctly.  If your Device::SerialPort doesn't behave (very
 likely if running 0.07 under anything but linux), then I recommend applying
 the patch to 0.07 before installing it:
 	cd Device-SerialPort-0.07
-	patch -p1 < ../sendpage-0.9.6/devserial-0.07-k1.patch
+	patch -p1 < ../sendpage-X.X.X/devserial-0.07-k1.patch
 	perl Makefile.PL /dev/term/a
 	make install
 
@@ -128,35 +118,32 @@ can safely ignore those errors.  See the notes on compatibility below to
 eliminate the timing errors under Solaris.
 
 Now, build sendpage itself.  Right now, just do:
-	cd sendpage-0.9.6
+	cd sendpage-X.X.X
 	perl Makefile.PL
 	make
 	make install
 
 to install this package.  The important man page (sendpage's) is done.
-The others are just overviews.  I need to finish those.
+The others are mostly just overviews.  I need to finish those.
 
-Make sure you create a sendpage user who has write access to /var/lock
-and who owns /var/spool/sendpage.  BE SURE that /var/spool/sendpage is
-set-group-id (as group "sendpage") and that sendpage itself is setgid
-to sendpage.  In the future I'll want to work around this by having the
-SNPP server running, and any client can just connect to that server invisibly,
-and I won't have to worry about a setgid tool running around.
+Make sure you create a sendpage user, and identify the group who has
+write access to /var/lock, and the group who has write access to your
+modem device.
 
 Once that's working, take a look at "sendpage.cf", and configure it for
 your modem, paging central, etc.  Turn on the debugging if you're interested.
 I'm going to eventually write a tool to convert old-style config files (and
 perhaps even qpage and beepage config files) into the new-style config file.
 Right now, this is not done.  Note that "sendpage.cf" needs to live in
-/etc, or whereever you run "sendpage -C" with.
+/etc, or where ever you run "sendpage -C" with.
 
 Now there is the "sendpage" daemon itself.  Run (as root) the command:
-	su - sendpage -c "sendpage -bd"
+	sendpage -bd
 to start up the daemon mode.  (Make sure that "sendpage" is in the PATH
-for the "sendpage" user.)  The SNPP server is not implemented yet; it's
-first on the list right now. 
+for the root user.)  The SNPP server connections and Paging Centrals will
+lose root privs when the fork, so that should be safe.
 
-To put a page into the queue, run "sendpage RECIP" where RECIP is either a 
+To put a page into the queue, run "snpp RECIP MESSAGE" where RECIP is either a 
 valid alias "recip" section in /etc/sendpage.cf, or has the form PIN@PC,
 where the PC is a valid "pc" section in /etc/sendpage.cf.  It will deliver
 directly to the named PIN.
@@ -265,11 +252,17 @@ Misc
 The TODO file lists a large number of things I still want to have
 working before the first "stable" release.
 
-For updates, check out the sourceforge project at:
-	http://sendpage.sourceforge.net
+For further information, check out the sendpage web site at:
+	http://sendpage.cpoint.net/
+
+For CVS updates, check out the sourceforge project at:
+	http://sourceforge.net/projects/sendpage
+
+
 
 Thanks for using sendpage!
 
 
--Kees Cook    (cook@cpoint.net)
+-Kees Cook
+cook@cpoint.net
 

@@ -1,5 +1,17 @@
 $Id$
 
+0.9.7:
+	- implemented level 2 SNPP server
+	- added SNPP config options
+	- added "enabled" flag to PCs
+	- added areacode handling on modems and PCs
+	- corrected some queue file logic
+	- added immediate notification of pages coming from SNPP clients
+	- added parent-death notification
+	- corrected USR1 handling in PC queue runners
+	- implemented priv dropping for spawned children (no more
+	  craziness with setgid/setuid perl settings, etc)
+
 0.9.6: (12/31/2000)
 	- ported KeesLog.pm's "new" function to use a hash (and fixed calls)
 	- ported Modem.pm's "new" function to use a hash (and fixed calls)
