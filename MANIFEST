@@ -3,11 +3,15 @@ README
 Changes
 MANIFEST
 Makefile.PL
+TODO
+FEATURES
+THANKS
 sendpage.cf
 email2page.conf
 docs/rfc1861.txt
 docs/README
 docs/PagingCentrals.txt
+docs/sendmail.txt
 lib/Sendpage/KeesConf.pm
 lib/Sendpage/KeesLog.pm
 lib/Sendpage/Page.pm
@@ -17,11 +21,8 @@ lib/Sendpage/Queue.pm
 lib/Sendpage/Recipient.pm
 lib/Sendpage/Modem.pm
 lib/Sendpage/SNPPServer.pm
-TODO
-FEATURES
 sendpage
 snpp
 email2page
 sendmail2snpp
 modemtest
-THANKS

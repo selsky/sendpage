@@ -17,8 +17,11 @@ URLs work.  I'll help you find a copy.  ;)
 
 I have, however, included the SNPP specifications from RFC1861.
 
-And the "PagingCentrals.txt" file contains a database dump of all the
+The "PagingCentrals.txt" file contains a database dump of all the
 paging centrals I know about.
+
+"sendmail.txt" is a quick tutorial on how to get sendpage working with
+a standard v8.8+ install of sendmail.
 
 
 -Kees Cook

@@ -7,7 +7,6 @@ Needed For Stable Release
 -------------------------
 *Code
 - implement SNPP "HOLD" function
-- implement a better audit log for pages (queued, sent, errors, contents(?))
 - do something so that queues that are waiting on a modem will run
   as soon as the modem is available.  How can I do this when there are
   multiple modems available?  Weird multi semaphore notifications queues
@@ -16,7 +15,7 @@ Needed For Stable Release
 - implement net/mask checking for SNPP client connections
 - create snpp.conf file for snpp tool to pull its defaults from
 - implement more of the API calls with hash opts
-- write a script as an example for using with sendmail
+- implement character-based translation tables
 *Docs
 - how to install, set up, test, and run sendpage
 - how to make a "sendpage" user & find the groups you need
@@ -46,8 +45,8 @@ Would Be Nice
 
 
 
-Stuff I Might Need Some Time Soon
----------------------------------
+Stuff I Thought Of, But Will Most Likely Never Need
+---------------------------------------------------
 - implement multiple TAP protocols? (are there differences?  PG1, PG3, etc)
   I don't think I'll ever need this due to the "pc:fields" variable.
 
@@ -59,4 +58,3 @@ I'm Probably Never Going To Implement These Crazy Ideas
   leave out the idea of parallel tasking modems for the same PC.  That
   seems like insane overkill, but it's something that would be pretty
   cool for HIGH volume paging centers.  Some day, perhaps.
-

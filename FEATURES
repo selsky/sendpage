@@ -13,6 +13,7 @@ Paging Central-level debugging
 Pager alias support
 Pager alias-level debugging
 Syslog notification
+Progress logging
 Email notification on success/failure
 SNPP Server
 
