@@ -11,7 +11,6 @@ Needed For Stable Release
   as soon as the modem is available.  How can I do this when there are
   multiple modems available?  Weird multi semaphore notifications queues
   based on modems?  Gah.  Strange.
-- copy email paging failures to "page-daemon"
 - implement net/mask checking for SNPP client connections
 - create snpp.conf file for snpp tool to pull its defaults from
 - implement character-based translation tables
@@ -19,7 +18,6 @@ Needed For Stable Release
 - implement "maxblocks" (max-blocks-per-session for a PC)
 - implement "dialretries" (attempt dialing again for PC)
 - implement "fieldsplits" (fields cannot be split across blocks for PC)
-- implement "maxpages" (max pages per connection for a PC)
 *Docs
 - write some clear and well-divided documentation
 - how to install, set up, test, and run sendpage

@@ -219,6 +219,32 @@ sub exists {
 	return (defined($self->{KNOWN}->{$whole}));
 }
 
+=item $var=$config->fallbackget($name,$quiet);
+
+This call will search for the variable named $name.  If it is not found,
+the section portion will be removed, and retried for a sectionless "get" call.
+
+That way, global variables can be overridden by section-specific variables.
+If "SECTION:Instance@name" does not exist, "name" will be tried.
+
+=cut
+
+sub fallbackget {
+	my $self = shift;
+	my ($whole,$quiet)=@_;
+	my ($class,$instance,$name,$var);
+
+	#warn "trying '$whole'...\n";
+	$var=$self->get($whole,1);
+	if (!defined($var)) {
+		($class,$instance,$name)=$self->breakdown($whole);
+		#warn "now trying '$name'...\n";
+		$var=$self->get($name,$quiet);
+	}
+	return $var;
+}
+
+
 =item $var=$config->get($name);
 
 This call will search for the variable named $name.  If it is not found,

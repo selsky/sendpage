@@ -66,6 +66,10 @@
 #
 #page-daemon = nemesis@outflux.net
 
+# Will page-daemon be Cc'd on email failures?
+#	Default is "true"
+#cc-on-error = false
+
 # By which mechanism should email be delivered?  mail, sendmail, or SMTP?
 #	Default is "sendmail"
 #mail-agent = mail
@@ -233,9 +237,13 @@ dev	= /dev/modem
 #debug	= true
 
 # Email address that page emails claims to be coming from.
-#	Default is unset, and will fallback to the global "page-daemon" setting
+#	Default is unset, and will fall back to the global "page-daemon" setting
 #
 #page-daemon = someone@other.place
+
+# Will page-daemon be Cc'd on email failures for this PC?
+#	Default is unset, and will fall back to global "cc-on-error" setting
+#cc-on-error = true
 
 # If for some reason you need to override the default list of modems,
 # do it here.
@@ -257,6 +265,10 @@ areacode= 312
 # What phone number to reach this PC at.
 #	Default is "", so you better fill one in
 phonenum= 5149243
+
+# How many pages can be sent in each session with this PC?
+#	Default is 0 (unlimited)
+#maxpages=12
 
 # How many characters can be sent in each page for this PC?
 #	Default is 1024

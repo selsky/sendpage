@@ -127,14 +127,19 @@ sub new {
 	$self->{NAME}   = shift;
 	$self->{MODEMS} = shift;
 
+	# clear counters
+	$self->{PagesProcessed}=0;
+
+	# load config information
 	$self->{DEBUG}  = $self->{CONFIG}->get("pc:$self->{NAME}\@debug");
 	# TAP protocol/block handling options
 	$self->{AnswerWait}=$self->{CONFIG}->get("pc:$self->{NAME}\@answerwait");
 	$self->{AnswerRetries}=$self->{CONFIG}->get("pc:$self->{NAME}\@answerretries");
-	$self->{BlockMax}=$self->{CONFIG}->get("pc:$self->{NAME}\@blockmax");
+	$self->{CharsPerBlock}=$self->{CONFIG}->get("pc:$self->{NAME}\@chars-per-block");
 	$self->{MAXCHARS}=$self->{CONFIG}->get("pc:$self->{NAME}\@maxchars");
 	$self->{FIELDS} = $self->{CONFIG}->get("pc:$self->{NAME}\@fields");
 	$self->{MAXSPLITS}=$self->{CONFIG}->get("pc:$self->{NAME}\@maxsplits");
+	$self->{MaxPages}=$self->{CONFIG}->get("pc:$self->{NAME}\@maxpages");
 	# TAP character translation options
 	$self->{ESC}    = $self->{CONFIG}->get("pc:$self->{NAME}\@esc");
 	$self->{CTRL}   = $self->{CONFIG}->get("pc:$self->{NAME}\@ctrl");
@@ -158,9 +163,8 @@ sub new {
 		if ($self->{CONFIG}->get("pc:$self->{NAME}\@stricttap"));
 
 	# get the daemon info, allowing for fall-back
-	$self->{PageDaemon}=$self->{CONFIG}->get("pc:$self->{NAME}\@page-daemon",1);
-	$self->{PageDaemon}=$self->{CONFIG}->get("page-daemon")
-		if ($self->{PageDaemon} eq "");
+	$self->{PageDaemon}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@page-daemon");
+	$self->{CConErr}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@cc-on-error");
 
 	bless($self,$class);
 	return $self;
@@ -172,12 +176,9 @@ sub start_proto {
 	my(@modems, $modem, $name, $report, $ref);
 
 	# find an available modem
-	$ref=$self->{CONFIG}->get("pc:$self->{NAME}\@modems",1);
+	$ref=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@modems",1);
 	if (!defined($ref)) {
-		$ref=$self->{CONFIG}->get("modems",1);
-		if (!defined($ref)) {
-			@modems=@{ $self->{MODEMS} }; # use all known available
-		}
+		@modems=@{ $self->{MODEMS} }; # use all known available
 	}
 	else {
 		@modems=@{ $ref };
@@ -238,6 +239,9 @@ sub start_proto {
 		$main::log->do('crit',"No modems available");
 		return (undef,"All modems presently in use");
 	}
+
+	# Clear counters
+	$self->{PagesProcessed}=0;
 
 	# Init modem
 	my $result=$modem->init(
@@ -370,7 +374,7 @@ sub start_proto {
 sub send {
 	my $self = shift;
 	my ($PIN,$text) = @_;
-	my $report;
+	my ($report,@result);
 
 	if (!defined($self->{MODEM})) {
 		($rc,$report)=$self->start_proto();
@@ -383,7 +387,22 @@ sub send {
 	# now we are at step 8, and we can send pages
 	my @fields=($PIN,$text);
 
-	return $self->HandleMessage(@fields);
+	@result=$self->HandleMessage(@fields);
+
+	# Handle any post-processing (maxpages, etc)
+	$self->{PagesProcessed}++;
+
+	if ($self->{MaxPages}>0 && $self->{PagesProcessed}>=$self->{MaxPages}) {
+		# shouldn't send any more pages
+		
+		# make a note in the logs
+		$main::log->do('info',"Shutting down Paging Central: %d page limit reached.",$self->{MaxPages});
+
+		# drop the connection (don't check for errors...)
+		$self->disconnect();
+	}
+	
+	return @result;
 }
 
 sub deliver {
@@ -477,13 +496,24 @@ sub deliver {
 		}
 		elsif ($rc == $TEMP_ERROR) {
 			# temp failure
+			
+			# add page-daemon to CC possibly
+			my $errcc=$cc;
+			if ($self->{CConErr}) {
+				if ($errcc eq "") {
+					$errcc=$self->{PageDaemon};
+				}
+				else {
+					$errcc="$errcc, $self->{PageDaemon}";
+				}
+			}
 		
 			# Send email notification
 			if ($temprep > 0 && ($attempts % $temprep == 0) && 
-		   	    ($to ne "" || $cc ne "")) {
+		   	    ($to ne "" || $errcc ne "")) {
 				$self->SendMail($to,
 					$self->{PageDaemon},
-					$cc,
+					$errcc,
 					$self->{PageDaemon},
 					"Page temporarily failed",
 					"The following page is still trying to be delivered to "
@@ -498,11 +528,22 @@ sub deliver {
 			# remove recipient from list
 			$page->drop_recip();
 
+			# add page-daemon to CC possibly
+			my $errcc=$cc;
+			if ($self->{CConErr}) {
+				if ($errcc eq "") {
+					$errcc=$self->{PageDaemon};
+				}
+				else {
+					$errcc="$errcc, $self->{PageDaemon}";
+				}
+			}
+		
 			# Send email notification
-			if ($failrep && ($to ne "" || $cc ne "")) {
+			if ($failrep && ($to ne "" || $errcc ne "")) {
 				$self->SendMail($to,
 					$self->{PageDaemon},
-					$cc,
+					$errcc,
 					$self->{PageDaemon},
 					"Page NOT delivered",
 					"The following page has FAILED to be delivered to "
@@ -539,6 +580,9 @@ sub dropmodem {
 sub disconnect {
 	my $self = shift;
 	my $report;
+
+	# clear our counters
+	$self->{PagesProcessed}=0;
 
 	if (!defined($self->{MODEM})) {
 		# already disconnected
@@ -600,7 +644,7 @@ sub HandleMessage {
 
    # Build a message block.  Cannot exceed 256 characters.
    # (250 + 3 control chars + 3 checksum chars) == 256 chars)
-   # so $self->{BlockMax} == 250 normally
+   # so $self->{CharsPerBlock} == 250 normally
 
    undef $field;
    while ((defined($field) && length($field)>0) || ($#fields>=0)) {
@@ -619,7 +663,7 @@ sub HandleMessage {
 #	warn "chunk:     '$chunk'\n";
 #	warn "newfield:  '$newfield'\n";
 
-	if (length($chunk)+length($block)<=($self->{BlockMax}-$fields)) {
+	if (length($chunk)+length($block)<=($self->{CharsPerBlock}-$fields)) {
 		$block.=$chunk;
 
 		# did we just exhaust a field?

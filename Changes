@@ -10,6 +10,12 @@ $Id$
 	- improved sendpage.init to be a little more flexible
 	- added "Errors-To" field for outbound email
 	- fixed bug in "PC logon handshake timeout" in PagingCentral.pm
+	- added page-daemon on CC for any failures, if configured
+	- added new "fallbackget" for KeesConf to pull PC-overridden variables
+	- added "cc-on-error" to both global and PC sections to control if
+	  page-daemon will actually get CC's of failed pages
+	- implemented "maxpages" variable to force PC to hang up after
+          handling a certain number of pages
 
 0.9.8: (30Jan2001)
 	- further updates to Device::SerialPort and associated documentation

@@ -1238,6 +1238,7 @@ $config->define("user", { DEFAULT => "sendpage" });
 $config->define("group-lock", { DEFAULT => "uucp" });
 $config->define("group-tty", { DEFAULT => "tty" });
 $config->define("page-daemon", { DEFAULT => "sendpage" });
+$config->define("cc-on-error", { DEFAULT => 1 });
 $config->define("modems",   { ARGCOUNT => 2 });
 $config->define("alias-debug",    { ARGCOUNT => 0, DEFAULT => 0 });
 $config->define("debug",    { ARGCOUNT => 0,
@@ -1308,6 +1309,7 @@ $config->define("pc:enabled",{ ARGCOUNT => 0, DEFAULT => 1 });
 $config->define("pc:debug",  { ARGCOUNT => 0, 
 					DEFAULT => $opts{d} ? 1 : 0 });
 $config->define("pc:page-daemon", { UNSET => 1 };
+$config->define("pc:cc-on-error", { UNSET => 1 });
 $config->define("pc:modems", { ARGCOUNT => 2 });
 $config->define("pc:baud",   { DEFAULT => 9600 });
 $config->define("pc:data",   { DEFAULT => 7 });
@@ -1346,10 +1348,10 @@ $config->define("pc:fieldsplits",	{ DEFAULT => 1, ARGCOUNT => 0 });
 #  paging central limits
 #   max blocks per connection (0 = unlimited) (FIXME: unimplemented)
 $config->define("pc:maxblocks",		{ DEFAULT => 0 });
-#   max pages per connection (0 = unlimited) (FIXME: unimplemented)
+#   max pages per connection (0 = unlimited)
 $config->define("pc:maxpages",		{ DEFAULT => 0 });
 #   max chars per block: 250 is protocol standard: 256 - 3 ctrl - 3 chksum
-$config->define("pc:blockmax",	{ DEFAULT => 250 });
+$config->define("pc:chars-per-block",	{ DEFAULT => 250 });
 
 	return $config;
 }
