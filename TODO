@@ -26,7 +26,6 @@ Needed For Stable Release
 - implement email notification fall-back
 - email paging failures to page-daemon (Errors-To: ?)
 - figure out an install option for forcing /usr/local
-- verify that "direct" connections work
 - fix all support modules to use a hash list of parameters instead of
   taking a KeesConf object.  This makes things more truely modular.
 - implement a better audit log for pages (queued, sent, errors, contents)

@@ -1,5 +1,13 @@
 $Id$
 
+0.9.6: (12/11/2000)
+	- created "dtrtime" to allow the DTR toggling timeout to be config'd
+	- moved the KeesLog stuff around in Modem.pm
+	- ported Modem.pm's "new" function to use a hash
+	- started work on the SNPP Server functions
+	- added logic to fully allow a "directly attached" modem to work
+	- fixed a few small typos and other nonesense
+
 0.9.5: (09/27/2000)
 	- hopefully fixed queue lock-up bug.  if not, it'll warn
 	  now instead of looping forever.

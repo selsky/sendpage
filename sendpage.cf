@@ -159,7 +159,26 @@ dev	= /dev/modem
 #	Default is "3"
 #dialretries=1
 
+# Should the status of "carrier detect" be ignored?
+#	Default is "false"
+#ignore-carrier=true
 
+# How many seconds should the DTR be held down during initialization?
+#	Default is "0.5"
+#dtrtime=1.5
+
+
+## As an example, this is what a directly attached paging terminal
+## might look like:
+##
+#[modem:direct]
+#ignore-carrier=true
+#dtrtime=0
+#init=""
+#initok=""
+#dial=""
+#dialok=""
+#dev=/dev/serial
 
 
 #########################
