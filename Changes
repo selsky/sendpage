@@ -1,6 +1,6 @@
 $Id$
 
-0.9.7:
+0.9.7: (23Jan2001)
 	- implemented level 2 SNPP server
 	- added SNPP config options
 	- added "enabled" flag to PCs

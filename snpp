@@ -1,4 +1,8 @@
 #!/usr/local/bin/perl
+
+eval 'exec /usr/local/bin/perl  -S $0 ${1+"$@"}'
+    if 0; # not running under some shell
+
 #
 # quick script for sending SNPP messages
 #
@@ -22,6 +26,72 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 # http://www.gnu.org/copyleft/gpl.html
 
+=head1 NAME
+
+snpp - send pages via SNPP
+
+=head1 SYNOPSIS
+
+snpp [OPTIONS] recipient...
+
+=head1 OPTIONS
+
+=over 4
+
+=item -s SERVER[:PORT]
+
+Connect to the specified SERVER (and PORT, if given).  Default is
+"localhost:444".
+
+=item -f USER
+
+Show that the sent page is coming from USER.  Default is the current user.
+
+=item -m MESSAGE
+
+Send the given MESSAGE instead of reading text from stdin.
+
+=item -n
+
+Do not notify the 'from' user about the status of the page.
+
+=item -d
+
+Display SNPP session debugging.
+
+=item -h
+
+Display a summary of all the available command line options.
+
+=back
+
+=head1 DESCRIPTION
+
+This tool is used to send a page via the Simple Network Paging Protocol
+(level 2).  It is designed to be used with 'sendpage', but should work
+with any other SNPP servers as well.
+
+=head1 AUTHOR
+
+Kees Cook <cook@cpoint.net>
+
+=head1 BUGS
+
+Not much happening in this tool, but I bet the use of "CALLer id" is
+not standard, and other SNPP server may require this tool run with
+the '-n' option all the time.
+
+=head1 COPYRIGHT
+
+snpp is free software; it can be used under the terms of the GNU General
+Public License.
+
+=head1 SEE ALSO
+
+perl(1), sendpage(1), Net::SNPP(3)
+
+=cut
+
 use Getopt::Std;
 use Net::SNPP;
 use Sys::Hostname;
@@ -34,12 +104,12 @@ sub Usage {
 
 version $VERSION
 
--h                you're reading it.  :)
 -s SERVER[:PORT]  SNPP server to use (default is 'localhost')
 -f USER           force page to be from user USER (default is current user)
 -m MESSAGE	  message to send (reads from stdin by default)
--n                no email carbonig to 'from'
+-n                no email carboning to 'from'
 -d                turn debug on
+-h                you're reading it.  :)
 
 ";
 }

@@ -45,6 +45,13 @@ if (!chk_version(Mail::Send => 1.08)) {
     $fail=1;
 }
 
+if (!chk_version(Net::SNPP => 1.10)) {
+    warn  "\n"
+	. "'Net::SNPP' version 1.10 or better is required.\n"
+        . "Look for Net::SNPP-x.xx.tar.gz on CPAN (or the libnet package).\n\n";
+    $fail=1;
+}
+
 die "Aborting: you need other packages.\n" if (defined($fail));
 
 my @list=<lib/Sendpage/*.pm>;

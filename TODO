@@ -21,8 +21,6 @@ Needed For Stable Release
 - how to install, set up, test, and run sendpage
 - how to make a "sendpage" user & find the groups you need
 - hot "page-daemon" alias for errors, bounces, warnings, etc, works
-- POD for "snpp" tool
-- POD for "email2page" tool
 
 
 Would Be Nice

@@ -3,10 +3,6 @@
 eval 'exec /usr/local/bin/perl  -S $0 ${1+"$@"}'
     if 0; # not running under some shell
 
-BEGIN {
-        unshift(@INC,"/kees/projects/TAP/cvs/sendpage/lib");
-}
-
 #
 # sendpage is the tool that will handle all the paging functions
 #
@@ -32,7 +28,7 @@ BEGIN {
 
 =head1 NAME
 
-sendpage - send alphanumeric pages via modem
+sendpage - listen for pages via SNPP, and send pages via modem
 
 =head1 SYNOPSIS
 
@@ -84,14 +80,6 @@ if the Paging Central is specified, just that Paging Central in particular.
 When the master gets a SIGUSR1, it will send it to each of the running Paging
 Centrals.  If the Paging Central is not busy, it will immediately start a
 queue run.
-
-=item -f
-
-This will override the "from" default for delivering a page.  This is
-useful for running sendpage as a client to another tool that takes
-pages from another source (sendmail gateway, etc.)  If this option is not
-specified, the "from" information is taken from the username who is
-running the sendpage client.
 
 =item -C FILE
 
@@ -209,7 +197,6 @@ version $VERSION
 -bq		query state of daemons
 -q		force a queue run
 -qR PC		force a queue run only for the PC paging central
--f USER		force page to be from user USER
 -C FILE		use FILE as the sendpage.cf file
 -d		turn debug on
 
@@ -220,7 +207,7 @@ version $VERSION
 $log=Sendpage::KeesLog->new(Syslog => 0);
 
 # get our options
-if (!getopts('hvdqC:b:R:f:',\%opts) || $opts{h}) {
+if (!getopts('hvdqC:b:R:',\%opts) || $opts{h}) {
 	Usage();
 }
 
@@ -783,7 +770,7 @@ sub RestartSNPP {
 }
 
 sub ListenForSNPP {
-	$log->do('debug',"starting Queue Manager and SNPP listener (sendpage v$VERSION)") if ($DEBUG);
+	$log->do('info',"starting Queue Manager and SNPP listener (sendpage v$VERSION)");
 
 	my($fh,$read,$exc,$pipe);
 

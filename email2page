@@ -26,6 +26,58 @@ eval 'exec /usr/local/bin/perl  -S $0 ${1+"$@"}'
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 # http://www.gnu.org/copyleft/gpl.html
 
+=head1 NAME
+
+email2page - converts RFC822 email text into text suitable for paging
+
+=head1 SYNOPSIS
+
+email2page [-C CONF] [-h]
+
+=head1 OPTIONS
+
+=over 4
+
+=item -C CONF
+
+Read the configuration file CONF instead of /etc/email2page.conf for the
+rewriting rules.
+
+=item -h
+
+Display a summary of all the available command line options (and there
+sure aren't many).
+
+=back
+
+=head1 DESCRIPTION
+
+This tool is used to break down an email into a shortened version, using
+a configurable set of rewriting rules, found in /etc/email2page.conf.
+email2page reads STDIN, and writes to STDOUT.  Any errors will be reported
+on STDERR.  It was designed to be used with 'sendpage'.
+
+=head1 AUTHOR
+
+Kees Cook <cook@cpoint.net>
+
+=head1 BUGS
+
+All the bugs with the program will probably come from the config file, as
+several of the items are run with Perl's 'eval' statement.  Please see the
+documentation in the /etc/email2page.conf file.
+
+=head1 COPYRIGHT
+
+email2page is free software; it can be used under the terms of the GNU
+General Public License.
+
+=head1 SEE ALSO
+
+perl(1), sendpage(1), Mail::Internet(3)
+
+=cut
+
 use Getopt::Std;
 use Mail::Internet;
 use Mail::Header;
@@ -42,8 +94,8 @@ version $VERSION
 Parses an email message based on the values of the conf file.  Reads stdin
 and produces results to stdout.
 
--h                  you're reading it already.  :)
 -C CONF             read CONF instead of /etc/email2page.conf
+-h                  you're reading it already.  :)
 
 ";
 }
