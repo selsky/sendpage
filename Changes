@@ -1,6 +1,8 @@
 $Id$
 
 1.0.1: (CVS)
+    - fixed version report (backport from 1.1.0)
+    - fixed reload failures (backport from 1.1.0)
 
 1.0.0: (2005-02-23)
 	- changed how email2page handles the header regex list.  This
