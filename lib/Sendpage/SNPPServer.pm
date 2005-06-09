@@ -387,7 +387,7 @@ sub create {
 				LocalPort => $arg{Port} || "snpp(444)",
 				Timeout => $arg{Timeout},
 				Proto => 'tcp', 
-				Reuse => 1 );
+				ReuseAddr => 1 );
 }
 
 1;

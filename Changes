@@ -11,6 +11,7 @@ $Id$
     - added "max-age" PC option to age-out undelivered pages (funded
       by David St. John).
     - corrected version report
+    - correct reload failure
 
 1.0.0: (2005-02-23)
 	- changed how email2page handles the header regex list.  This
