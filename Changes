@@ -8,6 +8,9 @@ $Id$
 	- added the options "pc:cc-simple" and "pc:proto=Test" for
 	  functionality similar to Bill Ayres's "null PC" patch.
 	- updated postfix instructions from Russell L. Adams.
+    - added "max-age" PC option to age-out undelivered pages (funded
+      by David St. John).
+    - corrected version report
 
 1.0.0: (2005-02-23)
 	- changed how email2page handles the header regex list.  This

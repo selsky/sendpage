@@ -166,6 +166,7 @@ sub new {
 	$self->{NotifyAfter}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@tempfail-notify-after");
 	$self->{FailNotify}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@fail-notify");
 	$self->{MaxTempFail}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@max-tempfail");
+	$self->{MaxAge}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@max-age");
 
 	# Completion commands
 	$self->{CompletionCmd}=$self->{CONFIG}->fallbackget("pc:$self->{NAME}\@completion-cmd",1);
@@ -465,7 +466,7 @@ sub send {
 sub deliver {
 	my($self,$page)=@_;
 	my($rc, $report);
-	my($to,$cc,$extra,$attempts);
+	my($to,$cc,$extra,$attempts,$age);
 	my($queuedir);
 
 	$queuedir=$self->{CONFIG}->get("queuedir");
@@ -477,9 +478,18 @@ sub deliver {
 		$attempts=$page->attempts();
 		$to=$page->option('from');
 		$cc=$recip->datum('email-cc');
+        $age=$page->age();
 
-		# attempt to send the page
-		($rc,$report) = $self->send($recip->pin(),$page->text());
+        # Check for maximum lifetime
+        if ($self->{MaxAge} > 0 && $age > $self->{MaxAge}) {
+            $rc=$PERM_ERROR;
+            $report=sprintf("Page exceeded maximum queue age: %d > %d seconds",
+                            $age,$self->{MaxAge});
+        }
+        else {
+		    # attempt to send the page
+    		($rc,$report) = $self->send($recip->pin(),$page->text());
+        }
 		my $now=time;
 
 		# push temp error into a perm fail if needed

@@ -187,6 +187,7 @@ sub addPage {
 		return undef;
 	}
 
+    $page->option("queued",time);
 	$rc=$self->writePage($page);
 	$filename=$self->doneNewFile();
 	if ($rc) {

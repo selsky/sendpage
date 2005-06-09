@@ -107,6 +107,11 @@
 #	Default is "20"
 #max-tempfail=50
 
+# How many seconds can a page stay in the queue, before being removed as
+# "too old"?
+#   Default is "0" (unlimited)
+#max-age=3600
+
 # Should syslog be used instead of STDERR for logging?
 #	Default is "true"
 #syslog=false
@@ -315,6 +320,11 @@ dev	= /dev/modem
 # How many times does a page hit a temporary error before failing forever?
 #	Default is unset; will fall back to global option
 #max-tempfail=50
+
+# How many seconds can a page stay in the queue, before being removed as
+# "too old"?
+#   Default is unset; will fall back to global option
+#max-age=3600
 
 # Command to run after each successful or failed page, overrides global
 #	Default is unset

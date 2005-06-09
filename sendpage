@@ -163,8 +163,8 @@ require 5.006;
 $VERSION=1.001_000; # our version!
 $VERSION_human=sprintf("%d.%d.%d",
         int(${VERSION}),
-        (int(${VERSION}*1000)=~/(\d{3})$/),
-        (int(${VERSION}*1000000)=~/(\d{3})$/));
+        substr((${VERSION}=~/^\d\.(\d+)$/),0,3),
+        substr((${VERSION}=~/^\d\.(\d+)$/),3,3));
 
 my $config;	# holds the configuration object
 undef $log;	# holds logging object
@@ -533,10 +533,14 @@ sub DisplayQueue {
 			print "\nin the '$pc' queue: ".($waiting+1)."\n";
 			while (defined($page=$queue->getPage())) {
 				print "\tqueue filename: ".$queue->file()."\n";
-				print "\tdeliverable:    ".$page->deliverable()."\n";
 				print "\tattempts:       ".$page->attempts()."\n";
 				print "\tfrom:           ".$page->option('from')."\n"
 					if ($page->option('from') ne "");
+				print "\tqueued at:      ".scalar(localtime($page->option('queued')))."\n"
+					if ($page->option('queued') ne "");
+				print "\tdeliverable:    ".($page->deliverable() ? "yes" : "pending")."\n";
+				print "\tdeliverable at: ".scalar(localtime($page->option('when')))."\n"
+					if ($page->option('when') ne "");
 				for ($page->reset(), $page->next();
 				     defined($recip=$page->recip());
                                      $page->next()) {
@@ -1616,6 +1620,8 @@ $config->define("fail-notify", { ARGCOUNT => 0, DEFAULT => 1 });
 $config->define("tempfail-notify-after", { DEFAULT => 5 });
 # how many temp fails does it take to produce a perm failure?
 $config->define("max-tempfail", { DEFAULT => 20 });
+#   max age in seconds of a page in the queue (0 = unlimited)
+$config->define("max-age",		{ DEFAULT => 0 });
 # default email CC domain
 $config->define("fallback-email-domain", { DEFAULT => undef });
 # command to run after each successful or failed page
@@ -1686,10 +1692,11 @@ $config->define("pc:debug",  { ARGCOUNT => 0,
 					DEFAULT => $opts{d} ? 1 : 0 });
 $config->define("pc:page-daemon", { UNSET => 1 });
 $config->define("pc:cc-on-error",  { ARGCOUNT => 0, UNSET => 1 });
-$config->define("pc:cc-simple",  { ARGCOUNT => 0, UNSET => 1 });
+$config->define("pc:cc-simple",  { ARGCOUNT => 0, DEFAULT => 0 });
 $config->define("pc:fail-notify", { ARGCOUNT => 0, UNSET => 1 });
 $config->define("pc:tempfail-notify-after", { UNSET => 1 });
 $config->define("pc:max-tempfail", { UNSET => 1 });
+$config->define("pc:max-age",		{ UNSET => 1 });
 # command to run after each successful or failed page
 $config->define("pc:completion-cmd", { UNSET => 1 });
 $config->define("pc:modems", { ARGCOUNT => 2 });

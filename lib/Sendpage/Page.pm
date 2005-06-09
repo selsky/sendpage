@@ -49,6 +49,7 @@ This module gets used in sendpage(1).
     }
     $anyone_left=$page->has_recips();
     $attempts=$page->attempts();
+    $age=$page->age();
 
     $page->option('from',"someone else"); # set option named 'from'
     $from=$page->option('from');	  # get option named 'from'
@@ -150,6 +151,12 @@ sub deliverable {
 	# else we can think of.
 	return 1 if (time >= $self->{DATA}->{'when'});
 	return undef;
+}
+
+sub age {
+    my($self)=shift;
+
+    return (time - $self->{DATA}->{'queued'});
 }
 
 sub option {
