@@ -160,11 +160,11 @@ Sendpage::Page(3), Sendpage::Recipient(3), Sendpage::Queue(3)
 require 5.006;
 
 # Global variables;
-$VERSION=1.000_000; # our version!
+$VERSION=1.000_001; # our version!
 $VERSION_human=sprintf("%d.%d.%d",
         int(${VERSION}),
-        (int(${VERSION}*1000)=~/(\d{3})$/),
-        (int(${VERSION}*1000000)=~/(\d{3})$/));
+        substr((${VERSION}=~/^\d\.(\d+)$/),0,3),
+        substr((${VERSION}=~/^\d\.(\d+)$/),3,3));
 
 my $config;	# holds the configuration object
 undef $log;	# holds logging object
@@ -937,6 +937,7 @@ sub StopSNPP {
 	$log->do('debug',"(select: dropping ".fileno($server).")")
 		if ($DEBUG_SELECT);
 	$s->remove($server);
+    $server->close();
 	undef $server;
 }
 

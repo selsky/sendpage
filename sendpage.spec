@@ -88,7 +88,7 @@ find %{buildroot}%{_prefix}             \
 %{__perl} -MFile::Find -le '
 	find({ wanted => \&wanted, no_chdir => 1}, "%{buildroot}");
 	print "%defattr(-,root,root)";
-	print "%doc    Changes README FEATURES LICENSE THANKS TODO modemtest docs";
+	print "%doc    Changes README FEATURES LICENSE THANKS TODO examples docs";
 	for my $x (sort @dirs, @files) {
 		push @ret, $x unless indirs($x);
 	}
@@ -143,7 +143,7 @@ fi
 	echo "ERROR: empty %files listing"
 	exit -1
 }
-grep -rsl '^#!.*perl'  Changes README FEATURES LICENSE THANKS TODO modemtest docs |
+grep -rsl '^#!.*perl'  Changes README FEATURES LICENSE THANKS TODO examples docs |
 	grep -v '.bak$' |xargs --no-run-if-empty \
 	%__perl -MExtUtils::MakeMaker -e 'MY->fixin(@ARGV)'
 
