@@ -1,6 +1,6 @@
 $Id$
 
-1.0.1: (CVS)
+1.0.1: (2005-06-10)
     - fixed version report (backport from 1.1.0)
     - fixed reload failures (backport from 1.1.0)
 
