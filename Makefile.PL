@@ -52,6 +52,7 @@ my %opts=(
     'PREREQ_PM'     => {
 		'Net::SNPP' => 1.10,
 		'Mail::Send' => 1.08,
+		'Sys::Hostname::Long' => 1.2,
 		$serialport_driver => $serialport_version,		
 	},
 );

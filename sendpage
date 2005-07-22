@@ -206,7 +206,7 @@ use Sendpage::Db;
 use Socket;
 use IO::Select;
 use IO::Pipe;
-use Sys::Hostname;
+use Sys::Hostname::Long;
 
 sub Usage {
 	die "Usage: $0 [OPTIONS] [alias ...]
@@ -304,7 +304,7 @@ else {
 	# who is it from?
 	if (!defined($opts{f}) && !$opts{n}) {
 		$opts{f}=scalar(getpwuid($<))."\@";
-		$opts{f}.=hostname();
+		$opts{f}.=hostname_long();
 	}
 
 	if (!defined($msg)) {

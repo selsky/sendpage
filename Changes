@@ -1,5 +1,9 @@
 $Id$
 
+1.1.1: (CVS)
+	- changed Sys::Hostname to Sys::Hostname::Long since we need
+	  the FQDN to be a valid email address.  (Thanks Joh Clarke!)
+
 1.1.0: (2005-06-10)
 	- rearranged modem init so that failed modems will be skipped
 	  (thanks to Peter Smith for pointing that out).

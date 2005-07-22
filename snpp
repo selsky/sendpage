@@ -100,7 +100,7 @@ perl(1), sendpage(1), Net::SNPP(3)
 
 use Getopt::Std;
 use Net::SNPP;
-use Sys::Hostname;
+use Sys::Hostname::Long;
 use IO::File;
 
 my %opts;
@@ -201,7 +201,7 @@ $/="\n";
 # who is it from?
 if (!defined($opts{f}) && !$opts{n}) {
 	$opts{f}=scalar(getpwuid($<))."\@";
-	$opts{f}.=hostname;
+	$opts{f}.=hostname_long();
 }
 
 # send pins
