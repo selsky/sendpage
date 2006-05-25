@@ -590,9 +590,6 @@ sub chat {
 				$got.=$avail;
 				$self->{LOG}->do('debug', "have: %s",$self->HexStr($got))
 					if ($self->{DEBUG});
-				
-				# reset our timeout
-				$timeleft=-1;
 			}
 			elsif ($self->{DEBUG}) {
 				my $msg=sprintf("(timeout: %d/%d, retries: %d/%d)",
