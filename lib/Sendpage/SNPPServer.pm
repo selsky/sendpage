@@ -45,22 +45,22 @@ use POSIX;
 #		421 Timeout, Goodbye
 
 sub HandleSNPP {
-	my $sock = shift;
+	our $sock = shift;
 	my $banner = shift;
 	my $pipe = shift;
 	my $config = shift;
-	my $log = shift;
-	my $DEBUG = shift;
+	our $log = shift;
+	our $DEBUG = shift;
 	my $sigset = shift; # for unblocking the signal handlers
 
-        my($pin,@PINS,$pc,$recips,$recip,@recips,$fail,$text,$caller);
+    our($pin,@PINS,$pc,$recips,$recip,@recips,$fail,$text,$caller);
 
 	# how far are we in the process?
-	my $NEED_PIN=1;
-	my $NEED_TEXT=1;
+	our $NEED_PIN=1;
+	our $NEED_TEXT=1;
 
 	# Get our string for the peer
-	my $peer=$sock->peerhost();
+	our $peer=$sock->peerhost();
 
 	sub shutdown {
 		$log->do('debug',"SNPP client '%s' signalled down",$peer)
@@ -142,12 +142,12 @@ sub HandleSNPP {
 				# validate pager ids
 			        ($fail,@recips)=main::ArrayDig(@pins);
 			        if ($fail == 0 && $#recips > -1) {
-					$sock->command("250 Pager ID Accepted: '$args'");
+					$sock->command("250 Pager ID Accepted: '$pin'");
 					push(@PINS,$pin);
 					$NEED_PIN=0;
 				}
 				else {
-					$sock->command("550 Error, Invalid Pager ID: '$args'");
+					$sock->command("550 Error, Invalid Pager ID: '$pin'");
 					next;
 				}
 			}
@@ -218,7 +218,7 @@ sub HandleSNPP {
 "Commands:",
 "   PAGE [ID]    - send a page to ID",
 "   MESS [text]  - attach text",
-"   DATA	 - start '.'-ended text input",
+"   DATA         - start '.'-ended text input",
 "   SEND         - send the page",
 "   RESE         - reset the input",
 "   QUIT         - hang up",
@@ -282,7 +282,6 @@ sub write_queued_pages {
 		$client=$self->peerhost;
 	}
 		
-
 	($fail,@recips)=main::ArrayDig(@PINS);
 	if ($fail == 0 && $#recips > -1) {
 		# sort them into PC bins

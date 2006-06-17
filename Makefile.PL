@@ -54,6 +54,8 @@ my %opts=(
 		'Mail::Send' => 1.08,
 		'Sys::Hostname::Long' => 1.2,
 		$serialport_driver => $serialport_version,		
+		'DBI' => 0,
+		'Test::More' => 0,
 	},
 );
 

@@ -160,11 +160,11 @@ Sendpage::Page(3), Sendpage::Recipient(3), Sendpage::Queue(3)
 require 5.006;
 
 # Global variables;
-$VERSION=1.001_000; # our version!
+$VERSION=1.001_001; # our version!
 $VERSION_human=sprintf("%d.%d.%d",
         int(${VERSION}),
-        substr((${VERSION}=~/^\d\.(\d+)$/),0,3),
-        substr((${VERSION}=~/^\d\.(\d+)$/),3,3));
+        substr((${VERSION}=~/^\d\.(\d+)$/)[0],0,3),
+        substr((${VERSION}=~/^\d\.(\d+)$/)[0],3,3));
 
 my $config;	# holds the configuration object
 undef $log;	# holds logging object
@@ -1538,7 +1538,7 @@ sub RecipDig {
 
 sub ArrayDig {
 	my(@array)=@_;
-	my ($one,$result,@results,$fail);
+	my ($one,$result,%hash,@results,$fail);
 
 	# did a look-up fail?
 	$fail=0;

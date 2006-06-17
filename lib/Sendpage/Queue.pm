@@ -255,7 +255,15 @@ sub getNewFile {
 		return undef;
 	}
 
-	unshift(@{$self->{FILES}},"Q".$self->createUniqueName());
+    # createUniqueName only works sanely if we don't re-instantiate
+    # the same PagingQueue multiple times within the same process within
+    # the same second.  (Since the COUNTER would be reset to zero each
+    # time)  :(  As a result, we must test for pre-existing queue filenames.
+    my $name;
+    do {
+        $name = $self->createUniqueName();
+    } while (-f $self->{DIR}."/q".$name);
+	unshift(@{$self->{FILES}},"Q".$name);
 	return $self->getReadyFile();
 }
 
@@ -323,6 +331,9 @@ sub unlockQueue {
 
 # returns a name based on time, process id, hostname, and cycle
 # FIXME: USE the hostname
+# FIXME: if you re-instantiate the same queue within the same
+#        second, within the same process, this will NOT produce
+#        a unique name!  Argh.
 sub createUniqueName {
 	my($self)=shift;
 
