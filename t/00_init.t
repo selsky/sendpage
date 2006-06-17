@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w -I../lib
-use Test::More tests => 9;
+use Test::More tests => 10;
 
 BEGIN {
     use_ok( 'Sendpage::KeesConf' );         #  1
@@ -11,7 +11,7 @@ BEGIN {
     use_ok( 'Sendpage::Recipient' );        #  7
     use_ok( 'Sendpage::PagingCentral' );    #  8
     use_ok( 'Sendpage::SNPPServer' );       #  9
-    #use_ok( 'Sendpage::Db' );               # 10
+    use_ok( 'Sendpage::Db' );               # 10
     #use_ok( 'Sendpage::Utilities' );        # 11
     #use_ok( 'Sendpage::Device' );           # 12
 }
