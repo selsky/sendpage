@@ -23,6 +23,6 @@ touch $WEB/download/LATEST-IS-$VERSION
         for i in Changes THANKS TODO FEATURES LICENSE README sendpage.cf ; do\
                 cat rel/sendpage-$VERSION/$i > $i.txt;        \
         done)
-mv sendpage-$VERSION.tar.gz ../../tgzs/
-(cd ../../rel; tar zxf ../tgzs/sendpage-$VERSION.tar.gz)
+#mv sendpage-$VERSION.tar.gz ../../tgzs/
+#(cd ../../rel; tar zxf ../tgzs/sendpage-$VERSION.tar.gz)
 echo "Edit sendpage.org/content/downloads.inc"

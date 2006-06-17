@@ -5,6 +5,7 @@ version:      1.000002
 version_from: sendpage
 installdirs:  site
 requires:
+    DBI:                           0
     Device::SerialPort:            1.0
     Mail::Send:                    1.08
     Net::SNPP:                     1.1
