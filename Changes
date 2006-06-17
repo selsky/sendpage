@@ -1,7 +1,10 @@
 $Id$
 
-1.0.2:
+1.0.2: (2006-06-16)
     - fixed time-out code to handle endless failure situation
+    - fixed recipient bleed-through across SEND/RESE in SNPP
+    - fixed queue filename collision
+    - added minimal "use" testing
 
 1.0.1: (2005-06-10)
     - fixed version report (backport from 1.1.0)

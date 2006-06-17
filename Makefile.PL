@@ -53,6 +53,7 @@ my %opts=(
 		'Net::SNPP' => 1.10,
 		'Mail::Send' => 1.08,
 		$serialport_driver => $serialport_version,		
+		'Test::More' => 0,
 	},
 );
 
