@@ -5,6 +5,7 @@ $Id$
     - fixed recipient bleed-through across SEND/RESE in SNPP
     - fixed queue filename collision
     - added minimal "use" testing
+    - corrected version number reporting on banner
 
 1.0.1: (2005-06-10)
     - fixed version report (backport from 1.1.0)
