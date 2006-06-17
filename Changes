@@ -1,6 +1,17 @@
 $Id$
 
-1.0.0: (CVS)
+1.0.2: (2006-06-16)
+    - fixed time-out code to handle endless failure situation
+    - fixed recipient bleed-through across SEND/RESE in SNPP
+    - fixed queue filename collision
+    - added minimal "use" testing
+    - corrected version number reporting on banner
+
+1.0.1: (2005-06-10)
+    - fixed version report (backport from 1.1.0)
+    - fixed reload failures (backport from 1.1.0)
+
+1.0.0: (2005-02-23)
 	- changed how email2page handles the header regex list.  This
 	  will allow each rule to match each header line, rather
 	  that just the first match.  Recommended by Erastus Z Allen.

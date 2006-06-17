@@ -6,6 +6,7 @@ if [ "x$VERSION" = "x" ]; then
 	exit 1
 fi
 
+WEB="/kees/projects/web/dist/sendpage.org/"
 DIR="sendpage-$VERSION"
 
 perl Makefile.PL
@@ -13,15 +14,15 @@ make dist
 make distclean
 
 ncftpput upload.sf.net /incoming sendpage-$VERSION.tar.gz
-cp sendpage-$VERSION.tar.gz /kees/projects/web/sendpage.org/download
-rm /kees/projects/web/sendpage.org/download/LATEST*
-touch /kees/projects/web/sendpage.org/download/LATEST-IS-$VERSION
-(cd /kees/projects/web/sendpage.org/rel; \
+cp sendpage-$VERSION.tar.gz $WEB/download
+rm $WEB/download/LATEST*
+touch $WEB/download/LATEST-IS-$VERSION
+(cd $WEB/rel; \
         tar zxf ../download/sendpage-$VERSION.tar.gz)
-(cd /kees/projects/web/sendpage.org; \
-        for i in Changes FEATURES LICENSE README sendpage.cf ; do\
+(cd $WEB; \
+        for i in Changes THANKS TODO FEATURES LICENSE README sendpage.cf ; do\
                 cat rel/sendpage-$VERSION/$i > $i.txt;        \
         done)
-mv sendpage-$VERSION.tar.gz ../../tgzs/
-(cd ../../rel; tar zxf ../tgzs/sendpage-$VERSION.tar.gz)
+#mv sendpage-$VERSION.tar.gz ../../tgzs/
+#(cd ../../rel; tar zxf ../tgzs/sendpage-$VERSION.tar.gz)
 echo "Edit sendpage.org/content/downloads.inc"
