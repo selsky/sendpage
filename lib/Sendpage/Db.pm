@@ -1,4 +1,5 @@
-#
+package Sendpage::Db;
+
 # this package will access databases for looking up recipients
 #
 # $Id$
@@ -18,235 +19,306 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-# http://www.gnu.org/copyleft/gpl.html
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+# <URL:http://www.gnu.org/copyleft/gpl.html>
 
-package Sendpage::Db;
+use 5.6.1;			# To be safe; using lvaluable subs
+use strict;			# Avoid MetaGoof #1
+use warnings;			# Avoid MetaGoof #2
 
 use DBI;
-use Carp;
-#use strict;
+use Carp;			# A great way to misdirect blame ;)
 
 =head1 NAME
 
-Db.pm - encapsulates the data of a single recipient
+Sendpage::Db - encapsulates the data of a single recipient
 
 =head1 SYNOPSIS
 
-    $db = Sendpage::Db->new($dsn);
-    $db->setdb($dsn, $user, $pass, $table);
-    $db->check("$name:$type");
-    $db->update("$name:$type","$value");
-    $db->delete("$name:$type");
+ $db = Sendpage::Db->new($dsn);
+ $db->setdb($dsn, $user, $pass, $table);
+ $db->check("$name:$type");
+ $db->update("$name:$type", "$value");
+ $db->delete("$name:$type");
 
 =head1 DESCRIPTION
 
-This is a module for use in sendpage(1).
+This is a module is used internally by L<sendpage> for encapsulating
+data for a single recipient in an object-oriented interface.
 
-=head1 BUGS
-
-Need to write more docs.
+The available methods are:
 
 =cut
 
+=over 4
 
-sub new {
-	my ($class, $dsn, $user, $pass, $table) = @_;
-        my ($self)  = {};
+=item new LIST
 
-        bless $self, $class;
+Instantiates a new Sendpage::Db object.
 
-	if ( setdb($self, $dsn, $user, $pass, $table) ) {
-		return undef;
-	}
-	return $self;
+=cut
+
+sub new
+{
+    my ($class, $dsn, $user, $pass, $table) = @_;
+    my $self = { };		# to be taken of care by setdb()
+    bless $self => $class;
+
+    return undef unless setdb($self, $dsn, $user, $pass, $table);
+    return $self;
 }
 
-sub setdb {
-	my ($self, $dsn, $user, $pass, $table) = @_;
-	my ($rv);
-	$self->{TABLE} = $table || "sendpage";
-	$self->{DSN} = $dsn;
-	if ($user) {
-		$self->{USER} = $user;
-		if ($pass) {
-			$self->{PASS} = $pass;
-		} else {
-			if ($self->{PASS}) {
-				$self->{PASS} = undef;
-			}
-		}
+# automagically create accessor methods; we set them with the
+# `lvalue' attribute (available in Perl 5.6) so we can do attribute
+# manipulations like in C++, e.g. `$db->table = "sendpage"'
+foreach my $field (qw(dbh dsn user pass table)) {
+    no strict "refs";		# access symbol table
+    *$field = sub : lvalue
+    {
+	my $self = shift;
+	$self->{uc $field} = shift if (@_);
+	$self->{uc $field};	# no need for `return'
+    };
+}
+
+=item setdb LIST
+
+Prepares the core attributes for a Sendpage::Db object.
+
+Normally called within a C<new> invocation, C<setdb> accepts the
+dsn, username, password, and table to be used in the database.
+
+Emits the return value of C<connect> (0 if successful, 1 otherwise.)
+
+=cut
+
+sub setdb
+{
+    my ($self, $dsn, $user, $pass, $table) = @_;
+
+    $self->table = $table || "sendpage";
+    $self->dsn = $dsn;
+    if ($user) {
+	$self->user = $user;
+	if ($pass) {
+	    $self->pass = $pass;
 	} else {
-		if ($self->{USER}) {
-			$self->{USER} = undef;
-		}
+	    if ($self->pass) {
+		$self->pass = undef;
+	    }
 	}
+    } else {
+	if ($self->user) {
+	    $self->user = undef;
+	}
+    }
 
-	return $self->connect;
+    return $self->connect;
 }
 
-sub connect {
-	my ($self) = @_;
+=item connect()
 
-	my ($dsn, $user, $pass, $table, $rv);
+Make a connection from the Sendpage::Db object to the underlying
+database using DBI.
 
-	$dsn = $self->{DSN};
-	$user = $self->{USER} if $self->{USER};
-	$pass = $self->{PASS} if $self->{PASS};
-	$table = $self->{TABLE};
-	$rv = 0;
+Accepts a Sendpage::Db object.
 
-	if ($self->{DBH}) {
-		$self->{DBH}->disconnect;
-	}
+Emits 0 if successful, 1 otherwise.
 
-	if ($self->{DBH} = DBI->connect($dsn, $user, $pass)) {
-		return 0;
-	} else {
-		printf STDERR carp("DB connection to $dsn failed!\n");
-		return 1;
-	}
-}
+=cut
 
-sub check {
-	my ($self, $key) = @_;
-	my ($result);
+sub connect
+{
+    my $self = shift;
 
-	my ($sth, $table, $query, @result);
+    my ($dsn, $user, $pass, $table, $rv);
 
-	$key = $self->quote($key);
+    $dsn = $self->dsn;
+    $user = $self->user if $self->user;
+    $pass = $self->pass if $self->pass;
+    $table = $self->table;
+    $rv = 0;
 
-	$table = $self->{TABLE};
-	$query = "select v from $table where k = $key";
+    if ($self->dbh) {
+	my $dbh = $self->dbh;
+	$dbh->disconnect;
+    }
 
-	$sth = $self->query($query);
-
-	if (! $sth || $sth->rows < 1) {
-		return (@result);
-	}
-	$result = $sth->fetchrow_array;
-	if ($result =~ m/[\s,]/) {
-		my @parts = split(/[\s,]+/,$result);
-		my $item;
-		foreach $item (@parts) {
-			# drop white space
-			$item=~s/^\s*//;
-			$item=~s/\s*$//;
-			push(@result,$item);
-		}
-	} else {
-		@result = ($result);
-	}
-
-	return (@result);
-}
-
-sub show {
-	my ($self) = @_;
-	my ($sth,$key,$table,$query);
-
-	$table = $self->{TABLE};
-	$query = "select k,v from $table";
-
-	$sth = $self->query($query);
-	if (! $sth) {
-		return undef;
-	}
-
-	while (($key,$val) = $sth->fetchrow_array) {
-		print "$key\t=\t$val\n";
-	}
-	$sth->finish;
+    # Then again, DBI has its own `connect' method, so...
+    if ($self->dbh = DBI->connect($dsn, $user, $pass)) {
 	return 0;
+    } else {
+	printf STDERR carp("DB connection to $dsn failed!\n");
+	return 1;
+    }
 }
 
-sub update {
-	my ($self,$key,$val) = @_;
-	my ($sth,$table,$query,$rv);
+=item check KEY
 
-	$table = $self->{TABLE};
+Check if a given key is defined in the table.
 
-	$key = $self->quote($key);
-	$val = $self->quote($val);
+=cut
 
-	$query = "select k,v from $table where k = $key";
+sub check
+{
+    my ($self, $key) = @_;
+    my $result;
+
+    my ($sth, $table, $query, @result);
+
+    $key = $self->quote($key);
+
+    $table = $self->table;
+    $query = "select v from $table where k = $key";
+
+    $sth = $self->query($query);
+
+    return @result unless ($sth || $sth->rows > 0);
+    $result = $sth->fetchrow_array;
+    if ($result =~ m/[\s,]/) {
+	my @parts = split /[\s,]+/ => $result;
+	foreach my $item (@parts) {
+	    # drop white space
+	    $item =~ s/^\s*//;
+	    $item =~ s/\s*$//;
+	    push @result, $item;
+	}
+    } else {
+	@result = ($result);
+    }
+
+    return @result;
+}
+
+=item show()
+
+Show keys and their corresponding values from the table.
+
+=cut
+
+sub show
+{
+    my $self = shift;
+    my ($sth, $key, $table, $query);
+
+    $table = $self->table;
+    $query = "select k,v from $table";
+
+    $sth = $self->query($query);
+    return undef unless $sth;
+
+    print "$key\t=\t$val\n"
+	while (($key, $val) = $sth->fetchrow_array);
+    $sth->finish;
+    return 0;
+}
+
+=item update KEY, VALUE
+
+Updates a table's key with the given value.
+
+=cut
+
+sub update
+{
+    my ($self, $key, $val) = @_;
+    my ($sth, $table, $query, $rv);
+
+    $table = $self->table;
+
+    $key = $self->quote($key);
+    $val = $self->quote($val);
+
+    $query = "select k,v from $table where k = $key";
+    $sth = $self->query($query);
+    return undef unless $sth;
+
+    $sth->finish;
+    if ($sth->rows > 0) {
+	$query = "update $table set v = $val where k = $key";
 	$sth = $self->query($query);
-	if (! $sth) {
-		return undef;
-	}
-
-	$sth->finish;
-	if ($sth->rows > 0) {
-		$query = "update $table set v = $val where k = $key";
-		$sth = $self->query($query);
-	} else {
-		$query = "insert into $table values ($key,$val)";
-		$sth = $self->query($query);
-	}
-	if (! $sth) {
-		return undef;
-	}
-	$sth->finish;
-	return 0;
-}
-
-sub delete {
-	my ($self,$key) = @_;
-
-	my ($sth, $table, $query);
-	$table = $self->{TABLE};
-
-	$key = $self->quote($key);
-	$query = "delete from $table where k = $key";
+    } else {
+	$query = "insert into $table values ($key, $val)";
 	$sth = $self->query($query);
-	if (! $sth) {
-		return undef;
-	}
+    }
+    return undef unless $sth;
+    $sth->finish;
+    return 0;
+}
+
+=item delete KEY
+
+Deletes a key (and its value) in the table.
+
+=cut
+
+sub delete
+{
+    my ($self, $key) = @_;
+
+    my ($sth, $table, $query);
+    $table = $self->table;
+
+    $key = $self->quote($key);
+    $query = "delete from $table where k = $key";
+    $sth = $self->query($query);
+    return undef unless $sth;
+    $sth->finish;
+    return 0;
+}
+
+=back
+
+=for developers
+Add other core functions here; the next set describes helper
+functions...
+
+=cut
+
+# Now for some db helper functions, not called by external
+# modules...  We could probably enforce some caller() check here, to
+# be really sure these subroutines aren't called from the outside...
+
+sub prepare
+{
+    my ($self, $query) = @_;
+
+    return $self->dbh->prepare($query);
+}
+
+sub quote
+{
+    my ($self, $string) = @_;
+
+    return $self->dbh->quote($string);
+}
+
+sub query
+{
+    my ($self, $query) = @_;
+
+    my ($sth, $rv);
+
+    #warn "preparing [$query]\n";
+    $sth = $self->prepare($query);
+
+    unless ($rv = $sth->execute) {
+	printf STDERR carp("[$query] failed, returned $rv\n");
+	return undef;
+    }
+
+    $rv = $sth->rows;
+
+    if ($rv < 0) {
 	$sth->finish;
-	return 0;
+	printf STDERR carp("[$query] returned $rv rows\n");
+	return undef;
+    }
+
+    return $sth;
 }
 
-# Now for some db helper functions, not called by external modules
-
-sub prepare {
-	my ($self, $query) = @_;
-
-	return $self->{DBH}->prepare($query);
-}
-
-sub quote {
-	my ($self, $string) = @_;
-
-	return $self->{DBH}->quote($string);
-}
-
-sub query {
-	my ($self, $query) = @_;
-
-	my ($sth, $rv);
-
-	#warn "preparing [$query]\n";
-	$sth = $self->prepare($query);
-
-	if (! ($rv = $sth->execute) ) {
-		printf STDERR carp("[$query] failed, returned $rv\n");
-		return undef;
-	}
-
-	$rv = $sth->rows;
-
-	if ( $rv < 0 ) {
-		$sth->finish;
-
-		printf STDERR carp("[$query] returned $rv rows\n");
-
-		return undef;
-	}
-
-	return $sth;
-}
-
-1;
+1;				# This is a module
 
 __END__
 
@@ -254,11 +326,17 @@ __END__
 
 Todd T. Fries <todd@fries.net>
 
+=head1 BUGS
+
+Need to write more docs; now in progress.
+
 =head1 SEE ALSO
 
-perl(1), sendpage(1), Sendpage::KeesConf(3), Sendpage::KeesLog(3),
-Sendpage::Modem(3), Sendpage::PagingCentral(3), Sendpage::PageQueue(3),
-Sendpage::Page(3), Sendpage::Queue(3)
+Man pages: L<perl>, L<sendpage>.
+
+Module documentation: L<Sendpage::KeesConf>, L<Sendpage::KeesLog>,
+L<Sendpage::Modem>, L<Sendpage::PagingCentral>, L<Sendpage::PageQueue>,
+L<Sendpage::Page>, L<Sendpage::Queue>
 
 =head1 COPYRIGHT
 
@@ -268,4 +346,3 @@ This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
 
 =cut
-

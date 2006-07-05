@@ -1,4 +1,5 @@
-#
+package Sendpage::Utilities;
+
 # Utilities.pm provides various sendpage-related utilities
 #
 # $Id$
@@ -18,43 +19,57 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-# http://www.gnu.org/copyleft/gpl.html
-
-package Sendpage::Utilities;
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+# <URL:http://www.gnu.org/copyleft/gpl.html>
 
 =head1 NAME
 
-Sendpage::Utilities.pm - provides various sendpage-related utilities
+Sendpage::Utilities - provides various sendpage-related utilities
 
 =head1 SYNOPSIS
 
-    $str=Sendpage::Modem::HexStr("tab:\t cr:\r");
+ $str = Sendpage::Modem::HexStr("tab:\t cr:\r");
 
 =head1 DESCRIPTION
 
-This is a module for use in sendpage(1).
+This module is used internally by L<sendpage> as a repository of other
+utility functions for various purposes.
 
-=head1 BUGS
-
-This needs more docs.
+Currently it implements only one (unexported) function, C<HexStr>.
 
 =cut
 
-
 # globals
 
-sub HexStr {
-        my($self,$text)=@_;
+=head2 Methods
 
-	# Convert non-printable characters into {0xXX}
-	$text=~s/([^\040-\176])/sprintf("{0x%02X}",ord($1))/ge
-        	if (defined($text));
+=over 4
 
-        return $text || "-undef-";
+=item HexStr EXPR
+
+Convert non-printable characters in a string generated from EXPR into a
+readable format (currently C<{0xXX}>).
+
+=cut
+
+sub HexStr
+{
+    my ($self, $text) = @_;
+
+    # Convert non-printable characters into {0xXX}
+    $text =~ s/([^\040-\176])/sprintf("{0x%02X}",ord($1))/ge
+	if defined $text;
+
+    return $text || "-undef-";
 }
 
-1;
+=for developers: add new functions here.
+
+=back
+
+=cut
+
+1;				# This is a module
 
 __END__
 
@@ -62,11 +77,17 @@ __END__
 
 Kees Cook <kees@outflux.net>
 
+=head1 BUGS
+
+This needs more docs.
+
 =head1 SEE ALSO
 
-perl(1), sendpage(1), Sendpage::KeesConf(3), Sendpage::KeesLog(3), 
-Sendpage::PagingCentral(3), Sendpage::PageQueue(3), Sendpage::Page(3),
-Sendpage::Recipient(3), Sendpage::Queue(3)
+Man pages: L<perl>, L<sendpage>.
+
+Module documentation: L<Sendpage::KeesConf>, L<Sendpage::KeesLog>,
+L<Sendpage::PagingCentral>, L<Sendpage::PageQueue>, L<Sendpage::Page>,
+L<Sendpage::Recipient>, L<Sendpage::Queue>.
 
 =head1 COPYRIGHT
 
@@ -76,4 +97,3 @@ This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
 
 =cut
-

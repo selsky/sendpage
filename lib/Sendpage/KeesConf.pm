@@ -1,4 +1,5 @@
-#
+package Sendpage::KeesConf;
+
 # KeesConf.pm implements a quick-and-dirty configfile parser
 #
 # $Id$
@@ -18,10 +19,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-# http://www.gnu.org/copyleft/gpl.html
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+# <URL:http://www.gnu.org/copyleft/gpl.html>
 
-package Sendpage::KeesConf;
+use strict;
+use warnings;
+
 use Carp;
 
 =head1 NAME
@@ -30,21 +33,21 @@ Sendpage::KeesConf - implements a configuration file reader
 
 =head1 SYNOPSIS
 
-    use Sendpage::KeesConf;
-    $config = Sendpage::KeesConf->new();
+ use Sendpage::KeesConf;
+ $config = Sendpage::KeesConf->new();
 
-    $config->define("variable", { DEFAULT => "setting" });
+ $config->define("variable", { DEFAULT => "setting" });
 
-    $config->file("config.cfg");
+ $config->file("config.cfg");
 
-    $setting=$config->get("variable");
+ $setting = $config->get("variable");
 
 =head1 DESCRIPTION
 
 I have borrowed VERY heavily from Andy Wardley's (abw@cre.canon.co.uk)
-C<AppConfig> tool, which can be found on CPAN (http://cpan.perl.org)
-but I found it not dynamic enough for multi-instance variable defaults.
-As a result, I wrote this massively trimmed-down version for my use.
+C<AppConfig> tool, which can be found on CPAN (http://cpan.perl.org) but
+I found it not dynamic enough for multi-instance variable defaults.  As
+a result, I wrote this massively trimmed-down version for my use.
 
 The following methods are available:
 
@@ -68,33 +71,35 @@ The constructor doesn't take an arguement, but it should in the future.
 
 =cut
 
-sub new {
-	my $proto = shift;
-	my $class = ref($proto) || $proto;
-        my $self = {};
+sub new
+{
+    my $proto = shift;
+    my $class = ref($proto) || $proto;
+    my $self  = { };
 
-        # get our args
-        my $config = shift;
+    # get our args
+    my $config = shift;		# Hmmm, where does this go???
 
-	$self->{DEFAULTS} = undef;
-	$self->{KNOWN} = undef;
+    $self->{DEFAULTS} = undef;
+    $self->{KNOWN}    = undef;
 
-	bless($self,$class);
-	return $self;
+    return bless $self => $class;
 }
 
 =item $config->forget();
 
 This call will make $config forget about any variables it has loaded.
-It does NOT forget C<define>d variables, just instantiated ones via C<file>.
+It does NOT forget C<define>d variables, just instantiated ones via
+C<file>.
 
 =cut
 
 # forget all configurations
-sub dump {
-	my $self = shift;
-	$self->{KNOWN} = undef;
-	$self->{SECTIONS} = undef;
+sub dump
+{
+    my $self	      = shift;
+    $self->{KNOWN}    = undef;
+    $self->{SECTIONS} = undef;
 }
 
 =item $config->define($name, $options);
@@ -105,10 +110,10 @@ $options can contain:
 
 =over 4
 
-=item ARGCOUNT 
+=item ARGCOUNT
 
-What type of variable this should be.  Default value is "1".  The available
-types are:
+What type of variable this should be.  Default value is "1".  The
+available types are:
 
 =over 4
 
@@ -128,9 +133,9 @@ List (an array of strings)
 
 =item DEFAULT
 
-The default value the variable should have if it is not overridden during
-the call to C<file>.  The DEFAULT must be the same data type as ARGCOUNT.
-The default DEFAULT is the string "<unset>".
+The default value the variable should have if it is not overridden
+during the call to C<file>.  The DEFAULT must be the same data type as
+ARGCOUNT.  The default DEFAULT is the string "<unset>".
 
 =item UNSET
 
@@ -142,29 +147,29 @@ a hack to get around the default DEFAULT.
 =cut
 
 # define a variable
-sub define {
-	my $self = shift;
-	my ($name, $vars)=@_;
+sub define
+{
+    my $self	      = shift;
+    my ($name, $vars) = @_;
 
-	my $default;
+    my $default;
 
-	$self->{DEFAULTS}->{$name}->{ARGCOUNT}=defined($vars->{ARGCOUNT}) ?
-	   $vars->{ARGCOUNT} : $ARGCOUNT_ONE;
-	if ($self->{DEFAULTS}->{$name}->{ARGCOUNT} == $ARGCOUNT_LIST) {
-	   $self->{DEFAULTS}->{$name}->{DEFAULT}= defined($vars->{DEFAULT}) ?
-		$vars->{DEFAULT} : undef ;
-	}
-	else {
-	   $self->{DEFAULTS}->{$name}->{DEFAULT}= defined($vars->{DEFAULT}) ?
-		$vars->{DEFAULT} : "<unset>";
-	}
+    $self->{DEFAULTS}->{$name}->{ARGCOUNT} = defined($vars->{ARGCOUNT}) ?
+	$vars->{ARGCOUNT} : $ARGCOUNT_ONE;
+    if ($self->{DEFAULTS}->{$name}->{ARGCOUNT} == $ARGCOUNT_LIST) {
+	$self->{DEFAULTS}->{$name}->{DEFAULT} = defined($vars->{DEFAULT}) ?
+	    $vars->{DEFAULT} : undef;
+    } else {
+	$self->{DEFAULTS}->{$name}->{DEFAULT} = defined($vars->{DEFAULT}) ?
+	    $vars->{DEFAULT} : "<unset>";
+    }
 
-	undef $self->{DEFAULTS}->{$name}->{DEFAULT}
-		if (defined($vars->{UNSET}));
+    undef $self->{DEFAULTS}->{$name}->{DEFAULT}
+	if defined $vars->{UNSET};
 
-#	warn "'$name' defined with '".$self->{DEFAULTS}->{$name}->{ARGCOUNT}.
-#		"' and '".$self->{DEFAULTS}->{$name}->{DEFAULT}."'\n";
-	
+    #	warn "'$name' defined with '".$self->{DEFAULTS}->{$name}->{ARGCOUNT}.
+    #		"' and '".$self->{DEFAULTS}->{$name}->{DEFAULT}."'\n";
+
 }
 
 =item $config->instance_exists($name);
@@ -174,22 +179,23 @@ This tests to see if there is a section loaded named $name
 =cut
 
 # check to see if a section exists in the KNOWN space
-sub instance_exists {
-	my ($self,$name)=@_;
+sub instance_exists
+{
+    my ($self, $name) = @_;
 
-	#warn "\tchecking for instance: '$name'\n";
+    #warn "\tchecking for instance: '$name'\n";
 
-	my(%hash, $thing);
+    my (%hash, $thing);
 
-	foreach $thing (@{ $self->{SECTIONS} }) {
-		$hash{$thing}=1;
-		#warn "\t\tI have: '$thing'\n";
-	}
+    foreach $thing (@{ $self->{SECTIONS} }) {
+	$hash{$thing} = 1;
+	#warn "\t\tI have: '$thing'\n";
+    }
 
-	return defined($hash{$name});
+    return defined $hash{$name};
 }
 
-=item $var=$config->ifset($name);
+=item $var = $config->ifset($name);
 
 This call will search for the variable named $name.  If it is not found,
 it will return undef.  If the value exists, it will return the value.
@@ -197,14 +203,15 @@ This is a way to call "get" without having a default passed through.
 
 =cut
 
-sub ifset {
-	my $self = shift;
-	my ($whole)=@_;
+sub ifset
+{
+    my $self    = shift;
+    my ($whole) = @_;
 
-	return ($self->exists($whole) ? $self->get($whole) : undef);
+    return $self->exists($whole) ? $self->get($whole) : undef;
 }
 
-=item $var=$config->exists($name);
+=item $var = $config->exists($name);
 
 This call will search for the variable named $name.  If it is not found,
 it will return false.  If the value exists, it will return true.  This is
@@ -214,88 +221,93 @@ to "get".
 =cut
 
 # return a variable or default for that variable
-sub exists {
-	my $self = shift;
-	my ($whole)=@_;
+sub exists
+{
+    my $self    = shift;
+    my ($whole) = @_;
 
-	return (defined($self->{KNOWN}->{$whole}));
+    return defined $self->{KNOWN}->{$whole};
 }
 
-=item $var=$config->fallbackget($name,$quiet);
+=item $var = $config->fallbackget($name,$quiet);
 
 This call will search for the variable named $name.  If it is not found,
-the section portion will be removed, and retried for a sectionless "get" call.
+the section portion will be removed, and retried for a sectionless "get"
+call.
 
-That way, global variables can be overridden by section-specific variables.
-If "SECTION:Instance@name" does not exist, "name" will be tried.
+That way, global variables can be overridden by section-specific
+variables.  If "SECTION:Instance@name" does not exist, "name" will be
+tried.
 
 =cut
 
-sub fallbackget {
-	my $self = shift;
-	my ($whole,$quiet)=@_;
-	my ($class,$instance,$name,$var);
+sub fallbackget
+{
+    my $self		= shift;
+    my ($whole, $quiet) = @_;
+    my ($class, $instance, $name, $var);
 
-	#warn "trying '$whole'...\n";
-	$var=$self->get($whole,1);
-	if (!defined($var)) {
-		($class,$instance,$name)=$self->breakdown($whole);
-		#warn "now trying '$name'...\n";
-		$var=$self->get($name,$quiet);
-	}
-	return $var;
+    #warn "trying '$whole'...\n";
+    $var = $self->get($whole, 1);
+    unless (defined $var) {
+	($class, $instance, $name) = $self->breakdown($whole);
+	#warn "now trying '$name'...\n";
+	$var = $self->get($name, $quiet);
+    }
+    return $var;
 }
 
 
-=item $var=$config->get($name);
+=item $var = $config->get($name);
 
 This call will search for the variable named $name.  If it is not found,
-it will fall back to the default for the section.   Sections are explained
-in more detail later.
+it will fall back to the default for the section.  Sections are
+explained in more detail later.
 
 =cut
 
 # return a variable or default for that variable
-sub get {
-	my $self = shift;
-	my ($whole,$quiet)=@_;
-	my ($name,$class,$instance,$var,@parts);
+sub get
+{
+    my $self		= shift;
+    my ($whole, $quiet) = @_;
+    my ($name, $class, $instance, $var, @parts);
 
-	# Vars can be in CLASS:Instance@variable format
-	# knowns use the entire name,
-	# defaults use CLASS:variable format
+    # Vars can be in CLASS:Instance@variable format
+    # knowns use the entire name,
+    # defaults use CLASS:variable format
 
-	undef $name;
-	#warn "asking for '$whole'\n";
+    undef $name;		# hmm, redundant?
+    #warn "asking for '$whole'\n";
 
-	$value=$self->{KNOWN}->{$whole};
+    $value = $self->{KNOWN}->{$whole};
 
-	if (!defined($value)) {
-		# save our original value
-		$name=$whole;
+    unless (defined $value) {
+	# save our original value
+	$name = $whole;
 
-		($class,$instance,$name)=$self->breakdown($name);
+	($class, $instance, $name) = $self->breakdown($name);
 
-		# reduce our variable to just class/var
-		$whole=sprintf("%s$name",$class ? "$class:" : "");
+	# reduce our variable to just class/var
+	$whole = sprintf("%s$name", $class ? "$class:" : "");
 
-		#warn "getting default for '$whole'\n";
-		my $def=$self->{DEFAULTS}->{$whole};
-		if (!defined($def) && $class) {
-			$def=$self->{DEFAULTS}->{"$class:"};
-		}
-		if (defined($def)) {
-			# getting classed default
-			#warn "found default for '$whole'\n";
-			$value=$def->{DEFAULT};
-		}
+	#warn "getting default for '$whole'\n";
+	my $def = $self->{DEFAULTS}->{$whole};
+	if (!defined($def) && $class) {
+	    $def = $self->{DEFAULTS}->{"$class:"};
 	}
-
-	if (!defined($value) && !$quiet) {
-		croak "'$whole' not defined";
+	if (defined($def)) {
+	    # getting classed default
+	    #warn "found default for '$whole'\n";
+	    $value = $def->{DEFAULT};
 	}
+    }
 
-	return $value;
+    if (!defined($value) && !$quiet) {
+	croak "'$whole' not defined";
+    }
+
+    return $value;
 }
 
 =item $config->instances($class);
@@ -304,12 +316,13 @@ Returns an array of the names of all the variables in the class $class.
 
 =cut
 
-sub instances {
-	my $self = shift;
-	my($class)=@_;
-	my @array=sort @{ $self->{SECTIONS} };
+sub instances
+{
+    my $self    = shift;
+    my ($class) = @_;
+    my @array   = sort @{ $self->{SECTIONS} };
 
-	grep(s/^${class}://, @array);
+    return grep(s/^${class}://, @array); # hmm, shouldn't this be map()?
 }
 
 =item $config->file('program.cfg');
@@ -335,146 +348,141 @@ variable names.
 =cut
 
 # load variables from a file
-sub file {
-	my $self=shift;
-	my $filename=shift;
-	my (@lines,@merged,$line);
+sub file
+{
+    my $self     = shift;
+    my $filename = shift;
+    my (@lines, @merged, $line);
 
-	# for parsing, I prefer this methodology:
-	#	1) strip all lines starting with a "#"
-	#	2) join any lines that have a "\" as the last character
-	#	3) drop any blank lines
-	#	4) parse, one line at a time
+    # for parsing, I prefer this methodology:
+    #	1) strip all lines starting with a "#"
+    #	2) join any lines that have a "\" as the last character
+    #	3) drop any blank lines
+    #	4) parse, one line at a time
 
-	open(FILE,"<$filename") || die "Cannot read '$filename'\n";
-	@lines=grep(!/^\s*#/,<FILE>);	# drop any lines starting with #
-	close(FILE);
+    open FILE, "< $filename" or die "Cannot read '$filename'\n";
+    @lines = grep(!/^\s*#/, <FILE>); # drop any lines starting with #
+    close FILE;
 
-	# merge any line with a trailing \
-	undef @merged;
+    # merge any line with a trailing \
+    undef @merged;
+    undef $line;
+    while ($#lines >= 0) {
+	$line =shift @lines;
+	chomp $line;		# drop crs
+	while ($line =~ /\\$/ && $#lines >= 0) {
+	    $line .= shift @lines;
+	}
+	push @merged, $line;
 	undef $line;
-	while ($#lines>=0) {
-		$line=shift @lines;
-		chomp($line);	# drop crs
-		while ($line =~ /\\$/ && $#lines>=0) {
-			$line.=shift @lines;
-		}
-		push(@merged,$line);
-		undef $line;
+    }
+
+    @lines = grep(!/^\s*$/, @merged); # drop any blank lines
+
+    my $section = "";
+
+    foreach $line (@lines) {
+	#warn "saw line '$line'\n";
+	my ($token, $value) = split(/=/, $line, 2);
+
+	# drop any white-space surrounding the token
+	$token =~ s/^\s*//;
+	$token =~ s/\s*$//;
+
+	if ($token =~ /^\[([^\]]+)\]/) {
+	    $section = $1;
+	    # drop any white-space surrounding the section
+	    $section =~ s/^\s*//;
+	    $section =~ s/\s*$//;
+	    # clean up section name (no @s)
+	    $section =~ s/\@//g;
+
+	    #warn "saw section '$section'\n";
+	    if ($self->instance_exists($section)) {
+		$main::log->do('warning',
+			       "section '$section' already defined -- merging!");
+	    } else {
+		push @{ $self->{SECTIONS} }, $section;
+	    }
+
+	    $section .= "\@";
+
+	    next;
 	}
 
-	@lines=grep(!/^\s*$/,@merged);	# drop any blank lines
+	# drop any white-space surrounding the value
+	$value =~ s/^\s*//;
+	$value =~ s/\s*$//;
 
-	my $section="";
+	# drop any quotes (not really syntax-smart, ya know?)
+	$value =~ s/^"//;
+	$value =~ s/"$//;
 
-	foreach $line (@lines) {
-		#warn "saw line '$line'\n";
-		my ($token,$value)=split(/=/,$line,2);
+	# add our section header
+	$token = "${section}${token}";
 
-		# drop any white-space surrounding the token
-		$token=~s/^\s*//;
-		$token=~s/\s*$//;
+	#warn "token: '$token' value: '$value'\n";
+	# now our token/values are "clean".  Let's insert them
+	# into our various structures
 
-		if ($token =~ /^\[([^\]]+)\]/) {
-			$section=$1;
-			# drop any white-space surrounding the section
-			$section=~s/^\s*//;
-			$section=~s/\s*$//;
-			# clean up section name (no @s)
-			$section=~s/\@//g;
+	#warn "Checking on defaults for '$token'\n";
+	my ($class, $instance, $name) = $self->breakdown($token);
+	#warn "got '$class' : '$instance' \@ '$name'\n";
+	# reduce our variable to just class/var
+	my $whole = sprintf("%s$name", $class ? "$class:" : "");
 
-			#warn "saw section '$section'\n";
-			if ($self->instance_exists($section)) {
-				$main::log->do('warning',
-					"section '$section' already defined -- merging!");
-			}
-			else {
-				push(@{ $self->{SECTIONS} },$section);
-			}
+	#warn "Checking on defaults for '$whole'\n";
 
-			$section.="\@";
-
-			next;
+	my $def = $self->{DEFAULTS}->{$whole};
+	if (!defined($def) && $class) {
+	    $def = $self->{DEFAULTS}->{"$class:"};
+	    #warn "tried '$class:'\n";
+	}
+	if (defined($def)) {
+	    if ($def->{ARGCOUNT} == $ARGCOUNT_NONE) {
+		if ($value =~ /^[ty1]/i) {
+		    $self->{KNOWN}->{$token} = 1;
+		    #warn "stored '$token' as '1'\n";
+		} elsif ($value =~ /^[fn0]/i) {
+		    $self->{KNOWN}->{$token} = 0;
+		    #warn "stored '$token' as '0'\n";
+		} else {
+		    $main::log->do('warning',
+				   "value for '$token' not true/false, yes/no, 1/0");
 		}
-
-		# drop any white-space surrounding the value
-		$value=~s/^\s*//;
-		$value=~s/\s*$//;
-
-		# drop any quotes (not really syntax-smart, ya know?)
-		$value=~s/^"//;
-		$value=~s/"$//;
-
-		# add our section header
-		$token="${section}${token}";
-
-		#warn "token: '$token' value: '$value'\n";
-		# now our token/values are "clean".  Let's insert them
-		# into our various structures
-		
-		#warn "Checking on defaults for '$token'\n";
-		my ($class,$instance,$name)=$self->breakdown($token);
-		#warn "got '$class' : '$instance' \@ '$name'\n";
-		# reduce our variable to just class/var
-		my $whole=sprintf("%s$name",$class ? "$class:" : "");
-
-		#warn "Checking on defaults for '$whole'\n";
-
-		my $def=$self->{DEFAULTS}->{$whole};
-		if (!defined($def) && $class) {
-			$def=$self->{DEFAULTS}->{"$class:"};
-			#warn "tried '$class:'\n";
-		}
-		if (defined($def)) {
-			if ($def->{ARGCOUNT} == $ARGCOUNT_NONE) {
-				if ($value=~/^[ty1]/i) {
-					$self->{KNOWN}->{$token}=1;
-					#warn "stored '$token' as '1'\n";
-				}
-				elsif ($value =~ /^[fn0]/i) {
-					$self->{KNOWN}->{$token}=0;
-					#warn "stored '$token' as '0'\n";
-				}
-				else {
-					$main::log->do('warning',
-						"value for '$token' not true/false, yes/no, 1/0");
-				}
-			}
-			elsif ($def->{ARGCOUNT} == $ARGCOUNT_ONE) {
-				$self->{KNOWN}->{$token}=$value;
+	    } elsif ($def->{ARGCOUNT} == $ARGCOUNT_ONE) {
+		$self->{KNOWN}->{$token} = $value;
 				#warn "stored '$token' as '$value'\n";
-			}
-			elsif ($def->{ARGCOUNT} == $ARGCOUNT_LIST) {
+	    } elsif ($def->{ARGCOUNT} == $ARGCOUNT_LIST) {
 				#warn "adding to '$token'\n";
-				my @parts=split(/[\s,]+/,$value);
-				my $item;
-				foreach $item (@parts) {
-					# drop white space
-					$item=~s/^\s*//;
-					$item=~s/\s*$//;
-					#warn "\t'$item'\n";
-					push(@{$self->{KNOWN}->{$token}},$item);
-				}
-			}
-			else {
-				$main::log->do('warning',
-					"default for '$whole' has strange ARGCOUNT");
-			}
+		my @parts = split /[\s,]+/, $value;
+		my $item;
+		foreach $item (@parts) {
+		    # drop white space
+		    $item =~ s/^\s*//;
+		    $item =~ s/\s*$//;
+		    #warn "\t'$item'\n";
+		    push @{ $self->{KNOWN}->{$token} }, $item;
 		}
-		else {
-			$main::log->do('warning',"unknown variable '$token' found in file '$filename'");
-		}
+	    } else {
+		$main::log->do('warning',
+			       "default for '$whole' has strange ARGCOUNT");
+	    }
+	} else {
+	    $main::log->do('warning',
+			   "unknown variable '$token' found in file '$filename'");
 	}
+    }
 
-	
-	return 1;
+    return 1;
 }
 
 # "dangerous" hack to set a variable
-sub set {
-	my($self,$var,$value)=@_;
+sub set
+{
+    my($self, $var, $value) = @_;
 
-	$self->{KNOWN}->{$var}=$value;
+    $self->{KNOWN}->{$var} = $value;
 }
 
 # breakdown a variable name into class, instance, and variable
@@ -482,56 +490,55 @@ sub set {
 #	input string: "CLASS:INSTANCE@NAME" where "CLASS:" is optional
 #			and "INSTANCE@" is optional
 #
-sub breakdown {
-	my $self=shift;
-	my ($name)=@_;
-	my (@parts,$class,$instance);
+sub breakdown
+{
+    my $self   = shift;
+    my ($name) = @_;
+    my (@parts, $class, $instance);
 
-	# strip off the class, if it exists
-	@parts=split(/:/,$name,2);
-	$class=$parts[0];
-	if ($class eq $name) {
-		undef $class;
-	}
-	else {
-		#warn "class: '$class'\n";
-		$name=$parts[1];
-	}
+    # strip off the class, if it exists
+    @parts = split(/:/, $name, 2);
+    $class = $parts[0];
+    if ($class eq $name) {
+	undef $class;
+    } else {
+	#warn "class: '$class'\n";
+	$name = $parts[1];
+    }
 
-	# strip off the instance if it exists
-	@parts=split(/\@/,$name,2);
-	$instance=$parts[0];
-	if ($instance eq $name) {
-		undef $instance;
-	}
-	else {
-		#warn "instance: '$instance'\n";
-		$name=$parts[1];
-	}
+    # strip off the instance if it exists
+    @parts = split(/\@/, $name, 2);
+    $instance = $parts[0];
+    if ($instance eq $name) {
+	undef $instance;
+    } else {
+	#warn "instance: '$instance'\n";
+	$name = $parts[1];
+    }
 
-	return ($class,$instance,$name);
+    return ($class,$instance,$name);
 }
 
-1;
+1;				# This is a module
 
 __END__
 
 =back
 
-Sections can be defined (and loaded) so that defaults can pass back 
-to a defined section default.  For example, lets say that you have 
-several modems, and most of them have different settings.  You can define
-all the modem variables like so:
+Sections can be defined (and loaded) so that defaults can pass back to a
+defined section default.  For example, lets say that you have several
+modems, and most of them have different settings.  You can define all
+the modem variables like so:
 
-	$config->define("modem:baud",{ DEFAULT => 9600 });
-	$config->define("modem:flowctl",{ DEFAULT => "hardware" });
+    $config->define("modem:baud",{ DEFAULT => 9600 });
+    $config->define("modem:flowctl",{ DEFAULT => "hardware" });
 
 Then, when you load them, let's say the config file has:
 
-	[modem:sportster]
-	baud = 115200
+    [modem:sportster]
+    baud = 115200
 
-	[modem:hayes]
+    [modem:hayes]
 
 The baud rate for the sportster will come back as 115200, but the hayes
 will fall back during a C<get> call, and find the default for the modem
@@ -541,11 +548,11 @@ section: 9600.  Both fallback to have "flowctl" as "hardware":
     $config->get("modem:sportster\@baud");
 
     # returns default value 9600
-    $config->get("modem:hayes\@baud");       
+    $config->get("modem:hayes\@baud");
 
     # both return default value "hardware"
     $config->get("modem:sportster\@flowctl");
-    $config->get("modem:hayes\@flowctl");   
+    $config->get("modem:hayes\@flowctl");
 
 =head1 CAVEATS
 
@@ -569,9 +576,11 @@ Kees Cook <kees@outflux.net>
 
 =head1 SEE ALSO
 
-perl(1), sendpage(1), Sendpage::KeesLog(3), Sendpage::Modem(3),
-Sendpage::PagingCentral(3), Sendpage::PageQueue(3), Sendpage::Page(3),
-Sendpage::Recipient(3), Sendpage::Queue(3)
+Man pages: L<perl>, L<sendpage>.
+
+Module documentation: L<Sendpage::KeesLog>, L<Sendpage::Modem>,
+L<Sendpage::PagingCentral>, L<Sendpage::PageQueue>, L<Sendpage::Page>,
+L<Sendpage::Recipient>, L<Sendpage::Queue>.
 
 =head1 COPYRIGHT
 
@@ -581,4 +590,3 @@ This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
 
 =cut
-

@@ -1,4 +1,5 @@
-#
+package Sendpage::PageQueue;
+
 # this module uses the Queue module, but plays with Pages on top of it
 #
 # $Id$
@@ -18,17 +19,18 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-# http://www.gnu.org/copyleft/gpl.html
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+# <URL:http://www.gnu.org/copyleft/gpl.html>
 
-package Sendpage::PageQueue;
+use strict;
+use warnings;
+
+our @ISA = ("Sendpage::Queue");
+
 # we're extending the Queue module, which is only file based, and in
 # the hopes that we can attach this to a better Queue module if one
 # ever surfaces on CPAN
 use Sendpage::Queue;
-use strict;
-use vars qw(@ISA);
-@ISA = ("Sendpage::Queue");
 
 # other stuff
 use Sendpage::Page;
@@ -36,183 +38,172 @@ use Sendpage::Recipient;
 
 =head1 NAME
 
-PageQueue.pm - extends the Queue module, adding the Page module smarts
+Sendpage::PageQueue - extends the Queue module, adding the Page module smarts
 
 =head1 SYNOPSIS
 
-    $pqueue=Sendpage::PageQueue($config);
+ $pqueue = Sendpage::PageQueue($config);
 
-    # read waiting pages
-    while ($fh=$pqueue->getPage($db)) {
-	# build up $page
-	@stuff=$pqueue->pullPageFromFile($db,$fh);
-	$page=Sendpage::Page->new(@stuff);
+ # read waiting pages
+ while ($fh = $pqueue->getPage($db)) {
+     # build up $page
+     @stuff = $pqueue->pullPageFromFile($db, $fh);
+     $page = Sendpage::Page->new(@stuff);
 
-	# do something to change $page
+     # do something to change $page
 
-	# write changes back to queue
-	$pqueue->writePage($page);
+     # write changes back to queue
+     $pqueue->writePage($page);
 
-	$pqueue->fileDone();
-    }
+     $pqueue->fileDone();
+ }
 
-    # add a new page
-    $fh=$pqueue->addPage($page);
+ # add a new page
+ $fh = $pqueue->addPage($page);
 
 =head1 DESCRIPTION
 
-This is a module for use in sendpage(1).
-
-=head1 BUGS
-
-Obviously, needs more docs.
+This module is used internally by L<sendpage> for is page processing.
 
 =cut
 
+sub new
+{
+    # get our args
+    my $proto  = shift;
+    my $config = shift;		# we'll need the config info
+    my $class  = ref($proto) || $proto;
+    my $self   = $class->SUPER::new(@_);
 
-sub new {
-        # get our args
-        my $proto = shift;
-	my $config = shift;	# we'll need the config info
-        my $class = ref($proto) || $proto;
-	my $self = $class->SUPER::new(@_);
+    $self->{CONFIG} = $config;
 
-	$self->{CONFIG}=$config;
-
-        bless($self, $class);
-        return $self;
+    return bless $self => $class;
 }
 
-sub getPage {
-	my $self = shift;
-	my $db = shift;
+sub getPage
+{
+    my $self = shift;
+    my $db   = shift;
 
-	my $handle = $self->getReadyFile();
+    my $handle = $self->getReadyFile();
 
-	if (defined($handle)) {
-		# read the data
-		my $page=Sendpage::Page->new($self->pullPageFromFile($db,$handle));
+    if (defined $handle) {
+	# read the data
+	my $page = new Sendpage::Page
+	    $self->pullPageFromFile($db, $handle);
 
-		if ($page) {
-			$page->option('FILE',$self->file());
+	$page->option('FILE', $self->file()) if $page;
+	return $page;
+    } else {
+	return undef;
+    }
+}
+
+sub pullPageFromFile
+{
+    my $self = shift;
+    my $db   = shift;
+    my $fh   = shift;
+
+    my($line, $body, @lines, @recips, $text, %options, $recip);
+
+    # rewind our file
+    seek $fh, 0, 0;
+
+    # load everything
+    @lines = <$fh>;
+
+    # clear everything!
+    $body = 0;
+    undef @recips;
+    undef %options;
+    undef $text;
+
+    foreach $line (@lines) {
+	chomp $line;
+
+	#print STDERR "read line '$line' ";
+	if ($body == 1) {
+	    #warn "(body)\n";
+	    $text .= $line . "\n";
+	} else {
+	    if ($line =~ /^\s*$/) {
+		# header/body break
+		$body=1;
+		#warn "\n";
+	    } else {
+		my ($key, $value) = split(/:\s*/, $line, 2);
+
+		#warn "(header: '$key' -> '$value')\n";
+
+		if ($key eq "to") {
+		    my(@parts, %data, $key, $line, $datum);
+		    undef %data;
+		    @parts = split /,/ => $value;
+		    $value = shift @parts;
+		    foreach $line (@parts) {
+			($key, $datum) = split(/=/, $line, 2);
+			$data{$key} = $datum;
+		    }
+
+		    $recip = new Sendpage::Recipient
+			$self->{CONFIG}, $db, $value, \%data;
+		    if (defined $recip) {
+			push @recips, $recip;
+		    } else {
+			$main::log->do('warning',
+				       "bad recip: '%s'",$value);
+		    }
+		} else {
+		    $options{$key} = $value;
 		}
-		return $page;
+	    }
 	}
-	else {
-		return undef;
-	}
+    }
+
+    # rewind our file
+    seek $fh, 0, 0;
+
+    # drop last CR .... FIXME: is this right?  Hm.
+    chomp $text;
+
+    return (\@recips, \$text, \%options);
 }
 
-sub pullPageFromFile {
-	my $self=shift;
-	my $db  =shift;
-	my $fh  =shift;
+sub addPage
+{
+    my ($self, $page) = @_;
 
-	my($line,$body,@lines,@recips,$text,%options,$recip);
+    my($rc, $filename);
+    my $handle = $self->getNewFile();
 
-	# rewind our file
-	seek $fh, 0, 0;
+    return undef unless defined $handle;
 
-	# load everything
-	@lines=<$fh>;
-
-	# clear everything!
-	$body=0;
-	undef @recips;
-	undef %options;
-	undef $text;
-
-	foreach $line (@lines) {
-		chomp($line);
-
-		#print STDERR "read line '$line' ";
-		if ($body == 1) {
-			#warn "(body)\n";
-			$text.=$line."\n";
-		}
-		else {
-			if ($line =~ /^\s*$/) {
-				# header/body break
-				$body=1;	
-				#warn "\n";
-			}
-			else {
-				my($key, $value);
-				($key,$value)=split(/:\s*/,$line,2);
-
-				#warn "(header: '$key' -> '$value')\n";
-
-				if ($key eq "to") {
-					my(@parts,%data,$key,$line,$datum);
-					undef %data;
-					@parts=split(/,/,$value);
-					$value=shift @parts;
-					foreach $line (@parts) {
-						($key,$datum)=split(/=/,$line,2);
-						$data{$key}=$datum;
-					}
-
-					
-					if (defined($recip=Sendpage::Recipient->new($self->{CONFIG},$db,$value,\%data))) {
-						push(@recips,$recip);
-					}
-					else {
-						$main::log->do('warning',
-							"bad recip: '%s'",$value);
-					}
-				}
-				else {
-					$options{$key}=$value;
-				}
-			}
-		}
-	}
-
-	# rewind our file
-	seek $fh, 0, 0;
-
-	# drop last CR .... FIXME: is this right?  Hm.
-	chomp($text);
-
-	return (\@recips, \$text, \%options);
+    $page->option("queued", time);
+    $rc = $self->writePage($page);
+    $filename = $self->doneNewFile();
+    return $filename if $rc;
+    return $rc;
 }
 
-sub addPage {
-	my ($self,$page) = @_;
+sub writePage
+{
+    my ($self, $page) = @_;
 
-	my($rc,$filename);
-	my $handle = $self->getNewFile();
+    my $handle = $self->{OPEN};
 
-	if (!defined($handle)) {
-		return undef;
-	}
+    return undef unless defined $handle;
 
-    $page->option("queued",time);
-	$rc=$self->writePage($page);
-	$filename=$self->doneNewFile();
-	if ($rc) {
-		return $filename;
-	}
-	return $rc;
+    # clear this file, just in case
+    seek $handle, 0, 0;
+    truncate $handle, 0;
+
+    print $handle $page->dump();
+
+    return 1;
 }
 
-sub writePage {
-	my($self,$page)=@_;
-
-	my $handle = $self->{OPEN};
-
-	return undef if (!defined($handle));
-
-	# clear this file, just in case
-	seek $handle, 0, 0;
-	truncate $handle, 0;
-
-	print $handle $page->dump();
-
-	return 1;
-}
-
-1;
+1;				# This is a module
 
 __END__
 
@@ -220,11 +211,17 @@ __END__
 
 Kees Cook <kees@outflux.net>
 
+=head1 BUGS
+
+Obviously, needs more docs.
+
 =head1 SEE ALSO
 
-perl(1), sendpage(1), Sendpage::KeesConf(3), Sendpage::KeesLog(3),
-Sendpage::Modem(3), Sendpage::PagingCentral(3), Sendpage::Page(3),
-Sendpage::Recipient(3), Sendpage::Queue(3)
+Man pages: L<perl>, L<sendpage>.
+
+Module documentation: L<Sendpage::KeesConf>, L<Sendpage::KeesLog>,
+L<Sendpage::Modem>, L<Sendpage::PagingCentral>, L<Sendpage::Page>,
+L<Sendpage::Recipient>, L<Sendpage::Queue>.
 
 =head1 COPYRIGHT
 
@@ -234,4 +231,3 @@ This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
 
 =cut
-
