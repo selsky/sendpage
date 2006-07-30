@@ -37,4 +37,6 @@ sendmail2snpp
 sendpage-db
 sendpage.init
 t/00_init.t
+t/01_Sendpage-KeesConf.t
+t/02_Sendpage-KeesLog.t
 META.yml                                 Module meta-data (added by MakeMaker)
