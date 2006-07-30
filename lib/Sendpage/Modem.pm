@@ -259,7 +259,7 @@ sub init
 {
     my $self = shift;
     my($baud, $parity, $data, $stop, $flow, $str, $strict_parity) = @_;
-    $name = "Modem '$self->{MYNAME}'";
+    my $name = "Modem '$self->{MYNAME}'";
 
     unless (defined $self->{LOCKFILE}) {
 	$self->{LOG}->do('crit',"init: $name not locked");
@@ -380,7 +380,7 @@ sub init
 
     # make sure the RTS is up
     $self->{LOG}->do('debug', "forcing RTS ...") if $self->{DEBUG};
-    $self->rts_active(T);
+    $self->rts_active('T');
 
     my $result = undef;
     # allow for blank inits (direct attaches)
@@ -484,7 +484,7 @@ sub dial
 	$actual_num = $dial_areacode;
 	if (defined($dial_areacode)) {
 	    $report  = "(No Modem AreaCode) ";
-	    $reprot .= "PCAreaCode: '$dial_areacode' "
+	    $report .= "PCAreaCode: '$dial_areacode' "
 	}
     }
     # we always need to end the dialing with the phone number...
@@ -570,7 +570,7 @@ Emits FIXME
 sub chat {
     my $self = shift;
     my ($send, $kicker, $expect, $timeout, $retries, $dealbreaker, $carrier) = @_;
-    my ($avail, $got);
+    my ($got);
 
     return undef unless $self->ready("chat");
 
@@ -587,7 +587,6 @@ sub chat {
 
     # useful variables:
     #  $got		contains the full text of chars read
-    #  $avail		is what we JUST read
 
 
     #LOOP:
@@ -660,7 +659,7 @@ sub chat {
 	    }
 
 	    # try to read char
-	    ($cnt, $avail) = $self->read(255);
+	    my ($cnt, $avail) = $self->read(255);
 	    if ($cnt > 0) {
 		$self->{LOG}->do('debug', "$cnt seen: %s",
 				 $self->HexStr($avail))

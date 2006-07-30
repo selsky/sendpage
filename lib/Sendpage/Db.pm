@@ -207,8 +207,9 @@ sub show
     $sth = $self->query($query);
     return undef unless $sth;
 
-    print "$key\t=\t$val\n"
-	while (($key, $val) = $sth->fetchrow_array);
+	while (my ($key, $val) = $sth->fetchrow_array) {
+        print "$key\t=\t$val\n"
+    }
     $sth->finish;
     return 0;
 }

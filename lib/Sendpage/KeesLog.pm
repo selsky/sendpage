@@ -49,18 +49,18 @@ I need to write more docs for it.
 =cut
 
 my %LogLevels = (
-		 debug   => 0,
-		 info    => 1,
-		 notice  => 2,
-		 warning => 3,
-		 err     => 4,
-		 crit    => 5,
-		 alert   => 6,
-		 emerg   => 7,
-		);
+                 debug   => 0,
+                 info    => 1,
+                 notice  => 2,
+                 warning => 3,
+                 err     => 4,
+                 crit    => 5,
+                 alert   => 6,
+                 emerg   => 7,
+                );
 
 # FIXME: can I have this thing detect if STDERR has already been closed and
-#	kick and scream some other way?
+#        kick and scream some other way?
 
 # takes parameters "Syslog" (1 or 0), "Opts", "Facility", "MinLevel"
 sub new
@@ -85,14 +85,13 @@ sub reconfig
     $self->{SYSLOG}   = $arg{Syslog};
     $self->{OPTS}     = $arg{Opts};
     $self->{FACILITY} = $arg{Facility};
-    $self->{MINLEVEL} = $arg{MinLevel};
-    $self->{MINLEVEL} = "debug" unless (defined $LogLevels{$self->{MINLEVEL}});
+    $self->{MINLEVEL} = $arg{MinLevel} || "debug";
 
     unless (defined $self->{SYSLOG}) {
-	$self->{SYSLOG} = 0;
-	$self->off();
+        $self->{SYSLOG} = 0;
+        $self->off();
     } else {
-	$self->on() if (defined $self->{OPEN});
+        $self->on() if (defined $self->{OPEN});
     }
 }
 
@@ -101,8 +100,8 @@ sub off
     my $self = shift;
 
     if (defined $self->{OPEN}) {
-	closelog;
-	undef $self->{OPEN};
+        closelog;
+        undef $self->{OPEN};
     }
 }
 
@@ -112,11 +111,11 @@ sub on
 
     $self->off();
     if ($self->{SYSLOG} == 1) {
-	# Comment out the following line if Solaris complains about
-	# syslog.
-	setlogsock('inet') unless defined setlogsock('unix');
-	my $ret = openlog "sendpage", $self->{OPTS}, $self->{FACILITY};
-	$self->{OPEN} = 1;
+        # Comment out the following line if Solaris complains about
+        # syslog.
+        setlogsock('inet') unless defined setlogsock('unix');
+        my $ret = openlog "sendpage", $self->{OPTS}, $self->{FACILITY};
+        $self->{OPEN} = 1;
     }
 }
 
@@ -126,19 +125,19 @@ sub do
     my($self, $pri, $format, @args) = @_;
 
     $pri = $self->{MINLEVEL}
-	if ($LogLevels{$pri} < $LogLevels{$self->{MINLEVEL}});
+        if ($LogLevels{$pri} < $LogLevels{$self->{MINLEVEL}});
 
     # convert tabs since syslog doesn't like them
     $format =~ s/\t/     /g;
 
     # question is: who adds the "\n"?  Me or syslog?  I assume me now.
     unless (defined $self->{OPEN}) {
-	my $str = sprintf("%s [$$ $pri]: $format",
-			  scalar(localtime()), @args);
-	warn $str . "\n";
+        my $str = sprintf("%s [$$ $pri]: $format",
+                          scalar(localtime()), @args);
+        warn $str . "\n";
     } else {
-	# FIXME: shouldn't I check error codes?
-	syslog($pri, $format, @args);
+        # FIXME: shouldn't I check error codes?
+        syslog($pri, $format, @args);
     }
 }
 
@@ -149,7 +148,7 @@ sub DESTROY
     $self->off();
 }
 
-1;				# This is a module
+1;                                # This is a module
 
 __END__
 

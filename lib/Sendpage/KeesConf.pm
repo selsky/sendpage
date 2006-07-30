@@ -60,9 +60,9 @@ The following methods are available:
 # -Kees
 
 # argument count types
-$ARGCOUNT_NONE  = 0;
-$ARGCOUNT_ONE   = 1;
-$ARGCOUNT_LIST  = 2;
+my $ARGCOUNT_NONE  = 0;
+my $ARGCOUNT_ONE   = 1;
+my $ARGCOUNT_LIST  = 2;
 #$ARGCOUNT_HASH  = 3;
 
 =item $config = Sendpage::KeesConf->new();
@@ -280,7 +280,7 @@ sub get
     undef $name;		# hmm, redundant?
     #warn "asking for '$whole'\n";
 
-    $value = $self->{KNOWN}->{$whole};
+    my $value = $self->{KNOWN}->{$whole};
 
     unless (defined $value) {
 	# save our original value
