@@ -23,7 +23,6 @@ package Sendpage::Queue;
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 # <URL:http://www.gnu.org/copyleft/gpl.html>
 
-use 5.6.1;			# lvaluable subs
 use strict;			# Avoid MetaGoof #1
 use warnings;			# Avoid MetaGoof #2
 
@@ -77,12 +76,13 @@ sub new
 {
     my $proto = shift;
     my $class = ref($proto) || $proto;
-    my $self  = {
-		 DIR     => shift, # location of my queue
-		 FILES   => [],	   # where to store our directory list
-		 OPEN    => undef, # current open file
-		 COUNTER => 0,	   # for the unique filename
-		};
+    my $self  =
+    {
+     DIR     => shift,		# location of my queue
+     FILES   => [ ],		# where to store our directory list
+     OPEN    => undef,		# current open file
+     COUNTER => 0,		# for the unique filename
+    };
 
     unless (-d $self->{DIR}) {
 	$main::log->do('alert',
@@ -103,40 +103,13 @@ sub new
     return bless $self => $class;
 }
 
-=item dir EXPR
-
-=item files LIST
-
-=item open EXPR
-
-=item counter EXPR
-
-Accessor methods.
-
-=cut
-
-# generate accessor methods
-for my $field (qw(dir files open counter)) {
-    no strict "refs";
-    *$field = sub : lvalue
-    {
-	my $self = shift;
-	$self->{uc $field} = shift if @_;
-	$self->{uc $field};
-    };
-}
-
 =item file()
 
 Emit the first file in the queue.
 
 =cut
 
-sub file
-{
-    my $self = shift;
-    return ${$self->files}[0];
-}
+sub file { $_[0]->{FILES}[0] }
 
 =item ready()
 
@@ -149,23 +122,23 @@ sub ready
 {
     my $self = shift;
 
-    if ($self->open) {
+    if ($self->{OPEN}) {
 	$main::log->do('alert',
-		       "File '${$self->files}[0]' still open "
-		       . "while checking queue '$self->dir'"
+		       "File '@{[ $self->file ]}' still open "
+		       . "while checking queue '$self->{DIR}'"
 		       . " -- restarting queue!");
 	#return -2;
     }
 
-    opendir DIRHANDLE, $self->dir
-	or $main::log->do('alert', "Cannot access '$self->dir': $!");
+    opendir DIRHANDLE, $self->{DIR}
+	or $main::log->do('alert', "Cannot access '$self->{DIR}': $!");
     my @files = readdir DIRHANDLE;
     close DIRHANDLE;
 
-    map { warn "$$: in '$self->dir': $_\n" } @files if $DEBUG;
+    map { warn "$$: in '$self->{DIR}': $_\n" } @files if $DEBUG;
 
-    $self->files = [ grep /^q/, @files ];
-    @files = @{ $self->files };
+    $self->{FILES} = [ grep /^q/, @files ];
+    @files = @{ $self->{FILES} };
 
     map { warn "$$: in FILES: $_\n" } @files if $DEBUG;
     warn "$$: ready will be: $#files\n"      if $DEBUG;
@@ -186,15 +159,15 @@ sub getReadyFile
     my $self = shift;
     my $fh = new FileHandle;
 
-    if ($self->open) {
+    if ($self->{OPEN}) {
 	$main::log->do('alert',
-		       "Cannot read next file from queue '$self->dir'"
-		       . " with open file (${$self->files}[0])!");
+		       "Cannot read next file from queue '$self->{DIR}'"
+		       . " with open file (@{[ $self->file ]})!");
 
 	return undef;
     }
     warn "$$: in getReadyFile\n" if $DEBUG;
-    my @filelist = @{ $self->files };
+    my @filelist = @{ $self->{FILES} };
     my $file     = shift @filelist;
     unless (defined $file) {
 	warn "$$: no more files in queue\n" if $DEBUG;
@@ -203,8 +176,8 @@ sub getReadyFile
 	return undef;
     }
 
-    my $err   = "queue '$file' from '$self->dir':";
-    my $fname = "$self->dir/$file";
+    my $err   = "queue '$file' from '$self->{DIR}':";
+    my $fname = "$self->{DIR}/$file";
 
     warn "$$: fname is '$fname'\n" if $DEBUG;
 
@@ -222,7 +195,7 @@ sub getReadyFile
 	$main::log->do('alert', "Cannot read $err $!");
 
 	# try the next file
-	shift @{ $self->files };
+	shift @{ $self->{FILES} };
 	return $self->getReadyFile();
     }
 
@@ -232,7 +205,7 @@ sub getReadyFile
 	close $fh;
 
 	# try the next file
-	shift @{ $self->files };
+	shift @{ $self->{FILES} };
 	return $self->getReadyFile();
     }
 
@@ -242,14 +215,13 @@ sub getReadyFile
 	close $fh;
 
 	# we should try for the next file in the queue
-	shift @{ $self->files };
+	shift @{ $self->{FILES} };
 	return $self->getReadyFile();
     }
 
     warn "$$: file handle is '$fh'\n" if $DEBUG;
-    $self->open = $fh;
 
-    return $self->open;
+    return $self->{OPEN} = $fh;
 }
 
 =item fileToss LIST
@@ -263,13 +235,13 @@ sub fileToss
 {
     my ($self, @args) = @_;
 
-    unless ($self->open) {
+    unless ($self->{OPEN}) {
 	$main::log->do('alert', "Cannot call fileToss without an open file!");
 	return undef;
     }
 
     # rename before unlock: no one can get it then FIXME: this is not right
-    my $fname = "$self->dir/${$self->files}[0]";
+    my $fname = "$self->{DIR}/@{[ $self->file ]}";
 
     #	my $newname=$fname;
     #	$newname =~ s/^./X/;
@@ -287,11 +259,11 @@ sub fileToss
     }
 
     $self->unlockFile($fname);
-    close $self->open;
-    $self->open = undef;
+    close $self->{OPEN};
+    undef $self->{OPEN};
 
     # drop the filename
-    shift @{ $self->files };
+    shift @{ $self->{FILES} };
 
     return 1;
 }
@@ -307,18 +279,18 @@ sub fileDone
 {
     my $self = shift;
 
-    unless ($self->open) {
+    unless ($self->{OPEN}) {
 	$main::log->do('alert',
 		       "Cannot call fileDone without an open file!");
 	return undef;
     }
 
-    my $fname = "$self->dir/${$self->files}[0]";
+    my $fname = "$self->{DIR}/@{[ $self->file ]}";
 
     $self->unlockFile($fname);
-    close $self->open;
-    $self->open = undef;
-    shift @{ $self->files };	# drop the leading filename
+    close $self->{OPEN};
+    undef $self->{OPEN};
+    shift @{ $self->{FILES} };	# drop the leading filename
 
     return 1;
 }
@@ -334,10 +306,10 @@ sub getNewFile
 {
     my $self = shift;
 
-    if ($self->open) {
+    if ($self->{OPEN}) {
 	$main::log->do('alert',
-		       "Cannot create new file for queue '$self->dir'"
-		       . " with open file (${$self->files}[0])!");
+		       "Cannot create new file for queue '$self->{DIR}'"
+		       . " with open file (@{[ $self->file ]})!");
 	return undef;
     }
 
@@ -348,8 +320,8 @@ sub getNewFile
     my $name;
     do {
 	$name = $self->createUniqueName();
-    } while (-f $self->dir . "/q" . $name);
-    unshift @{ $self->files }, "Q" . $name;
+    } while (-f $self->{DIR} . "/q" . $name);
+    unshift @{ $self->{FILES} }, "Q" . $name;
     return $self->getReadyFile();
 }
 
@@ -365,24 +337,24 @@ sub doneNewFile
 
     my ($fname, $final);
 
-    unless (defined $self->open) {
+    unless (defined $self->{OPEN}) {
 	$main::log->do('alert',
 		       "Cannot close new file while no file is open!");
 	return undef;
     }
 
-    $fname = ${$self->files}[0];
+    $fname = $self->file;
     if ($fname !~ /^Q/) {
 	$main::log->do('alert', "Not operating on a new Queue file");
 	return undef;
     }
 
-    my $newname = $fname;
-    $newname =~ s/^Q/q/;
+    my $newname;
+    ($newname = $fname) =~ s/^Q/q/;
 
     # need the queue dirs here, too
-    $fname = "$self->dir/$fname";
-    $final = "$self->dir/$newname";
+    $fname = "$self->{DIR}/$fname";
+    $final = "$self->{DIR}/$newname";
     unless (rename($fname, $final)) {
 	$main::log->do('crit', "Cannot rename '$fname' -> '$final': $!\n");
     }
@@ -447,7 +419,7 @@ sub createUniqueName
 				# lvalued counter
 
     return sprintf("%010d%05d%03d",
-		   time(), $$, $self->counter);
+		   time(), $$, $self->{COUNTER}++);
 }
 
 1;				# This is a module

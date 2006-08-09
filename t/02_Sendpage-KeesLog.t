@@ -28,54 +28,54 @@ use Test::More tests => 15;
 BEGIN { use_ok( 'Sendpage::KeesLog' ) or die }
 
 CONSTRUCTOR: {
-  my $log = Sendpage::KeesLog->new();
-  isa_ok( $log, 'Sendpage::KeesLog' );
+    my $log = Sendpage::KeesLog->new();
+    isa_ok( $log, 'Sendpage::KeesLog' );
 
-  my @functions = qw( reconfig off on do DESTROY );
-  can_ok( $log, $_ ) foreach @functions;
+    my @functions = qw( reconfig off on do DESTROY );
+    can_ok( $log, $_ ) foreach @functions;
 }
 
 CONSTRUCTOR_WITH_ARGS: {
-  # Note: giving `Opts' below hushes some warnings produced from Sys::Syslog
-  my $log = new Sendpage::KeesLog Syslog => 1, Opts => 'pid nodelay nowait';
-  isa_ok( $log, 'Sendpage::KeesLog' );
+    # Note: giving `Opts' below hushes some warnings produced from Sys::Syslog
+    my $log = new Sendpage::KeesLog Syslog => 1, Opts => 'pid nodelay nowait';
+    isa_ok( $log, 'Sendpage::KeesLog' );
 
-  # basic testing; assumes syslog is up
-  is( $log->on,
-      1,
-      "log on" );
-  ok( $log->do('debug', "testing Sendpage::KeesLog::do()"),
-      "do() to syslog" );
-  is( $log->off,
-      undef,
-      "log off" );
+    # basic testing; assumes syslog is up
+    is( $log->on,
+	1,
+	"log on" );
+    ok( $log->do('debug', "testing Sendpage::KeesLog::do()"),
+	"do() to syslog" );
+    is( $log->off,
+	undef,
+	"log off" );
 
-  # make a tempfile for stderr redirection
-  require File::Temp;
-  my $tfh = new File::Temp UNLINK => 1;
-  isa_ok( $tfh, 'File::Temp', $tfh );
-  my $fname = $tfh->filename;
+    # make a tempfile for stderr redirection
+    require File::Temp;
+    my $tfh = new File::Temp UNLINK => 1;
+    isa_ok( $tfh, 'File::Temp', $tfh );
+    my $fname = $tfh->filename;
 
-  # save away our stderr to the tempfile for later testing
-  local *SAVEERR;
-  open SAVEERR, ">&STDERR";
-  open STDERR,  "> $fname" or die "Can't redirect stderr";
-  select STDERR; $| = 1;
+    # save away our stderr to the tempfile for later testing
+    local *SAVEERR;
+    open SAVEERR, ">&STDERR";
+    open STDERR,  "> $fname" or die "Can't redirect stderr";
+    select STDERR; $| = 1;
 
-  $log->reconfig(Syslog => 0);
-  $log->do('info', "testing Sendpage::KeesLog::do()");
+    $log->reconfig(Syslog => 0);
+    $log->do('info', "testing Sendpage::KeesLog::do()");
 
-  close STDERR;
-  open  STDERR, ">&SAVEERR";
+    close STDERR;
+    open  STDERR, ">&SAVEERR";
 
-  like( <$tfh>,
-        qr/testing/,
-        "logging to stderr" );
-  close $tfh;
+    like( <$tfh>,
+	  qr/testing/,
+	  "logging to stderr (redirected to tempfile)" );
+    close $tfh;
 
-  # cleanup
-  is( unlink($fname),
-      1,
-      "Remove $fname" );
-  ok( !-e $fname, "$fname gone" );
+    # cleanup
+    is( unlink($fname),
+	1,
+	"Remove $fname" );
+    ok( !-e $fname, "$fname gone" );
 }

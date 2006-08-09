@@ -56,6 +56,7 @@ my %opts=(
 		$serialport_driver => $serialport_version,		
 		'DBI' => 0,
 		'Test::More' => 0,
+		'Test::MockObject' => 1.00,
 	},
 );
 

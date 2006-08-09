@@ -85,7 +85,16 @@ sub reconfig
     $self->{SYSLOG}   = $arg{Syslog};
     $self->{OPTS}     = $arg{Opts};
     $self->{FACILITY} = $arg{Facility};
-    $self->{MINLEVEL} = $arg{MinLevel} || "debug";
+    $self->{MINLEVEL} = $arg{MinLevel};
+    if (defined($arg{MinLevel})
+	&& defined($LogLevels{$arg{MinLevel}}))
+    {
+	$self->{MINLEVEL} = $arg{MinLevel};
+    }
+    else
+    {
+	$self->{MINLEVEL} = "debug";
+    }
 
     unless (defined $self->{SYSLOG}) {
         $self->{SYSLOG} = 0;

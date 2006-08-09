@@ -39,4 +39,7 @@ sendpage.init
 t/00_init.t
 t/01_Sendpage-KeesConf.t
 t/02_Sendpage-KeesLog.t
+t/04_Sendpage-Page.t
+t/05_Sendpage-Queue.t
+t/07_Sendpage-Recipient.t
 META.yml                                 Module meta-data (added by MakeMaker)

@@ -155,17 +155,24 @@ sub new
 
     #warn "Recipient '$name' built\n";
 
-    return bless $self => $class;;
+    return bless $self => $class;
 }
 
 # Pure accessor methods, no modifying of object attributes
-foreach my $field (qw(alias dests data pin pc name)) {
+foreach my $field (qw(alias data pin pc name)) {
     no strict "refs";		# Access symbol table
     *$field = sub
     {
 	my $self = shift;
 	return $self->{uc $field};
     };
+}
+
+sub dests
+{
+    my $self = shift;
+
+    $self->{DEST};
 }
 
 sub datum
