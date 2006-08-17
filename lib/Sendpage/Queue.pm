@@ -415,7 +415,7 @@ sub unlockQueue
 sub createUniqueName
 {
     my $self = shift;
-    $self->counter += 1;	# a bit contrived since we're using an
+    $self->{COUNTER} += 1;	# a bit contrived since we're using an
 				# lvalued counter
 
     return sprintf("%010d%05d%03d",

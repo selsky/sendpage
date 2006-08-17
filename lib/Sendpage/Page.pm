@@ -184,7 +184,7 @@ sub attempts
 
 sub dump
 {
-    my $self = @_;
+    my ($self) = @_;
 
     my ($str, $recip, $key);
 
@@ -193,14 +193,17 @@ sub dump
     for ($self->reset(), $self->next();
 	 defined($recip = $self->recip());
 	 $self->next()) {
-	my @list = undef;
-	push @list, $recip->name();
+
+	my @list;
 	if (defined $recip->data()) {
 	    foreach $key (keys %{ $recip->data() }) {
 		push @list, "${key}=" . $recip->datum($key);
 	    }
 	}
-	$str .= "to: " . join("," => @list) . "\n";
+
+	$str .= "to: " . $recip->name()."\n";
+	$str .= join(",", @list) . "\n"
+		if (scalar(@list) > 0);
     }
     foreach $key (sort keys %{ $self->{DATA} }) {
 	$str .= "$key: " . $self->{DATA}->{$key} . "\n";

@@ -160,11 +160,11 @@ L<Sendpage::Page>, L<Sendpage::Recipient>, L<Sendpage::Queue>
 require 5.006;
 
 # Global variables;
-$VERSION=1.001_001; # our version!
+$VERSION=1.001_002; # our version!
 $VERSION_human=sprintf("%d.%d.%d",
 		       int(${VERSION}),
-		       substr((${VERSION}=~/^\d\.(\d+)$/),0,3),
-		       substr((${VERSION}=~/^\d\.(\d+)$/),3,3));
+		       substr((${VERSION}=~/^\d\.(\d+)$/)[0],0,3),
+		       substr((${VERSION}=~/^\d\.(\d+)$/)[0],3,3));
 
 my $config;			# holds the configuration object
 undef $log;			# holds logging object
@@ -1756,7 +1756,7 @@ sub initConfig
     $config->define("pc:dialwait",{ UNSET => 1 });
     $config->define("pc:rundelay",{DEFAULT => 30 });
     $config->define("pc:dialretries",{ DEFAULT => 3 });
-    # allow for redefining the proto version
+    # allow for selecting delivery protocol (TAP (PG1, PG3), UCP, SMS, SNPP)
     $config->define("pc:proto",{DEFAULT => "PG1" });
     # allow for forced multiple fields in BlockTrans
     $config->define("pc:fields",{DEFAULT => 2 });

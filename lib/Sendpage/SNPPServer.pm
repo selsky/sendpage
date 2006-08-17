@@ -87,7 +87,8 @@ sub HandleSNPP
     {
 	@PINS   = ( );
 	@recips = ( );
-	$caller = $pin = $pc = $recips = $recip = $fail = $text = undef;
+	$caller = "";
+	$pin = $pc = $recips = $recip = $fail = $text = undef;
 
 	# start off looking for a pin & text
 	$NEED_PIN  = 1;
@@ -121,7 +122,7 @@ sub HandleSNPP
 		if ${*$sock}{'net_cmd_debug'};
 
 	    # drop our trailing crlf
-	    $input = ~s/\r?\n$//;
+	    $input =~ s/\r?\n$//;
 
 	    # parse out our text
 	    my ($cmd, $args);
@@ -337,7 +338,7 @@ sub write_queued_pages
 	foreach $pagetext (@pages) {
 	    my $file = $queue->addPage(Sendpage::Page->new($recips, \$pagetext,
 							   { when => time,
-							     from => ($from ne "") ? $from : undef
+							     from => (defined($from) && $from ne "") ? $from : undef
 							   }));
 	    if (!defined($file)) {
 		$log->do('err',

@@ -458,9 +458,9 @@ sub dial
 
     # allow for blank dial strs (direct attaches)
     if ($modem_dial eq "") {
-	$self->{LOG}->do('debug', "skipping dial ...")
-	    if $self->{DEBUG};
-	return 1;
+        $self->{LOG}->do('debug', "skipping dial ...")
+            if $self->{DEBUG};
+        return 1;
     }
 
     unless (defined($dial_num) || $dial_num ne "") {

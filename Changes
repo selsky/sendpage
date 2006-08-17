@@ -1,13 +1,14 @@
 $Id$
 
 1.1.1: (CVS)
-	- changed Sys::Hostname to Sys::Hostname::Long since we need
-	  the FQDN to be a valid email address.  (Thanks Joh Clarke!)
+    - changed Sys::Hostname to Sys::Hostname::Long since we need
+      the FQDN to be a valid email address.  (Thanks Joh Clarke!)
     - fixed time-out code to handle endless failure situation (from 1.0.2)
     - fixed recipient bleed-through across SEND/RESE in SNPP (from 1.0.2)
     - fixed queue filename collision (from 1.0.2)
     - added minimal "use" testing (from 1.0.2)
     - corrected version number reporting on banner (from 1.0.2)
+    - added SMS delivery capabilities (proto=SMS)
 
 1.1.0: (2005-06-10)
     - rearranged modem init so that failed modems will be skipped

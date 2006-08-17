@@ -311,7 +311,7 @@ sub start_proto {
 	# - disconnect
 	# - and this one (start_proto)
 	# UCP doesn't need to loggon. So we just skip that for UCP
-	if($SST ne "UCP"){	# Proto is PG1 or PG3
+	if($SST =~ /^TAP|PG[13]$/){	# Proto is TAP (PG1 or PG3)
 	   # wait for ID=
 	   #   timeout("\r")
 	   $result=$modem->chat("\r","\r","ID=",$self->{AnswerWait},
@@ -443,8 +443,11 @@ sub send {
 	if ($proto eq "UCP"){ # UCP has his own message-handler
 		@result=$self->HandleUCPMessage(@fields);
 	}
+    elsif ($proto eq "SMS") {
+		@result=$self->HandleSMSMessage(@fields);
+    }
 	else{
-		@result=$self->HandleMessage(@fields);
+		@result=$self->HandleTAPMessage(@fields);
 	}
 
 	# Handle any post-processing (maxpages, etc)
@@ -832,7 +835,7 @@ sub HandleUCPMessage{
                 $self->disconnect();
    }
 
-   # Create the hole message for sending, including header and checksum
+   # Create the whole message for sending, including header and checksum
    $msg=$self->AssembleUCPMessage($pin,$msgtext);
 
    # Transmit the message
@@ -926,11 +929,52 @@ sub CreateUCPHeader{
    $HDmsg = "01".$TRN.$totalLength.$TRN."O".$TRN."01".$TRN;
                 
    return $HDmsg;
-   
-   
 }
 
-sub HandleMessage {
+sub HandleSMSMessage {
+    my($self,$pin,$msgtext)=@_;
+
+    # checking maxlenth of Text to send
+    if (length($msgtext) > $self->{MAXCHARS}){
+        $main::log->do('crit',"Cannot send message!".
+            " Message with %d chars to long.",$self->{MAXCHARS});
+        return ($PERM_ERROR,"Message too long");
+   }
+
+    if (!defined($self->{MODEM})) {
+        ($rc,$report)=$self->start_proto();
+        if (!defined($rc)) {
+            $main::log->do('crit',"SMS proto startup failed (%s)",$report);
+            return ($TEMP_ERROR,$report); # temp failure
+        }
+    }
+
+	# transmit block here
+	$result=$self->{MODEM}->chat("AT+CMGS=\"$pin\"\r","",
+		"${CR}${LF}?> ", $T[3], 1);
+	if (!defined($result)) {
+		$main::log->do('warning',"SMS message start attempt timed out");
+        return ($TEMP_ERROR,"SMS message start attempt timed out");
+	}
+
+	$self->{MODEM}->HexDump($result) if ($self->{DEBUG});
+
+	$result=$self->{MODEM}->chat("$msgtext\cZ\r","\cZ\r",
+		"${CR}${LF}?".qr(\+)."CM", $T[3], 1);
+	if (!defined($result)) {
+		$main::log->do('warning',"SMS message delivery attempt timed out");
+        return ($TEMP_ERROR,"SMS message delivery attempt timed out");
+	}
+
+	$self->{MODEM}->HexDump($result) if ($self->{DEBUG});
+   
+    if ($result =~ /\+CMS ERROR: (.*)/) {
+        return ($PERM_ERROR,"SMS delivery failure: $1");
+    } 
+    return ($SUCCESS, "SMS delivered");
+}
+
+sub HandleTAPMessage {
    my $self = shift;
    my(@fields)=@_;
    my($i,@blocks,$block,$result,$report,$rc);
@@ -945,7 +989,7 @@ sub HandleMessage {
    #    send the page
    if ($self->{MaxBlocks}>0) {
 	if ($#blocks+1 > $self->{MaxBlocks}) {
-		$main::log->do('crit',"HandleMessage: could NEVER send this ".
+		$main::log->do('crit',"HandleTAPMessage: could NEVER send this ".
 		"page if 'maxblocks' is %d!",$self->{MaxBlocks});
    	}
    # 4) decide if we drop the connection (enough spare blocks to send message?)
@@ -960,7 +1004,7 @@ sub HandleMessage {
    if (!defined($self->{MODEM})) {
 	($rc,$report)=$self->start_proto();
 	if (!defined($rc)) {
-		$main::log->do('crit',"proto startup failed (%s)",$report);
+		$main::log->do('crit',"TAP proto startup failed (%s)",$report);
 		return ($TEMP_ERROR,$report); # temp failure
 	}
    }
