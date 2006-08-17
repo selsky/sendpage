@@ -160,7 +160,7 @@ L<Sendpage::Page>, L<Sendpage::Recipient>, L<Sendpage::Queue>
 require 5.006;
 
 # Global variables;
-$VERSION=1.001_002; # our version!
+$VERSION=1.001_001; # our version!
 $VERSION_human=sprintf("%d.%d.%d",
 		       int(${VERSION}),
 		       substr((${VERSION}=~/^\d\.(\d+)$/)[0],0,3),
