@@ -80,3 +80,5 @@ CONSTRUCTOR: {
 	}
     }
 }
+
+# /* vim: set filetype=perl : */ 

@@ -132,3 +132,6 @@ if ($page->deliverable) {
 is( $page->has_recips,
     '',
     qq(no more recips()) );
+
+# /* vim: set filetype=perl : */ 
+# /* vi:set ai ts=4 sw=4 expandtab: */

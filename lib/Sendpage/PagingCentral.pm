@@ -769,54 +769,59 @@ sub GenerateBlocks {
    $chunk=$block="";
    undef $field;
    while ((defined($field) && length($field)>0) || ($#fields>=0)) {
-    if (!defined($field) || $field eq "") {
-        $field=shift(@fields);
-        $origfield=$field;    # save a copy for the future
-    }
+	if (!defined($field) || $field eq "") {
+		$field=shift(@fields);
+		$origfield=$field;	# save a copy for the future
+	}
 
-#    warn "origfield: '$origfield'\n";
-#    warn "field:     '$field'\n";
+#	warn "origfield: '$origfield'\n";
+#	warn "field:     '$field'\n";
 
-    # pull the next char and translate and escape it if we need to
-    my($chunk,$newfield)=$self->PullNextChar($field);
+	# pull the next char and translate and escape it if we need to
+	my($chunk,$newfield)=$self->PullNextChar($field);
 
-#    warn "chunk:     '$chunk'\n";
-#    warn "newfield:  '$newfield'\n";
+#	warn "chunk:     '$chunk'\n";
+#	warn "newfield:  '$newfield'\n";
 
-    if (length($chunk)+length($block)<=($self->{CharsPerBlock}-$fields)) {
-        $block.=$chunk;
+    # Each field is terminated with a CR, so we must keep $fields-many
+    # characters available in the block.  FIXME: This calculating is overly
+    # aggressive.
+	if (length($chunk)+length($block)<=($self->{CharsPerBlock}-$fields)) {
+		$block.=$chunk;
 
-        # did we just exhaust a field?
-        if (!defined($newfield) || $newfield eq "") {
-            undef $field;    # clear it for the next field
-            $block.=$CR;    # attach a CR
-            $fields--;    # drop the count of fields
-        }
-        else {
-            $field=$newfield; # drop that leading char
-        }
-    }
-    else {
-        # we are now at our maximum block size
+		# did we just exhaust a field?
+		if (!defined($newfield) || $newfield eq "") {
+			undef $field;	# clear it for the next field
+			$block.=$CR;	# attach a CR
+			$fields--;	# drop the count of fields
+		}
+		else {
+			$field=$newfield; # drop that leading char
+		}
+	}
+	else {
+		# we are now at our maximum block size
 
-        # if we didn't finish the field, we need to use a
-        #    "US" marker to continue the field in the next block
-        # if we have more blocks to send, we need to use "ETB"
-        # if we're done sending, we send "ETX"
-        if ($field eq $origfield) {
-            # if $field is untouched, we're not in the
-            #  middle of a field on this block
-            $sep=(length($field)>0 || defined($fields[0])) ?
-                $ETB : $ETX;
-        }
-        else {
-            $sep = $US;
-        }
-        push(@blocks,[ $block, $sep ]);
-        $part++;    # now on to the next part?
-        $block="";
-    }
+		# if we didn't finish the field, we need to use a
+		#    "US" marker to continue the field in the next block
+		# if we have more blocks to send, we need to use "ETB"
+		# if we're done sending, we send "ETX"
+		if ($field eq $origfield) {
+			# if $field is untouched, we're not in the
+			#  middle of a field on this block
+			$sep=(length($field)>0 || defined($fields[0])) ?
+				$ETB : $ETX;
+		}
+		else {
+			$sep = $US;
+		}
+		push(@blocks,[ $block, $sep ]);
+		$part++;	# now on to the next part?
+		$block="";
+	}
    }
+   # FIXME: won't this ALWAYS be true, since we never undef $block?
+   # This seems like a bug: we're always sending an additional empty field.
    if (defined($block)) {
     # done with everything, store the final block
     push(@blocks,[ $block, $ETX ]);

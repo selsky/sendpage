@@ -42,4 +42,5 @@ t/02_Sendpage-KeesLog.t
 t/04_Sendpage-Page.t
 t/05_Sendpage-Queue.t
 t/07_Sendpage-Recipient.t
+t/10_Sendpage-PagingCentral.t
 META.yml                                 Module meta-data (added by MakeMaker)

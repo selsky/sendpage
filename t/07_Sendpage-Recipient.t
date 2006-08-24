@@ -97,3 +97,5 @@ CONSTRUCTOR: {
 	    "found paging central");
     }
 }
+
+# /* vim: set filetype=perl : */ 
