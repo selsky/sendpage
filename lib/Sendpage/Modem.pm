@@ -239,13 +239,13 @@ sub new
     return $self;
 }
 
-=item init LIST
+=item init EXPR
 
 Initialize a Sendpage::Device with given settings and sends the init
 string.
 
-Accepts baud rate, parity, data bits, stop bits, flow control flag,
-init string, and parity strictness (for Win32 systems.)
+Accepts hash consisting of baud rate, parity, data bits, stop bits, flow
+control flag, init string, and parity strictness (for Win32 systems.)
 
 Emits whatever the result of a C<chat> call (inherited from
 L<Device::SerialPort>,) C<undef> otherwise.
@@ -258,47 +258,37 @@ L<Device::SerialPort>,) C<undef> otherwise.
 sub init
 {
     my $self = shift;
-    my($baud, $parity, $data, $stop, $flow, $str, $strict_parity) = @_;
+    my %arg = @_;
     my $name = "Modem '$self->{MYNAME}'";
 
+    # check if modem is locked
     unless (defined $self->{LOCKFILE}) {
 	$self->{LOG}->do('crit',"init: $name not locked");
 	return undef;
     }
 
-    $baud	   ||= $self->{Baud};
-    $parity	   ||= $self->{Parity};
-    $data	   ||= $self->{Data};
-    $stop	   ||= $self->{Stop};
-    $flow	   ||= $self->{Flow};
-    $str	   ||= $self->{Init};
-    $strict_parity ||= $self->{StrictParity};
+    my %settings =
+	(
+	 Baud => "baud rate",
+	 Parity => "parity",
+	 Data => "data bits",
+	 Stop => "stop bits",
+	 Flow => "flow control",
+	 Init => "init string",
+	 StrictParity => "strict parity",
+	);
 
-    my $ok	    = $self->{InitOK};
-    my $initwait    = $self->{InitWait};
-    my $initretries = $self->{InitRetry};
+    foreach my $setting (keys %settings) {
+	$arg{$setting} ||= $self->{$setting};
 
-    # sanity check our config options
-    if (!defined($baud)) {
-	$self->{LOG}->do('alert', "$name has no baud rate defined!");
-	return undef;
+	# sanity check our config options
+	unless (defined $arg{$setting}) {
+	    $self->{LOG}->do('alert',
+			     "$name has no $settings{$setting} defined!");
+	    return undef;
+	}
     }
-    if (!defined($parity)) {
-	$self->{LOG}->do('alert', "$name has no parity defined!");
-	return undef;
-    }
-    if (!defined($data)) {
-	$self->{LOG}->do('alert', "$name has no data bits defined!");
-	return undef;
-    }
-    if (!defined($stop)) {
-	$self->{LOG}->do('alert', "$name has no stop bits defined!");
-	return undef;
-    }
-    if (!defined($flow)) {
-	$self->{LOG}->do('alert', "$name has no flow control defined!");
-	return undef;
-    }
+
     #	if (!defined($str)) {
     #		$self->{LOG}->do('alert', "$name has no init string defined!");
     #		return undef;
@@ -307,58 +297,36 @@ sub init
     # pass various settings through to the serial port
     $self->alias($self->{MYNAME});
 
-    my $baud_set = $self->baudrate($baud);
-    $self->{LOG}->do('debug', "baud requested: '$baud' baud set: '$baud_set'")
-	if $self->{DEBUG};
-    if ($baud ne $baud_set) {
-	$self->{LOG}->do('alert', "$name failed to set baud rate!");
-	return undef;
-    }
+    # methods hash
+    my %method_set =
+	(
+	 Baud => $self->baudrate($arg{Baud}),
+	 Parity => $self->parity($arg{Parity}),
+	 Data => $self->databits($arg{Data}),
+	 Stop => $self->stopbits($arg{Stop}),
+	 Flow => $self->handshake($arg{Flow}),
+	);
 
-    my $parity_set = $self->parity($parity);
-    $self->{LOG}->do('debug',
-		     "parity requested: '$parity' parity set: '$parity_set'")
-	if $self->{DEBUG};
-    if ($parity ne $parity_set) {
-	$self->{LOG}->do('alert', "$name failed to set parity!");
-	return undef;
+    foreach my $setting (keys %method_set) {
+	my $set = $method_set{$setting};
+	$self->{LOG}->do('debug',
+			 "$setting requested: '$arg{$setting} $setting set: '$set'")
+	    if $self->{DEBUG};
+	if ($arg{$setting} ne $set) {
+	    $self->{LOG}->do('alert', "$name failed to set $settings{$setting}!");
+	    return undef;
+	}
     }
 
     # Make sure we're backward compatible with Win32
     if ($self->can("stty_inpck") && $self->can("stty_istrip")) {
-	if ($strict_parity) {
+	if ($arg{StrictParity}) {
 	    $self->stty_inpck(1);
 	    $self->stty_istrip(1);
 	} else {
 	    $self->stty_inpck(0);
 	    $self->stty_istrip(0);
 	}
-    }
-
-    my $data_set = $self->databits($data);
-    $self->{LOG}->do('debug',
-		     "databits requested: '$data' databits set: '$data_set'")
-	if $self->{DEBUG};
-    if ($data ne $data_set) {
-	$self->{LOG}->do('alert', "$name failed to set databits!");
-	return undef;
-    }
-
-    my $stop_set = $self->stopbits($stop);
-    $self->{LOG}->do('debug',
-		     "stopbits requested: '$stop' stopbits set: '$stop_set'")
-	if $self->{DEBUG};
-    if ($stop ne $stop_set) {
-	$self->{LOG}->do('alert', "$name failed to set stopbits!");
-	return undef;
-    }
-
-    my $flow_set = $self->handshake($flow);
-    $self->{LOG}->do('debug', "flow requested: '$flow' flow set: '$flow_set'")
-	if $self->{DEBUG};
-    if ($flow ne $flow_set) {
-	$self->{LOG}->do('alert', "$name failed to set flow control!");
-	return undef;
     }
 
     # set a char timeout for modem commands
@@ -384,15 +352,20 @@ sub init
 
     my $result = undef;
     # allow for blank inits (direct attaches)
-    if ($str eq "") {
+    if ($arg{Init} eq "") {
 	$self->{LOG}->do('debug', "skipping init string ...")
 	    if $self->{DEBUG};
 	$result = 1;
     } else {
 	# send the init string through
 	$self->{INITDONE} = 1;	# frame this to let chat work
-	$result = $self->chat("$str\r", "$str\r", $ok, $initwait,
-			      $initretries, $self->{Error}, "off");
+	$result = $self->chat("$arg{Init}\r", "$arg{Init}\r",
+			      $self->{InitOK},
+			      $self->{InitWait},
+			      $self->{InitRetry},
+			      $self->{Error},
+			      "off",
+			     );
 	$self->{INITDONE} = 0;	# disable again
     }
     if (defined $result) {
@@ -444,7 +417,9 @@ call.
 # FIXME: implement dial retries
 sub dial
 {
-    my ($self, $dial_areacode, $dial_num, $dialwait, $dialretries) = @_;
+    my $self = shift;
+    my %arg = @_;
+#     my ($self, $dial_areacode, $dial_num, $dialwait, $dialretries) = @_;
 
     return undef unless $self->ready("dial");
 
@@ -453,17 +428,17 @@ sub dial
     my $modem_longdist = $self->{LongDist};
     my $modem_dialout  = $self->{DialOut};
 
-    $dialwait    ||= $self->{DialWait};
-    $dialretries ||= $self->{DialRetry};
+    $arg{DialWait}  ||= $self->{DialWait};
+    $arg{DialRetry} ||= $self->{DialRetry};
 
     # allow for blank dial strs (direct attaches)
     if ($modem_dial eq "") {
-        $self->{LOG}->do('debug', "skipping dial ...")
-            if $self->{DEBUG};
-        return 1;
+	$self->{LOG}->do('debug', "skipping dial ...")
+	    if $self->{DEBUG};
+	return 1;
     }
 
-    unless (defined($dial_num) || $dial_num ne "") {
+    unless (defined($arg{PhoneNum}) || $arg{PhoneNum} ne "") {
 	$self->{LOG}->do('err', "Nothing to dial (no phone number)");
 	return undef;
     }
@@ -471,25 +446,25 @@ sub dial
     my $actual_num = "";
     my $report     = "";
 
-    if (defined($dial_areacode) && defined($modem_areacode)) {
-	if ($dial_areacode != $modem_areacode) {
-	    $actual_num  = $modem_longdist . $dial_areacode;
+    if (defined($arg{AreaCode}) && defined($modem_areacode)) {
+	if ($arg{AreaCode} != $modem_areacode) {
+	    $actual_num  = $modem_longdist . $arg{AreaCode};
 	    $report      = "LongDist: '$modem_longdist' ";
-	    $report     .= "PCAreaCode: '$dial_areacode' ";
+	    $report     .= "PCAreaCode: '$arg{AreaCode}' ";
 	} else {
 	    $report      = "(Not LongDist) ";
 	}
     } else {
 	# add the area code anyway
-	$actual_num = $dial_areacode;
-	if (defined($dial_areacode)) {
+	$actual_num = $arg{AreaCode};
+	if (defined $arg{AreaCode}) {
 	    $report  = "(No Modem AreaCode) ";
-	    $report .= "PCAreaCode: '$dial_areacode' "
+	    $report .= "PCAreaCode: '$arg{AreaCode}' "
 	}
     }
     # we always need to end the dialing with the phone number...
-    $actual_num .= $dial_num;
-    $report     .= "Num: '$dial_num'";
+    $actual_num .= $arg{PhoneNum};
+    $report     .= "Num: '$arg{PhoneNum}'";
 
     if ($modem_dialout ne "") {
 	$report = "DialOut: '$modem_dialout' " . $report;
@@ -498,8 +473,9 @@ sub dial
     $self->{LOG}->do('debug', "Calling with %s", $report) if $self->{DEBUG};
 
     return $self->chat($modem_dial . $modem_dialout . $actual_num . "\r",
-		       "", $self->{DialOK}, $dialwait, 1,
-		       $self->{NoCarrier}, "off");
+		       "", $self->{DialOK}, $arg{DialWait}, 1,
+		       $self->{NoCarrier}, "off",
+		      );
 }
 
 =item safe_write STRING
