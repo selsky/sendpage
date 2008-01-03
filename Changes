@@ -1,6 +1,6 @@
 $Id$
 
-1.1.1: (CVS)
+1.1.1: (UNRELEASED)
     - changed Sys::Hostname to Sys::Hostname::Long since we need
       the FQDN to be a valid email address.  (Thanks Joh Clarke!)
     - fixed time-out code to handle endless failure situation (from 1.0.2)
@@ -11,6 +11,7 @@ $Id$
     - added SMS delivery capabilities (proto=SMS)
     - changed default "group-tty" to "dailout"
     - Google Summer of Code cleanups by Zak B. Elep
+    - Don't include RFC1861 -- the license is non-free
 
 1.1.0: (2005-06-10)
     - rearranged modem init so that failed modems will be skipped
