@@ -15,7 +15,8 @@ Contact me if you need a copy of the specification and none of the above
 URLs work.  I'll help you find a copy.  ;)
 
 
-I have, however, included the SNPP specifications from RFC1861.
+The SNPP specifications are published in RFC1861:
+    http://www.faqs.org/rfcs/rfc1861.html
 
 The "PagingCentrals.txt" file contains a database dump of all the
 paging centrals I know about.
