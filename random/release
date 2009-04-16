@@ -15,7 +15,7 @@ make test
 make dist
 make distclean
 
-ncftpput upload.sf.net /incoming sendpage-$VERSION.tar.gz
+#ncftpput upload.sf.net /incoming sendpage-$VERSION.tar.gz
 cp sendpage-$VERSION.tar.gz $WEB/download
 rm $WEB/download/LATEST*
 touch $WEB/download/LATEST-IS-$VERSION
@@ -28,3 +28,4 @@ touch $WEB/download/LATEST-IS-$VERSION
 #mv sendpage-$VERSION.tar.gz ../../tgzs/
 #(cd ../../rel; tar zxf ../tgzs/sendpage-$VERSION.tar.gz)
 echo "Edit sendpage.org/content/downloads.inc"
+echo "Upload to SourceForge"

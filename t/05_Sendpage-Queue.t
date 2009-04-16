@@ -34,7 +34,7 @@ CONSTRUCTOR: {
 
     # populate tempdir with files
     my @tempfiles;
-    (undef, $tempfiles[ $_ ]) = tempfile( "qXXXX", UNLINK => 1, DIR => $dir )
+    (undef, $tempfiles[ $_ ]) = tempfile( sprintf("q%02dXXXXXX", $_), UNLINK => 1, DIR => $dir )
 	foreach 0 .. 10;
 
     my $queue = new Sendpage::Queue $dir;
@@ -81,4 +81,4 @@ CONSTRUCTOR: {
     }
 }
 
-# /* vim: set filetype=perl : */ 
+# /* vim: set filetype=perl : */

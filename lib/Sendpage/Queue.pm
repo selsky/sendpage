@@ -137,7 +137,7 @@ sub ready
 
     map { warn "$$: in '$self->{DIR}': $_\n" } @files if $DEBUG;
 
-    $self->{FILES} = [ grep /^q/, @files ];
+    $self->{FILES} = [ sort( grep /^q/, @files ) ];
     @files = @{ $self->{FILES} };
 
     map { warn "$$: in FILES: $_\n" } @files if $DEBUG;

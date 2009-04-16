@@ -1,6 +1,6 @@
 $Id$
 
-1.1.1: (UNRELEASED)
+1.1.1: (2009-04-16)
     - changed Sys::Hostname to Sys::Hostname::Long since we need
       the FQDN to be a valid email address.  (Thanks Joh Clarke!)
     - fixed time-out code to handle endless failure situation (from 1.0.2)
