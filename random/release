@@ -15,7 +15,8 @@ make test
 make dist
 make distclean
 
-#ncftpput upload.sf.net /incoming sendpage-$VERSION.tar.gz
+rsync -avP sendpage-$VERSION.tar.gz keescook@frs.sourceforge.net:uploads/
+
 cp sendpage-$VERSION.tar.gz $WEB/download
 rm $WEB/download/LATEST*
 touch $WEB/download/LATEST-IS-$VERSION
