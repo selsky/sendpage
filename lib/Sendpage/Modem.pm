@@ -300,11 +300,11 @@ sub init
     # methods hash
     my %method_set =
 	(
-	 Baud => $self->baudrate($arg{Baud}),
-	 Parity => $self->parity($arg{Parity}),
-	 Data => $self->databits($arg{Data}),
-	 Stop => $self->stopbits($arg{Stop}),
-	 Flow => $self->handshake($arg{Flow}),
+	 Baud => scalar $self->baudrate($arg{Baud}),
+	 Parity => scalar $self->parity($arg{Parity}),
+	 Data => scalar $self->databits($arg{Data}),
+	 Stop => scalar $self->stopbits($arg{Stop}),
+	 Flow => scalar $self->handshake($arg{Flow}),
 	);
 
     foreach my $setting (keys %method_set) {
