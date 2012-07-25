@@ -78,7 +78,7 @@
 #group-lock=lock
 
 # Group sendpage needs to read/write devices.
-#	Default is "tty"
+#	Default is "dialout"
 #group-tty=users
 
 # Email address that page emails claims to be coming from.
