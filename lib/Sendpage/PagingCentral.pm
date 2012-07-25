@@ -585,7 +585,7 @@ sub deliver
 	      if ($self->{CCSimple} && defined($cc) && $cc ne "") {
 		  $email_to = $cc;
 		  $subject  = "";
-		  $body     = $paged->text() . "\n\n";
+		  $body     = $page->text() . "\n\n";
 		  $self->SendMail($email_to,
 				  $self->{PageDaemon},
 				  $email_cc,
